@@ -1,0 +1,28 @@
+{
+  "name": "@flancer64/pwa-home-call",
+  "version": "0.1.0",
+  "description": "Simple self-hosted PWA for private family video calls. Built with pure JavaScript and WebRTC.",
+  "main": "bin/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node code/server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flancer64/pwa-home-call.git"
+  },
+  "keywords": [
+    "pwa",
+    "webrtc",
+    "video-call",
+    "javascript",
+    "self-hosted"
+  ],
+  "author": "Alex Gusev <alex@yourdomain> (https://github.com/flancer64)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/flancer64/pwa-home-call/issues"
+  },
+  "homepage": "https://github.com/flancer64/pwa-home-call#readme"
+}
