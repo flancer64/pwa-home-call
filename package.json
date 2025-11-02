@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/flancer64/pwa-home-call#readme",
   "dependencies": {
-    "@flancer32/teq-web": "^0.3.1"
+    "@flancer32/teq-web": "^0.3.1",
+    "dotenv": "^17.2.3"
   }
 }
