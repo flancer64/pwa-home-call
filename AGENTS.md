@@ -57,7 +57,6 @@
 
 - ctx/agent/overview.md — локальные правила и протоколы работы агента;
 - ctx/rules/architecture.md — архитектурные принципы и структура;
-- ctx/rules/language.md — языковая политика проекта;
 - ctx/product/overview.md — цели и назначение продукта.
 
 ---
@@ -66,17 +65,3 @@
 
 Этот файл определяет инварианты методологии ADSM и может использоваться без изменений во всех проектах.  
 Локальные отклонения описываются только в подкаталогах `./ctx/`.
-
----
-
-## Версия шаблона
-
-ADSM Agents Manifest — v0.4a (универсальный шаблон)  
-Совместим с ADSM Core Manifest v1.x
-
----
-
-## Ссылки
-
-- ADSM Core Manifest — <https://adsm.dev/core/manifest>
-- ADSM Templates Repository — <https://github.com/adsm-core/templates>

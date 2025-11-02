@@ -5,7 +5,7 @@
   "main": "bin/server.js",
   "type": "module",
   "scripts": {
-    "start": "node code/server/server.js",
+    "start": "node bin/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,10 +19,13 @@
     "javascript",
     "self-hosted"
   ],
-  "author": "Alex Gusev <alex@yourdomain> (https://github.com/flancer64)",
+  "author": "Alex Gusev <alex@flancer64.com> (https://github.com/flancer64)",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/flancer64/pwa-home-call/issues"
   },
-  "homepage": "https://github.com/flancer64/pwa-home-call#readme"
+  "homepage": "https://github.com/flancer64/pwa-home-call#readme",
+  "dependencies": {
+    "@flancer32/teq-web": "^0.3.1"
+  }
 }
