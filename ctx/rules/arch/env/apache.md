@@ -2,23 +2,9 @@
 
 ## Назначение
 
-Apache используется как внешний HTTP-сервер в архитектуре проекта **HomeCall**.  
-Он выполняет две функции:
+Apache используется как внешний HTTP-сервер в архитектуре проекта **HomeCall**: раздаёт статику фронтенда и проксирует API-запросы к Node.js-приложению, построенному на `@flancer32/teq-web` поверх `@teqfw/di`.
 
-1. Раздача статических файлов фронтенда из каталога `./web/`.
-2. Проксирование API-запросов к Node.js-приложению, работающему через `@flancer32/teq-web`.
-
-Apache не входит в состав кодовой базы и рассматривается как часть окружения развертывания.
-
----
-
-## 1. Раздача статики
-
-### Роль
-
-Обслуживает все запросы, не начинающиеся с `/api`, напрямую из каталога `./web/`, без участия Node.js.
-
-### Пример конфигурации
+## Минимальная конфигурация
 
 ```apache
 <VirtualHost *:80>
@@ -31,50 +17,6 @@ Apache не входит в состав кодовой базы и рассма
         Require all granted
     </Directory>
 
-    # Кеширование статики
-    <IfModule mod_expires.c>
-        ExpiresActive On
-        ExpiresByType text/html "access plus 0 seconds"
-        ExpiresByType text/css "access plus 7 days"
-        ExpiresByType application/javascript "access plus 7 days"
-        ExpiresByType image/* "access plus 30 days"
-    </IfModule>
-
-    ErrorLog ${APACHE_LOG_DIR}/homecall-error.log
-    CustomLog ${APACHE_LOG_DIR}/homecall-access.log combined
-</VirtualHost>
-```
-
-### Комментарии
-
-- Фронтенд размещается в `/var/www/homecall/web`, что соответствует локальному каталогу `./web/` в репозитории.
-- Права доступа должны позволять только чтение.
-- При необходимости можно добавить HTTPS и редирект с HTTP на HTTPS.
-
----
-
-## 2. Проксирование API к Node.js
-
-### Роль
-
-Передаёт все запросы к `/api/*` во внутренний Node.js-сервер, запущенный на `127.0.0.1:3000`.
-Используется стандартный механизм `mod_proxy` и `mod_proxy_http`.
-
-### Пример конфигурации
-
-```apache
-<VirtualHost *:80>
-    ServerName homecall.local
-    DocumentRoot /var/www/homecall/web
-
-    # Раздача статики (см. выше)
-    <Directory /var/www/homecall/web>
-        Options -Indexes +FollowSymLinks
-        AllowOverride None
-        Require all granted
-    </Directory>
-
-    # Проксирование API
     ProxyPreserveHost On
     ProxyRequests Off
     ProxyPass /api http://127.0.0.1:3000/api
@@ -85,23 +27,14 @@ Apache не входит в состав кодовой базы и рассма
 </VirtualHost>
 ```
 
-### Комментарии
+Конфигурация разделяет статику (`/web/`) и API (`/api/*`), сохраняя Node.js-сервис доступным только локально.
 
-- Node.js-приложение должно слушать `127.0.0.1:3000`, чтобы быть недоступным извне.
-- Apache обеспечивает публичную точку входа, сохраняя контроль над доступом и логированием.
-- Параметр `ProxyPreserveHost On` передаёт исходный `Host`-заголовок, что важно для корректной работы приложения.
+## Ссылки
 
----
+- `../architecture.md` — архитектурный обзор и связи окружений.
+- `../linkage.md` — подробная схема взаимодействия архитектуры и окружений.
+- `./node.md` — описание Node.js-окружения (обратная ссылка).
 
-## 3. Итоговая схема
+## Итог
 
-```text
-Клиент (браузер)
-      │
-      ▼
-  Apache HTTP Server
-   ├── /web/* → статические файлы (PWA)
-   └── /api/* → Node.js @flancer32/teq-web (127.0.0.1:3000)
-```
-
-Apache формирует внешний слой архитектуры, обеспечивая безопасное разделение между фронтендом и API-сервисом.
+Документ фиксирует роль Apache как внешнего слоя развёртывания и поддерживает связь с архитектурными декларациями HomeCall.
