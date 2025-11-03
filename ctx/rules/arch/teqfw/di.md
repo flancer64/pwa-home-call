@@ -18,6 +18,23 @@
 - **Инициализация контейнера** — класс контейнера экспортируется по умолчанию (`import Container from '@teqfw/di';`).
 - **Настройка резолвера** — пространство имён подключается через `container.getResolver().addNamespaceRoot('Prefix_', '/abs/path/src');`, а дополнительные операции выполняются только средствами резолвера, перечисленными в официальной документации `@teqfw/di`.
 
+## Реплейсмент namespace и подмена контрактов
+
+- Контейнер поддерживает **pre-processor**, позволяющий изменять имя запрашиваемого объекта до его загрузки.
+- Для этого используется встроенный модуль `Teqfw_Di_Pre_Replace`, доступный в исходниках пакета `@teqfw/di`.
+- Подключение осуществляется через добавление namespace-корня и регистрацию чанк-обработчика:
+
+```js
+resolver.addNamespaceRoot("Teqfw_Di_", "/abs/path/to/node_modules/@teqfw/di/src");
+const pre = container.getPreProcessor();
+const replacer = await container.get("Teqfw_Di_Pre_Replace$");
+pre.addChunk(replacer);
+replacer.addReplace("HomeCall_Back_Contract_Logger", "HomeCall_Back_Logger");
+```
+
+- Любой запрос `HomeCall_Back_Contract_Logger$` будет перенаправлен на `HomeCall_Back_Logger$`, что позволяет заменять контракты их реализациями без изменения исходного кода.
+- Механизм используется для тестов, моков и отладочных подмен, не применяется в production-окружении.
+
 ## Экспорт и внедрение
 
 - Один модуль отвечает за одну роль (`Data`, `Logic`, `Service` и т.д.).
