@@ -1,6 +1,13 @@
 export class SignalClient {
   constructor(url) {
-    this.url = url;
+    const trimmed = typeof url === 'string' ? url.trim() : '';
+    if (!trimmed) {
+      throw new TypeError('SignalClient requires a non-empty WebSocket URL.');
+    }
+    this.url = trimmed.replace(/\/+$/, '');
+    if (this.url === '') {
+      throw new TypeError('SignalClient URL must resolve to a valid endpoint.');
+    }
     this.socket = null;
     this.room = null;
     this.user = null;

@@ -103,7 +103,7 @@ describe('HomeCall_Back_Service_Signal_Server', () => {
             const address = server.getAddress();
             assert.ok(address && typeof address === 'object', 'Server must expose listening address.');
             const port = address.port;
-            const url = `ws://127.0.0.1:${port}/`;
+            const url = `ws://127.0.0.1:${port}/signal`;
 
             alice = new WebSocket(url);
             await waitForOpen(alice);
