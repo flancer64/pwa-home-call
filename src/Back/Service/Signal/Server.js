@@ -25,6 +25,8 @@ export default class HomeCall_Back_Service_Signal_Server {
         /** @type {WeakMap<import('ws').WebSocket, { room: string, user: string }>} */
         const session = new WeakMap();
 
+        const SIGNAL_PATH = '/signal';
+
         const parsePort = () => {
             const raw = process.env.WS_PORT;
             const port = Number.parseInt(raw ?? '', 10);
@@ -179,7 +181,7 @@ export default class HomeCall_Back_Service_Signal_Server {
 
         const setupServer = () => {
             const port = parsePort();
-            const wss = new WebSocketServer({ port, host: '0.0.0.0', path: '/' });
+            const wss = new WebSocketServer({ port, host: '0.0.0.0', path: SIGNAL_PATH });
             wss.on('connection', (socket) => {
                 logger.info(namespace, 'Incoming WebSocket connection.');
                 socket.on('message', (data) => handleMessage(socket, data));
@@ -207,7 +209,7 @@ export default class HomeCall_Back_Service_Signal_Server {
             server = wss;
             const address = server.address();
             const portInfo = typeof address === 'object' && address ? address.port : parsePort();
-            logger.info(namespace, `WebSocket signaling server started on port ${portInfo}.`);
+            logger.info(namespace, `WebSocket signaling server started on port ${portInfo} (path ${SIGNAL_PATH}).`);
         };
 
         this.stop = async () => {
