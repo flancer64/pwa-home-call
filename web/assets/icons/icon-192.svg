@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title">
+  <title>HomeCall Icon</title>
+  <rect width="192" height="192" rx="32" fill="#0078d7" />
+  <path d="M96 48 48 84v60h28v-32h40v32h28V84L96 48z" fill="#ffffff" />
+  <circle cx="136" cy="112" r="20" fill="#ffffff" opacity="0.3" />
+</svg>
