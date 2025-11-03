@@ -35,6 +35,8 @@ const logger = await container.get("HomeCall_Back_Logger$");
 ```
 
 - Каждый тест выполняется в изолированном контейнере и взаимодействует с кодом только через `container.get()`.
+- Helper импортирует контейнер по умолчанию (`import Container from '@teqfw/di';`) и настраивает namespace через резолвер: `const resolver = container.getResolver(); resolver.addNamespaceRoot('HomeCall_', srcRoot);`.
+- Любые дополнительные действия выполняются только методами резолвера, документированными в README пакета `@teqfw/di`; использование неописанных методов запрещено.
 
 ## Инструменты
 
