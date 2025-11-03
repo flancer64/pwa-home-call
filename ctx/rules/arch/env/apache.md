@@ -22,6 +22,9 @@ Apache используется как внешний HTTP-сервер в ар�
     ProxyPass /api http://127.0.0.1:3000/api
     ProxyPassReverse /api http://127.0.0.1:3000/api
 
+    ProxyPass /signal ws://127.0.0.1:${WS_PORT}/
+    ProxyPassReverse /signal ws://127.0.0.1:${WS_PORT}/
+
     ErrorLog ${APACHE_LOG_DIR}/homecall-error.log
     CustomLog ${APACHE_LOG_DIR}/homecall-access.log combined
 </VirtualHost>

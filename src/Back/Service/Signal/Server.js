@@ -179,7 +179,7 @@ export default class HomeCall_Back_Service_Signal_Server {
 
         const setupServer = () => {
             const port = parsePort();
-            const wss = new WebSocketServer({ port, host: '0.0.0.0', path: '/ws/' });
+            const wss = new WebSocketServer({ port, host: '0.0.0.0', path: '/' });
             wss.on('connection', (socket) => {
                 logger.info(namespace, 'Incoming WebSocket connection.');
                 socket.on('message', (data) => handleMessage(socket, data));

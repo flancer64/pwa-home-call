@@ -58,7 +58,7 @@ async function prepareMedia() {
 function setupSignalClient() {
   const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
   const host = location.host || 'localhost';
-  signal = new SignalClient(`${scheme}${host}/ws/`);
+  signal = new SignalClient(`${scheme}${host}/signal/`);
 
   peer = new PeerConnection({
     sendOffer: (to, sdp) => signal.sendOffer(to, sdp),
