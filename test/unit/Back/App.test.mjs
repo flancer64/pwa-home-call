@@ -8,7 +8,7 @@ import { describe, it } from 'node:test';
 import { createTestContainer } from '../helper.mjs';
 
 describe('HomeCall_Back_App', () => {
-    it('logs lifecycle messages through injected logger', async () => {
+    it('starts and stops the signaling server with lifecycle logs', async () => {
         const container = await createTestContainer();
         container.enableTestMode();
 
@@ -23,12 +23,26 @@ describe('HomeCall_Back_App', () => {
         });
         container.register('HomeCall_Back_Contract_Logger$', mockLogger);
 
+        const signalCalls = [];
+        const mockSignal = Object.freeze({
+            start: async () => {
+                signalCalls.push('start');
+            },
+            stop: async () => {
+                signalCalls.push('stop');
+            },
+        });
+        container.register('HomeCall_Back_Service_Signal_Server$', mockSignal);
+
         const app = await container.get('HomeCall_Back_App$');
         await app.run();
         await app.stop();
 
+        assert.deepEqual(signalCalls, ['start', 'stop']);
         assert.deepEqual(calls, [
+            { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend starting.' },
             { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend started.' },
+            { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend stopping.' },
             { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend stopped.' },
         ]);
     });
