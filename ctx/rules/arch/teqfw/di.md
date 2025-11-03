@@ -29,7 +29,7 @@ resolver.addNamespaceRoot("Teqfw_Di_", "/abs/path/to/node_modules/@teqfw/di/src"
 const pre = container.getPreProcessor();
 const replacer = await container.get("Teqfw_Di_Pre_Replace$");
 pre.addChunk(replacer);
-replacer.addReplace("HomeCall_Back_Contract_Logger", "HomeCall_Back_Logger");
+replacer.add("HomeCall_Back_Contract_Logger", "HomeCall_Back_Logger");
 ```
 
 - Любой запрос `HomeCall_Back_Contract_Logger$` будет перенаправлен на `HomeCall_Back_Logger$`, что позволяет заменять контракты их реализациями без изменения исходного кода.

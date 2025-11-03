@@ -17,9 +17,10 @@ resolver.addNamespaceRoot('HomeCall_', path.join(rootDir, 'src'));
 resolver.addNamespaceRoot('Teqfw_Di_', path.join(rootDir, 'node_modules', '@teqfw', 'di', 'src'));
 
 const preProcessor = container.getPreProcessor();
+/** @type {TeqFw_Di_Pre_Replace} */
 const replacer = await container.get('Teqfw_Di_Pre_Replace$');
 preProcessor.addChunk(replacer);
-replacer.addReplace('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
+replacer.add('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
 
 const app = await container.get('HomeCall_Back_App$');
 

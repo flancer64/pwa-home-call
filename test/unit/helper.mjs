@@ -22,11 +22,7 @@ export async function createTestContainer() {
     const replacer = await container.get('Teqfw_Di_Pre_Replace$');
     const pre = container.getPreProcessor();
     pre.addChunk(replacer);
-    if (typeof replacer.addReplace === 'function') {
-        replacer.addReplace('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
-    } else {
-        replacer.add('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
-    }
+    replacer.add('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
     const originalRegister = container.register.bind(container);
     container.register = (depId, obj) => {
         originalRegister(depId, obj);
