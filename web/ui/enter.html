@@ -1,0 +1,16 @@
+<section data-screen="enter">
+  <h1>HomeCall</h1>
+  <p>Enter your room code to join the lobby.</p>
+  <form id="enter-form">
+    <label>
+      Display name
+      <input type="text" name="user" autocomplete="name" required minlength="2" />
+    </label>
+    <label>
+      Room code
+      <input type="text" name="room" autocomplete="one-time-code" required minlength="3" />
+    </label>
+    <button class="primary" type="submit">Join</button>
+  </form>
+  <p class="hint" id="enter-error" role="alert"></p>
+</section>
