@@ -15,7 +15,24 @@ export async function createTestContainer() {
     const container = new Container();
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const srcRoot = path.resolve(__dirname, '../../src');
+    const diRoot = path.resolve(__dirname, '../../node_modules/@teqfw/di/src');
     const resolver = container.getResolver();
     resolver.addNamespaceRoot('HomeCall_', srcRoot);
+    resolver.addNamespaceRoot('Teqfw_Di_', diRoot);
+    const replacer = await container.get('Teqfw_Di_Pre_Replace$');
+    const pre = container.getPreProcessor();
+    pre.addChunk(replacer);
+    if (typeof replacer.addReplace === 'function') {
+        replacer.addReplace('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
+    } else {
+        replacer.add('HomeCall_Back_Contract_Logger', 'HomeCall_Back_Logger');
+    }
+    const originalRegister = container.register.bind(container);
+    container.register = (depId, obj) => {
+        originalRegister(depId, obj);
+        if (depId === 'HomeCall_Back_Contract_Logger$') {
+            originalRegister('HomeCall_Back_Logger$', obj);
+        }
+    };
     return container;
 }
