@@ -51,3 +51,4 @@ export default class Namespace_Area_Module {
 
 - `./di.md` — универсальные принципы работы контейнера.
 - `../../architecture.md` — архитектурный обзор и роль DI-модулей.
+- `../logging.md` — правила логирования и формат сообщений.
