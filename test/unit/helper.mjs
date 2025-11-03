@@ -3,7 +3,7 @@
  * @description Helper to create a clean @teqfw/di container for unit tests.
  */
 
-import { Container } from '@teqfw/di';
+import Container from '@teqfw/di';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +15,7 @@ export async function createTestContainer() {
     const container = new Container();
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const srcRoot = path.resolve(__dirname, '../../src');
-    await container.registerNamespaceRoot('HomeCall_', srcRoot);
+    const resolver = container.getResolver();
+    resolver.addNamespaceRoot('HomeCall_', srcRoot);
     return container;
 }
