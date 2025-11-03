@@ -1,4 +1,5 @@
 /.env
+/.vscode/
 /**/output.md
 /bin/stt.mjs
 /node_modules/
