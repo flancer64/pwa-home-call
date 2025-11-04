@@ -1,0 +1,110 @@
+name: LIVE - Build & Deploy the App
+
+# Trigger action manually
+on: workflow_dispatch
+
+env:
+  APP_DIR: /home/${{ vars.USER }}/inst/app/call/ # Directory of the application
+  PRJ: call # The name of the project
+  SERVICE: app-call.service # The name of the service to manage
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository on the GitHub environment.
+        uses: actions/checkout@v3
+
+      - name: Install dependencies and build the project.
+        run: |
+          npm install --omit=optional 
+          npm prune --omit=dev
+
+      - name: Add application files to the archive.
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq --exclude=*.git* -r ${{ env.PRJ }}.zip ./
+
+      - name: Validate the existence of the archive.
+        run: |
+          pwd
+          ls -lh
+
+      - name: Upload artifact to pass it to publish job.
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-archive
+          path: ${{ env.PRJ }}.zip
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download archive from build step.
+        uses: actions/download-artifact@v4
+        with:
+          name: app-archive
+          path: .
+
+      - name: Validate the downloaded archive.
+        run: |
+          pwd
+          ls -lh
+
+      - name: Validate SSH connection.
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.HOST }}
+          username: ${{ vars.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            pwd
+            whoami
+
+      - name: Copy files to Remote Server.
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ vars.HOST }}
+          username: ${{ vars.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: ${{ env.PRJ }}.zip
+          target: ${{ env.APP_DIR }}
+
+      - name: Extract files on Remote Server and switch site to the new instance.
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.HOST }}
+          username: ${{ vars.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd "${{ env.APP_DIR }}/"
+            rm -fr prod.old  
+            mkdir prod.new
+            unzip ${{ env.PRJ }}.zip -d ./prod.new/ &> /dev/null
+
+            # Load nvm and set up node
+            source ~/.nvm/nvm.sh
+            nvm use node
+
+            # Generate a timestamp
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+            # Stop the service and run database export to separate backup file
+            sudo /bin/systemctl stop ${{ env.SERVICE }}
+
+            # Switch the app version then reset the db structure (export / init / import)
+            mv ./prod ./prod.old
+            mv ./prod.new ./prod
+            cp ./prod.old/.env ./prod/.env
+            cp -a ./prod.old/var/data ./prod/var/
+
+            # Start the service
+            sudo /bin/systemctl start ${{ env.SERVICE }}
+
+            # Rename the archive with a timestamp
+            mv ${{ env.PRJ }}.zip ${{ env.PRJ }}-${TIMESTAMP}.zip
+            echo "Archive renamed to: ${{ env.PRJ }}-${TIMESTAMP}.zip"            
+            ls -lh ${{ env.APP_DIR }}
