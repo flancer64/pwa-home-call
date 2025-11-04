@@ -1,8 +1,10 @@
 <section data-screen="call">
-  <h2>Call in progress</h2>
-  <div class="video-stage">
+  <div class="call-stage">
     <video id="remote-video" playsinline autoplay></video>
     <video id="local-video" playsinline autoplay muted></video>
+    <p id="no-media" hidden>No local media available.</p>
   </div>
-  <button class="secondary" id="end-call">End call</button>
+  <div class="call-controls">
+    <button class="secondary" id="end-call">End call</button>
+  </div>
 </section>

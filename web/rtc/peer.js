@@ -13,11 +13,35 @@ export class PeerConnection {
 
   setLocalStream(stream) {
     this.localStream = stream;
-    if (this.connection && stream) {
-      stream.getTracks().forEach((track) => {
-        this.connection.addTrack(track, stream);
-      });
+    if (!this.connection) {
+      return;
     }
+
+    const senders = this.connection.getSenders();
+
+    if (!stream) {
+      senders.forEach((sender) => {
+        if (sender.track) {
+          this.connection.removeTrack(sender);
+        }
+      });
+      return;
+    }
+
+    const tracks = stream.getTracks();
+
+    senders.forEach((sender) => {
+      if (sender.track && !tracks.includes(sender.track)) {
+        this.connection.removeTrack(sender);
+      }
+    });
+
+    tracks.forEach((track) => {
+      const alreadyAdded = senders.some((sender) => sender.track === track);
+      if (!alreadyAdded) {
+        this.connection.addTrack(track, stream);
+      }
+    });
   }
 
   ensureConnection() {
