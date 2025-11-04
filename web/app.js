@@ -21,6 +21,7 @@ let userName = '';
 let roomCode = '';
 let onlineUsers = [];
 let connectionMessage = '';
+let deviceChangeHandlerRegistered = false;
 
 async function init() {
   appRoot = document.getElementById('app');
@@ -43,15 +44,65 @@ async function loadTemplates() {
 }
 
 async function prepareMedia() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    connectionMessage = 'Media devices are not supported in this browser.';
+    stopStreamTracks(localStream);
+    localStream = null;
+    attachLocalStream();
+    return;
+  }
+
+  if (!deviceChangeHandlerRegistered) {
+    const handler = () => {
+      prepareMedia();
+    };
+    if (typeof navigator.mediaDevices.addEventListener === 'function') {
+      navigator.mediaDevices.addEventListener('devicechange', handler);
+    } else {
+      navigator.mediaDevices.ondevicechange = handler;
+    }
+    deviceChangeHandlerRegistered = true;
+  }
+
   try {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      connectionMessage = 'Media devices are not supported in this browser.';
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const hasAudioInput = devices.some((device) => device.kind === 'audioinput');
+    const hasVideoInput = devices.some((device) => device.kind === 'videoinput');
+
+    console.info('[App] Media capabilities:', { audio: hasAudioInput, video: hasVideoInput });
+
+    const constraints = {};
+    if (hasAudioInput) {
+      constraints.audio = true;
+    }
+    if (hasVideoInput) {
+      constraints.video = true;
+    }
+
+    if (!hasAudioInput && !hasVideoInput) {
+      stopStreamTracks(localStream);
+      localStream = null;
+      connectionMessage = 'No camera or microphone detected.';
+      attachLocalStream();
       return;
     }
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    if (localStream && localStream !== stream) {
+      stopStreamTracks(localStream);
+    }
+    localStream = stream;
+    connectionMessage = '';
+    if (peer) {
+      peer.setLocalStream(localStream);
+    }
+    attachLocalStream();
   } catch (error) {
-    console.error('[App] Media permissions denied', error);
-    connectionMessage = 'Camera or microphone permissions are required.';
+    console.error('[App] Unable to access media devices', error);
+    connectionMessage = 'Unable to access media devices.';
+    stopStreamTracks(localStream);
+    localStream = null;
+    attachLocalStream();
   }
 }
 
@@ -92,8 +143,9 @@ function setupSignalClient() {
     }
     try {
       if (!localStream) {
-        throw new Error('Local media unavailable');
+        localStream = new MediaStream();
       }
+      peer.setLocalStream(localStream);
       await peer.handleOffer(data);
       attachLocalStream();
     } catch (error) {
@@ -173,6 +225,7 @@ function render(state) {
   }
   currentState = state;
   appRoot.innerHTML = templates[state];
+  document.body.classList.toggle('state-call', state === 'call');
   switch (state) {
     case 'enter':
       bindEnter();
@@ -276,8 +329,9 @@ function bindEnd() {
 async function startCall(target) {
   try {
     if (!localStream) {
-      throw new Error('Local media unavailable');
+      localStream = new MediaStream();
     }
+    peer.setLocalStream(localStream);
     render('call');
     await peer.start(target);
     attachLocalStream();
@@ -291,12 +345,24 @@ async function startCall(target) {
 }
 
 function attachLocalStream() {
-  if (!localStream) {
-    return;
-  }
   const element = document.getElementById('local-video');
-  if (element && element.srcObject !== localStream) {
-    element.srcObject = localStream;
+  const message = document.getElementById('no-media');
+  const hasLocalTracks = Boolean(localStream && localStream.getTracks().length > 0);
+
+  if (element) {
+    if (hasLocalTracks) {
+      if (element.srcObject !== localStream) {
+        element.srcObject = localStream;
+      }
+      element.hidden = false;
+    } else {
+      element.srcObject = null;
+      element.hidden = true;
+    }
+  }
+
+  if (message) {
+    message.hidden = hasLocalTracks;
   }
 }
 
@@ -312,7 +378,19 @@ function attachRemoteStream() {
 
 function endCall(message) {
   peer.end();
+  stopStreamTracks(localStream);
+  localStream = null;
   remoteStream = null;
   connectionMessage = message || '';
   render('end');
+  prepareMedia();
+}
+
+function stopStreamTracks(stream) {
+  if (!stream) {
+    return;
+  }
+  stream.getTracks().forEach((track) => {
+    track.stop();
+  });
 }

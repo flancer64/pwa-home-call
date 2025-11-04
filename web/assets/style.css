@@ -104,17 +104,6 @@ button.secondary {
   padding: 0.75rem 1rem;
 }
 
-.video-stage {
-  display: grid;
-  gap: 1rem;
-}
-
-.video-stage video {
-  width: 100%;
-  border-radius: 0.5rem;
-  background: #000;
-}
-
 @media (min-width: 48rem) {
   body {
     align-items: stretch;
@@ -123,8 +112,99 @@ button.secondary {
   main {
     padding: 3rem;
   }
+}
 
-  .video-stage {
-    grid-template-columns: 1fr 1fr;
-  }
+body.state-call {
+  background: #000;
+  align-items: stretch;
+}
+
+body.state-call main {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+}
+
+body.state-call section[data-screen='call'] {
+  position: relative;
+  flex: 1 1 auto;
+  background: #000;
+  color: #fff;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.state-call .call-stage {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+body.state-call #remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+body.state-call #local-video {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 25vw;
+  max-width: 16rem;
+  min-width: 6rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.4);
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+body.state-call #local-video[hidden] {
+  display: none;
+}
+
+body.state-call #no-media {
+  position: absolute;
+  bottom: calc(1.5rem + 4.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 600;
+  text-align: center;
+  z-index: 2;
+}
+
+body.state-call .call-controls {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  width: calc(100% - 3rem);
+  max-width: 22rem;
+  z-index: 3;
+}
+
+body.state-call .call-controls button.secondary {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  backdrop-filter: blur(6px);
 }
