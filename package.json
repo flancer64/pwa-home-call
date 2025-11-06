@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node bin/server.js",
-    "test:unit": "node --test test/unit"
+    "test:unit": "node --test \"test/unit/**/*.mjs\""
   },
   "repository": {
     "type": "git",

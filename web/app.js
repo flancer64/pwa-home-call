@@ -22,15 +22,21 @@ let roomCode = '';
 let onlineUsers = [];
 let connectionMessage = '';
 let deviceChangeHandlerRegistered = false;
+let mediaStatus = { type: null, message: '' };
+let mediaWarningActive = false;
+let toastElement = null;
+let toastTimeout = null;
 
 async function init() {
   appRoot = document.getElementById('app');
-  await Promise.all([registerServiceWorker(), loadTemplates(), prepareMedia()]);
+  await Promise.all([registerServiceWorker(), loadTemplates()]);
   setupSignalClient();
   render('enter');
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
+}
 
 async function loadTemplates() {
   const entries = await Promise.all(
@@ -45,24 +51,15 @@ async function loadTemplates() {
 
 async function prepareMedia() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-    connectionMessage = 'Media devices are not supported in this browser.';
     stopStreamTracks(localStream);
     localStream = null;
+    setMediaStatus('warning', 'Media devices are not supported in this browser.');
     attachLocalStream();
-    return;
+    mediaWarningActive = true;
+    return { status: 'unsupported', message: 'Media devices are not supported in this browser.' };
   }
 
-  if (!deviceChangeHandlerRegistered) {
-    const handler = () => {
-      prepareMedia();
-    };
-    if (typeof navigator.mediaDevices.addEventListener === 'function') {
-      navigator.mediaDevices.addEventListener('devicechange', handler);
-    } else {
-      navigator.mediaDevices.ondevicechange = handler;
-    }
-    deviceChangeHandlerRegistered = true;
-  }
+  registerDeviceChangeHandler();
 
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -82,9 +79,10 @@ async function prepareMedia() {
     if (!hasAudioInput && !hasVideoInput) {
       stopStreamTracks(localStream);
       localStream = null;
-      connectionMessage = 'No camera or microphone detected.';
+      setMediaStatus('warning', 'No camera or microphone detected.');
       attachLocalStream();
-      return;
+      mediaWarningActive = true;
+      return { status: 'not-found', message: 'No camera or microphone detected.' };
     }
 
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -96,14 +94,147 @@ async function prepareMedia() {
     if (peer) {
       peer.setLocalStream(localStream);
     }
+    let successMessage = 'Camera and microphone are ready.';
+    if (constraints.audio && !constraints.video) {
+      successMessage = 'Microphone is ready. No camera detected.';
+    } else if (!constraints.audio && constraints.video) {
+      successMessage = 'Camera is ready. No microphone detected.';
+    } else if (!constraints.audio && !constraints.video) {
+      successMessage = 'Media access granted.';
+    }
+    setMediaStatus('success', successMessage);
     attachLocalStream();
+    if (mediaWarningActive) {
+      showToast('Camera is active again.');
+    }
+    mediaWarningActive = false;
+    return { status: 'ready', message: 'Camera and microphone are ready.' };
   } catch (error) {
     console.error('[App] Unable to access media devices', error);
-    connectionMessage = 'Unable to access media devices.';
     stopStreamTracks(localStream);
     localStream = null;
+    const mapped = await mapMediaError(error);
+    setMediaStatus('warning', mapped.message);
     attachLocalStream();
+    mediaWarningActive = true;
+    return { status: mapped.status, message: mapped.message };
   }
+}
+
+function registerDeviceChangeHandler() {
+  if (deviceChangeHandlerRegistered || !navigator.mediaDevices) {
+    return;
+  }
+  const handler = () => {
+    prepareMedia();
+  };
+  if (typeof navigator.mediaDevices.addEventListener === 'function') {
+    navigator.mediaDevices.addEventListener('devicechange', handler);
+  } else {
+    navigator.mediaDevices.ondevicechange = handler;
+  }
+  deviceChangeHandlerRegistered = true;
+}
+
+async function mapMediaError(error) {
+  const name = (error && error.name) || (error && error.code) || 'UnknownError';
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+    const blockedCamera = await isPermissionPermanentlyDenied('camera');
+    const blockedMicrophone = await isPermissionPermanentlyDenied('microphone');
+    if (blockedCamera || blockedMicrophone) {
+      return {
+        status: 'blocked',
+        message: 'Camera or microphone access is blocked. Use the browser settings link below to allow access.'
+      };
+    }
+    return {
+      status: 'denied',
+      message: 'Camera or microphone access was denied. Please allow access to continue.'
+    };
+  }
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+    return {
+      status: 'not-found',
+      message: 'No camera or microphone detected.'
+    };
+  }
+  if (name === 'NotReadableError' || name === 'TrackStartError') {
+    return {
+      status: 'device-error',
+      message: 'The camera or microphone is not working. Check your device and try again.'
+    };
+  }
+  return {
+    status: 'error',
+    message: 'Unable to access media devices.'
+  };
+}
+
+async function isPermissionPermanentlyDenied(name) {
+  if (!navigator.permissions || typeof navigator.permissions.query !== 'function') {
+    return false;
+  }
+  try {
+    const status = await navigator.permissions.query({ name });
+    return status.state === 'denied';
+  } catch (permissionError) {
+    console.warn(`[App] Unable to query ${name} permission state`, permissionError);
+    return false;
+  }
+}
+
+function setMediaStatus(type, message) {
+  mediaStatus = { type, message };
+  updateMediaStatusDisplay();
+}
+
+function updateMediaStatusDisplay() {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  const statusBox = document.getElementById('media-status');
+  if (!statusBox) {
+    return;
+  }
+  if (mediaStatus.message) {
+    statusBox.hidden = false;
+    statusBox.textContent = mediaStatus.message;
+    statusBox.className = 'alert';
+    if (mediaStatus.type === 'warning') {
+      statusBox.classList.add('alert-warning');
+    } else if (mediaStatus.type === 'success') {
+      statusBox.classList.add('alert-success');
+    }
+  } else {
+    statusBox.hidden = true;
+    statusBox.textContent = '';
+    statusBox.className = 'alert';
+  }
+}
+
+function showToast(message) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  clearToast();
+  toastElement = document.createElement('div');
+  toastElement.className = 'toast';
+  toastElement.textContent = message;
+  document.body.appendChild(toastElement);
+  toastTimeout = setTimeout(() => {
+    clearToast();
+  }, 4000);
+}
+
+function clearToast() {
+  if (toastElement && typeof toastElement.remove === 'function') {
+    toastElement.remove();
+  }
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+  toastElement = null;
 }
 
 function setupSignalClient() {
@@ -244,12 +375,43 @@ function render(state) {
   }
 }
 
+function openBrowserSettings() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const agent = (navigator && navigator.userAgent) || '';
+  let target = 'chrome://settings/content/camera';
+  if (/edg/i.test(agent)) {
+    target = 'edge://settings/content/camera';
+  } else if (/firefox/i.test(agent)) {
+    target = 'about:preferences#privacy';
+  } else if (/safari/i.test(agent) && !/chrome/i.test(agent)) {
+    target = 'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera';
+  }
+  window.open(target, '_blank', 'noopener');
+}
+
 function bindEnter() {
   const form = document.getElementById('enter-form');
   const errorBox = document.getElementById('enter-error');
+  const prepareButton = document.getElementById('prepare-media');
+  const settingsLink = document.getElementById('open-settings');
+  updateMediaStatusDisplay();
   if (connectionMessage) {
     errorBox.textContent = connectionMessage;
     connectionMessage = '';
+  }
+  if (prepareButton) {
+    prepareButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      prepareMedia();
+    });
+  }
+  if (settingsLink) {
+    settingsLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      openBrowserSettings();
+    });
   }
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -309,9 +471,15 @@ function bindCall() {
   attachLocalStream();
   attachRemoteStream();
   const endButton = document.getElementById('end-call');
+  const retryButton = document.getElementById('retry-media');
   endButton.addEventListener('click', () => {
     endCall('Call ended.');
   });
+  if (retryButton) {
+    retryButton.addEventListener('click', () => {
+      prepareMedia();
+    });
+  }
 }
 
 function bindEnd() {
@@ -345,8 +513,12 @@ async function startCall(target) {
 }
 
 function attachLocalStream() {
+  if (typeof document === 'undefined') {
+    return;
+  }
   const element = document.getElementById('local-video');
   const message = document.getElementById('no-media');
+  const retryButton = document.getElementById('retry-media');
   const hasLocalTracks = Boolean(localStream && localStream.getTracks().length > 0);
 
   if (element) {
@@ -364,10 +536,16 @@ function attachLocalStream() {
   if (message) {
     message.hidden = hasLocalTracks;
   }
+  if (retryButton) {
+    retryButton.hidden = hasLocalTracks;
+  }
 }
 
 function attachRemoteStream() {
   if (!remoteStream) {
+    return;
+  }
+  if (typeof document === 'undefined') {
     return;
   }
   const element = document.getElementById('remote-video');
@@ -393,4 +571,15 @@ function stopStreamTracks(stream) {
   stream.getTracks().forEach((track) => {
     track.stop();
   });
+}
+
+export { prepareMedia };
+
+export function __resetMediaState() {
+  stopStreamTracks(localStream);
+  localStream = null;
+  mediaStatus = { type: null, message: '' };
+  mediaWarningActive = false;
+  deviceChangeHandlerRegistered = false;
+  clearToast();
 }
