@@ -11,7 +11,7 @@ export default class HomeCall_Back_Logger {
     constructor(deps = {}) {
         const defaultConsole = globalThis.console ?? console;
         const targetConsole = deps.console ?? defaultConsole;
-        const fallback = typeof targetConsole.log === 'function' ? targetConsole.log.bind(targetConsole) : () => {};
+        const fallback = typeof targetConsole.log === 'function' ? targetConsole.log.bind(targetConsole) : () => { };
 
         /** @type {Record<string, Function>} */
         const writers = {
@@ -29,8 +29,9 @@ export default class HomeCall_Back_Logger {
         };
 
         const formatMessage = (level, namespace, message) => {
+            const timestamp = new Date().toISOString();
             const text = message === undefined || message === null ? '' : String(message);
-            return `[${level}] [${namespace}] ${text}`.trimEnd();
+            return `[${timestamp}] [${level}] [${namespace}] ${text}`.trimEnd();
         };
 
         const emit = (level, namespace, message, extras = []) => {
