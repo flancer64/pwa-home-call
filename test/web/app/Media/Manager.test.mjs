@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWebContainer } from './helper.mjs';
+import { createWebContainer } from '../../helper.mjs';
 
 test('Media manager prepares devices and updates UI bindings', async () => {
   const OriginalMediaStream = globalThis.MediaStream;
