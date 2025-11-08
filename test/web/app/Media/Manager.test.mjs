@@ -63,9 +63,33 @@ test('Media manager prepares devices and updates UI bindings', async () => {
       peerStream = streamValue;
     }
   };
-  container.register('navigator$', navigatorStub);
-  container.register('document$', documentStub);
-  container.register('window$', windowStub);
+  const fetchStub = async () => ({});
+  const setIntervalStub = () => {};
+  const clearIntervalStub = () => {};
+  const WebSocketStub = class {};
+  container.register('HomeCall_Web_Env_Provider$', {
+    get window() {
+      return windowStub;
+    },
+    get document() {
+      return documentStub;
+    },
+    get navigator() {
+      return navigatorStub;
+    },
+    get fetch() {
+      return fetchStub;
+    },
+    get setInterval() {
+      return setIntervalStub;
+    },
+    get clearInterval() {
+      return clearIntervalStub;
+    },
+    get WebSocket() {
+      return WebSocketStub;
+    }
+  });
   container.register('HomeCall_Web_Media_DeviceMonitor$', monitor);
   container.register('HomeCall_Web_Rtc_Peer$', peer);
 

@@ -15,11 +15,12 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Ui_Screen_Lobby$: screenLobby,
     HomeCall_Web_Ui_Screen_Call$: screenCall,
     HomeCall_Web_Ui_Screen_End$: screenEnd,
-    'document$': docSingleton,
-    'window$': winSingleton
+    HomeCall_Web_Env_Provider$: env
   } = {}) {
-    const document = docSingleton ?? globalThis.document;
-    const window = winSingleton ?? globalThis.window;
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const document = env.document;
     const state = {
       root: null,
       currentState: null,

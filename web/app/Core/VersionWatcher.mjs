@@ -6,13 +6,14 @@
 export default class HomeCall_Web_Core_VersionWatcher {
   constructor({
     HomeCall_Web_Core_ServiceWorkerManager$: sw,
-    'fetch$': fetchSingleton,
-    'setInterval$': setIntervalSingleton,
-    'clearInterval$': clearIntervalSingleton
+    HomeCall_Web_Env_Provider$: env
   } = {}) {
-    const fetchRef = fetchSingleton ?? globalThis.fetch;
-    const setIntervalRef = setIntervalSingleton ?? globalThis.setInterval;
-    const clearIntervalRef = clearIntervalSingleton ?? globalThis.clearInterval;
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const fetchRef = env.fetch;
+    const setIntervalRef = env.setInterval;
+    const clearIntervalRef = env.clearInterval;
     let currentVersion = null;
     let timer = null;
 

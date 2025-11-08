@@ -4,9 +4,12 @@
  */
 
 export default class HomeCall_Web_Core_ServiceWorkerManager {
-  constructor({ 'navigator$': navSingleton, 'window$': winSingleton } = {}) {
-    const navigatorRef = navSingleton ?? globalThis.navigator;
-    const windowRef = winSingleton ?? globalThis.window;
+  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const navigatorRef = env.navigator;
+    const windowRef = env.window;
     let registration = null;
 
     this.register = async () => {

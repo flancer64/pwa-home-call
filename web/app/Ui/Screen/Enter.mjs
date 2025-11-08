@@ -17,16 +17,17 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     HomeCall_Web_Core_TemplateLoader$: templates,
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Net_SignalClient$: signal,
-    'document$': docSingleton,
-    'window$': winSingleton,
-    'navigator$': navSingleton
+    HomeCall_Web_Env_Provider$: env
   } = {}) {
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
     this.templates = templates;
     this.media = media;
     this.signal = signal;
-    this.document = docSingleton ?? globalThis.document;
-    this.window = winSingleton ?? globalThis.window;
-    this.navigator = navSingleton ?? globalThis.navigator;
+    this.document = env.document;
+    this.window = env.window;
+    this.navigator = env.navigator;
   }
 
   /**

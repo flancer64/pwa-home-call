@@ -4,8 +4,11 @@
  */
 
 export default class HomeCall_Web_Media_DeviceMonitor {
-  constructor({ 'navigator$': navSingleton } = {}) {
-    const navigatorRef = navSingleton ?? globalThis.navigator;
+  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const navigatorRef = env.navigator;
     let listener = null;
 
     this.register = (callback) => {

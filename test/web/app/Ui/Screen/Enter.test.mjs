@@ -47,6 +47,7 @@ test('Enter screen handles events and propagates data', async () => {
     }
   };
   const navigatorStub = { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0' };
+  const documentStub = {};
 
   const elements = new Map();
   const createElement = (key) => {
@@ -98,9 +99,33 @@ test('Enter screen handles events and propagates data', async () => {
   container.register('HomeCall_Web_Core_TemplateLoader$', templateLoader);
   container.register('HomeCall_Web_Media_Manager$', media);
   container.register('HomeCall_Web_Net_SignalClient$', signal);
-  container.register('window$', windowStub);
-  container.register('navigator$', navigatorStub);
-  container.register('document$', {});
+  const fetchStub = async () => ({});
+  const setIntervalStub = () => {};
+  const clearIntervalStub = () => {};
+  const WebSocketStub = class {};
+  container.register('HomeCall_Web_Env_Provider$', {
+    get window() {
+      return windowStub;
+    },
+    get document() {
+      return documentStub;
+    },
+    get navigator() {
+      return navigatorStub;
+    },
+    get fetch() {
+      return fetchStub;
+    },
+    get setInterval() {
+      return setIntervalStub;
+    },
+    get clearInterval() {
+      return clearIntervalStub;
+    },
+    get WebSocket() {
+      return WebSocketStub;
+    }
+  });
 
   try {
     const screen = await container.get('HomeCall_Web_Ui_Screen_Enter$');

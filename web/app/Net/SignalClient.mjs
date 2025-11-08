@@ -4,9 +4,14 @@
  */
 
 export default class HomeCall_Web_Net_SignalClient {
-  constructor({ url, 'WebSocket$': WsSingleton } = {}) {
-    const WebSocketCtor = WsSingleton ?? globalThis.WebSocket;
-    const normalizedUrl = normalizeUrl(url ?? buildDefaultUrl());
+  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const WebSocketCtor = env.WebSocket;
+    const windowRef = env.window;
+    const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
+    const normalizedUrl = normalizeUrl(buildDefaultUrl(windowRef));
     let socket = null;
     let room = null;
     let user = null;
@@ -104,11 +109,16 @@ export default class HomeCall_Web_Net_SignalClient {
         ws.addEventListener('close', () => {
           emit('status', { state: 'closed' });
           if (shouldReconnect) {
-            setTimeout(() => {
+            const reconnect = () => {
               this.connect().catch((error) => {
                 console.error('[SignalClient] Reconnect failed', error);
               });
-            }, 1000);
+            };
+            if (scheduleTimeout) {
+              scheduleTimeout(reconnect, 1000);
+            } else {
+              reconnect();
+            }
           }
         });
         ws.addEventListener('error', (event) => {
@@ -156,12 +166,13 @@ export default class HomeCall_Web_Net_SignalClient {
   }
 }
 
-function buildDefaultUrl() {
-  if (typeof location === 'undefined') {
+function buildDefaultUrl(windowRef) {
+  const locationRef = windowRef?.location;
+  if (!locationRef) {
     return 'ws://localhost/signal';
   }
-  const scheme = location.protocol === 'https:' ? 'wss://' : 'ws://';
-  const host = location.host || 'localhost';
+  const scheme = locationRef.protocol === 'https:' ? 'wss://' : 'ws://';
+  const host = locationRef.host || 'localhost';
   return `${scheme}${host}/signal`;
 }
 

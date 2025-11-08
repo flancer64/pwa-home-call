@@ -6,13 +6,16 @@
 export default class HomeCall_Web_Media_Manager {
   constructor({
     HomeCall_Web_Media_DeviceMonitor$: monitor,
-    'navigator$': navSingleton,
-    'document$': docSingleton,
-    'window$': winSingleton
+    HomeCall_Web_Env_Provider$: env
   } = {}) {
-    const navigatorRef = navSingleton ?? globalThis.navigator;
-    const documentRef = docSingleton ?? globalThis.document;
-    const windowRef = winSingleton ?? globalThis.window;
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const navigatorRef = env.navigator;
+    const documentRef = env.document;
+    const windowRef = env.window;
+    const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
+    const cancelTimeout = typeof windowRef?.clearTimeout === 'function' ? windowRef.clearTimeout.bind(windowRef) : null;
     let peerRef = null;
     let localStream = null;
     let warningActive = false;
@@ -95,19 +98,19 @@ export default class HomeCall_Web_Media_Manager {
       element.textContent = message;
       documentRef.body?.appendChild?.(element);
       toastElement = element;
-      const timeoutFn = windowRef?.setTimeout ?? globalThis.setTimeout;
-      toastTimeout = timeoutFn(() => {
-        clearToast();
-      }, 4000);
+      if (scheduleTimeout) {
+        toastTimeout = scheduleTimeout(() => {
+          clearToast();
+        }, 4000);
+      }
     };
 
     const clearToast = () => {
       if (toastElement && typeof toastElement.remove === 'function') {
         toastElement.remove();
       }
-      const clearTimeoutFn = windowRef?.clearTimeout ?? globalThis.clearTimeout;
-      if (toastTimeout) {
-        clearTimeoutFn?.(toastTimeout);
+      if (toastTimeout && cancelTimeout) {
+        cancelTimeout(toastTimeout);
         toastTimeout = null;
       }
       toastElement = null;

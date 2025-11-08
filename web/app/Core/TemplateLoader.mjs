@@ -13,51 +13,37 @@ const TEMPLATE_PATHS = new Map([
 export default class HomeCall_Web_Core_TemplateLoader {
   /**
    * @param {Object} deps
-   * @param {typeof fetch} [deps.fetch]
+   * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
    */
-  constructor({ 'fetch$': fetchSingleton } = {}) {
-    this.fetch = fetchSingleton ?? globalThis.fetch;
-    this.cache = new Map();
-    if (typeof this.fetch !== 'function') {
-      throw new Error('Fetch API is not available.');
-    }
-  }
+  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
+    if (!env) throw new Error('HomeCall environment provider is required.');
+    if (typeof env.fetch !== 'function') throw new Error('Fetch API is not available.');
 
-  /**
-   * Load all templates defined in TEMPLATE_PATHS.
-   * @returns {Promise<void>}
-   */
-  async loadAll() {
-    await Promise.all(
-      Array.from(TEMPLATE_PATHS.entries(), async ([name, path]) => {
-        const response = await this.fetch(path, { cache: 'no-store' });
-        const html = await response.text();
-        this.cache.set(name, html);
-      })
-    );
-  }
+    const cache = new Map();
 
-  /**
-   * Get template HTML by name.
-   * @param {string} name
-   * @returns {string}
-   */
-  get(name) {
-    if (!this.cache.has(name)) {
-      throw new Error(`Template "${name}" is not loaded.`);
-    }
-    return this.cache.get(name);
-  }
+    const loadAll = async function () {
+      await Promise.all(
+        Array.from(TEMPLATE_PATHS.entries(), async ([name, path]) => {
+          const response = await env.fetch(path, { cache: 'no-store' });
+          const html = await response.text();
+          cache.set(name, html);
+        })
+      );
+    };
 
-  /**
-   * Render template into container.
-   * @param {string} name
-   * @param {Element} container
-   */
-  apply(name, container) {
-    if (!container) {
-      return;
-    }
-    container.innerHTML = this.get(name);
+    const get = function (name) {
+      if (!cache.has(name)) throw new Error(`Template "${name}" is not loaded.`);
+      return cache.get(name);
+    };
+
+    const apply = function (name, container) {
+      if (!container) return;
+      container.innerHTML = get(name);
+    };
+
+    // expose public methods
+    this.loadAll = loadAll;
+    this.get = get;
+    this.apply = apply;
   }
 }

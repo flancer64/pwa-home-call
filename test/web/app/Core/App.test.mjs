@@ -136,13 +136,35 @@ test('App wires screens and services through DI', async () => {
       }
     }
   };
-  container.register('document$', documentStub);
-  container.register('window$', {});
-  container.register('navigator$', {});
-  container.register('fetch$', async () => ({ json: async () => ({ version: '1.0.0' }), text: async () => '' }));
-  container.register('setInterval$', () => {});
-  container.register('clearInterval$', () => {});
-  container.register('WebSocket$', class {});
+  const windowStub = {};
+  const navigatorStub = {};
+  const fetchStub = async () => ({ json: async () => ({ version: '1.0.0' }), text: async () => '' });
+  const setIntervalStub = () => {};
+  const clearIntervalStub = () => {};
+  const WebSocketStub = class {};
+  container.register('HomeCall_Web_Env_Provider$', {
+    get window() {
+      return windowStub;
+    },
+    get document() {
+      return documentStub;
+    },
+    get navigator() {
+      return navigatorStub;
+    },
+    get fetch() {
+      return fetchStub;
+    },
+    get setInterval() {
+      return setIntervalStub;
+    },
+    get clearInterval() {
+      return clearIntervalStub;
+    },
+    get WebSocket() {
+      return WebSocketStub;
+    }
+  });
   container.register('HomeCall_Web_Core_TemplateLoader$', templateLoader);
   container.register('HomeCall_Web_Core_ServiceWorkerManager$', swManager);
   container.register('HomeCall_Web_Core_VersionWatcher$', versionWatcher);
