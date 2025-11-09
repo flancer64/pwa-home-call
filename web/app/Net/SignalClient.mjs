@@ -4,7 +4,10 @@
  */
 
 export default class HomeCall_Web_Net_SignalClient {
-  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
+  constructor({
+    HomeCall_Web_Env_Provider$: env,
+    HomeCall_Web_Shared_EventBus$: eventBus
+  } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
     }
@@ -12,6 +15,7 @@ export default class HomeCall_Web_Net_SignalClient {
     const windowRef = env.window;
     const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
     const normalizedUrl = normalizeUrl(buildDefaultUrl(windowRef));
+    const bus = eventBus;
     let socket = null;
     let room = null;
     let user = null;
@@ -29,6 +33,10 @@ export default class HomeCall_Web_Net_SignalClient {
           console.error('[SignalClient] Handler failed', error);
         }
       });
+      if (bus) {
+        const eventName = type === 'status' ? 'net:status' : `net:${type}`;
+        bus.emit(eventName, payload);
+      }
     };
 
     const flushPending = () => {

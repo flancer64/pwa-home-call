@@ -15,12 +15,20 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Ui_Screen_Lobby$: screenLobby,
     HomeCall_Web_Ui_Screen_Call$: screenCall,
     HomeCall_Web_Ui_Screen_End$: screenEnd,
+    HomeCall_Web_Shared_EventBus$: eventBus,
+    HomeCall_Web_Shared_Logger$: logger,
     HomeCall_Web_Env_Provider$: env
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
     }
+    if (!eventBus) {
+      throw new Error('Shared event bus is required for HomeCall core.');
+    }
     const document = env.document;
+    const MediaStreamCtor = env.MediaStream;
+    const log = logger ?? console;
+    const bus = eventBus;
     const state = {
       root: null,
       currentState: null,
@@ -38,9 +46,15 @@ export default class HomeCall_Web_Core_App {
       document.body.classList.toggle('state-call', state.currentState === 'call');
     };
 
-    const showLobby = () => {
-      state.currentState = 'lobby';
+    const transitionState = (nextState) => {
+      state.currentState = nextState;
       updateBodyState();
+      bus.emit('core:state', { state: nextState, room: state.roomCode, user: state.userName });
+      log.info(`[App] transition -> ${nextState}`);
+    };
+
+    const showLobby = () => {
+      transitionState('lobby');
       screenLobby.show({
         container: state.root,
         roomCode: state.roomCode,
@@ -59,8 +73,7 @@ export default class HomeCall_Web_Core_App {
     };
 
     const showEnd = () => {
-      state.currentState = 'end';
-      updateBodyState();
+      transitionState('end');
       screenEnd.show({
         container: state.root,
         message: state.connectionMessage,
@@ -77,15 +90,15 @@ export default class HomeCall_Web_Core_App {
       media.setLocalStream(null);
       state.remoteStream = null;
       state.connectionMessage = message || '';
+      bus.emit('core:shutdown', { reason: state.connectionMessage });
       showEnd();
       media.prepare().catch((error) => {
-        console.error('[App] Unable to prepare media after ending call', error);
+        log.error('[App] Unable to prepare media after ending call', error);
       });
     };
 
     const showCall = () => {
-      state.currentState = 'call';
-      updateBodyState();
+      transitionState('call');
       screenCall.show({
         container: state.root,
         remoteStream: state.remoteStream,
@@ -94,15 +107,14 @@ export default class HomeCall_Web_Core_App {
         },
         onRetry: () => {
           media.prepare().catch((error) => {
-            console.error('[App] Unable to re-prepare media', error);
+            log.error('[App] Unable to re-prepare media', error);
           });
         }
       });
     };
 
     const showEnter = () => {
-      state.currentState = 'enter';
-      updateBodyState();
+      transitionState('enter');
       const message = state.connectionMessage;
       state.connectionMessage = '';
       screenEnter.show({
@@ -120,14 +132,14 @@ export default class HomeCall_Web_Core_App {
     const startCall = async (target) => {
       try {
         let localStream = media.getLocalStream();
-        if (!localStream) {
-          localStream = new MediaStream();
+        if (!localStream && typeof MediaStreamCtor === 'function') {
+          localStream = new MediaStreamCtor();
         }
         media.setLocalStream(localStream);
         showCall();
         await peer.start(target);
       } catch (error) {
-        console.error('[App] Unable to start call', error);
+        log.error('[App] Unable to start call', error);
         peer.end();
         state.remoteStream = null;
         state.connectionMessage = 'Failed to start call.';
@@ -167,12 +179,12 @@ export default class HomeCall_Web_Core_App {
           showCall();
         }
         try {
-          if (!media.getLocalStream()) {
-            media.setLocalStream(new MediaStream());
-          }
-          await peer.handleOffer(data);
-        } catch (error) {
-          console.error('[App] Failed to handle offer', error);
+        if (!media.getLocalStream() && typeof MediaStreamCtor === 'function') {
+          media.setLocalStream(new MediaStreamCtor());
+        }
+        await peer.handleOffer(data);
+      } catch (error) {
+          log.error('[App] Failed to handle offer', error);
           endCall('Unable to accept call.');
         }
       });
@@ -181,7 +193,7 @@ export default class HomeCall_Web_Core_App {
         try {
           await peer.handleAnswer(data);
         } catch (error) {
-          console.error('[App] Failed to handle answer', error);
+          log.error('[App] Failed to handle answer', error);
         }
       });
 
@@ -189,7 +201,7 @@ export default class HomeCall_Web_Core_App {
         try {
           await peer.addCandidate(data);
         } catch (error) {
-          console.error('[App] Failed to add candidate', error);
+          log.error('[App] Failed to add candidate', error);
         }
       });
 
@@ -225,6 +237,7 @@ export default class HomeCall_Web_Core_App {
       await version.start();
       setupSignalClient();
       showEnter();
+      bus.emit('core:ready', { state: state.currentState });
     };
   }
 }

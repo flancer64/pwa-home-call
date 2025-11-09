@@ -9,11 +9,18 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
    * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
    * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
    * @param {HomeCall_Web_Rtc_Peer} deps.HomeCall_Web_Rtc_Peer$
+   * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
    */
-  constructor({ HomeCall_Web_Core_TemplateLoader$: templates, HomeCall_Web_Net_SignalClient$: signal, HomeCall_Web_Rtc_Peer$: peer } = {}) {
+  constructor({
+    HomeCall_Web_Core_TemplateLoader$: templates,
+    HomeCall_Web_Net_SignalClient$: signal,
+    HomeCall_Web_Rtc_Peer$: peer,
+    HomeCall_Web_Env_Provider$: env
+  } = {}) {
     this.templates = templates;
     this.signal = signal;
     this.peer = peer;
+    this.document = env?.document ?? null;
   }
 
   /**
@@ -36,28 +43,39 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
     if (roomLabel) {
       roomLabel.textContent = `Room: ${roomCode}`;
     }
+    const ownerDocument = container.ownerDocument ?? this.document;
+    const createElement = (tag) => ownerDocument?.createElement?.(tag) ?? null;
     if (list) {
       list.innerHTML = '';
       if (!users || users.length === 0) {
-        const empty = container.ownerDocument?.createElement?.('p') ?? document.createElement('p');
-        empty.textContent = 'Waiting for other participants...';
-        list.appendChild(empty);
+        const empty = createElement('p');
+        if (empty) {
+          empty.textContent = 'Waiting for other participants...';
+          list.appendChild(empty);
+        }
       } else {
         users.forEach((user) => {
-          const card = container.ownerDocument?.createElement?.('div') ?? document.createElement('div');
+          const card = createElement('div');
+          if (!card) {
+            return;
+          }
           card.className = 'user-card';
           card.setAttribute('role', 'listitem');
-          const span = container.ownerDocument?.createElement?.('span') ?? document.createElement('span');
-          span.textContent = user;
-          const button = container.ownerDocument?.createElement?.('button') ?? document.createElement('button');
-          button.className = 'primary';
-          button.type = 'button';
-          button.textContent = 'Call';
-          button.addEventListener('click', () => {
-            onCall?.(user);
-          });
-          card.appendChild(span);
-          card.appendChild(button);
+          const span = createElement('span');
+          if (span) {
+            span.textContent = user;
+            card.appendChild(span);
+          }
+          const button = createElement('button');
+          if (button) {
+            button.className = 'primary';
+            button.type = 'button';
+            button.textContent = 'Call';
+            button.addEventListener('click', () => {
+              onCall?.(user);
+            });
+            card.appendChild(button);
+          }
           list.appendChild(card);
         });
       }

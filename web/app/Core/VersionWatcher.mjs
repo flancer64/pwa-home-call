@@ -6,7 +6,8 @@
 export default class HomeCall_Web_Core_VersionWatcher {
   constructor({
     HomeCall_Web_Core_ServiceWorkerManager$: sw,
-    HomeCall_Web_Env_Provider$: env
+    HomeCall_Web_Env_Provider$: env,
+    HomeCall_Web_Shared_Logger$: logger
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
@@ -14,6 +15,7 @@ export default class HomeCall_Web_Core_VersionWatcher {
     const fetchRef = env.fetch;
     const setIntervalRef = env.setInterval;
     const clearIntervalRef = env.clearInterval;
+    const log = logger ?? console;
     let currentVersion = null;
     let timer = null;
 
@@ -29,7 +31,7 @@ export default class HomeCall_Web_Core_VersionWatcher {
         }
         currentVersion = data.version;
       } catch (error) {
-        console.warn('[VersionWatcher] Unable to check version', error);
+        log.warn('[VersionWatcher] Unable to check version', error);
       }
     };
 
@@ -39,7 +41,7 @@ export default class HomeCall_Web_Core_VersionWatcher {
         this.stop();
         timer = setIntervalRef(() => {
           checkOnce().catch((error) => {
-            console.warn('[VersionWatcher] Periodic check failed', error);
+            log.warn('[VersionWatcher] Periodic check failed', error);
           });
         }, intervalMs);
       }

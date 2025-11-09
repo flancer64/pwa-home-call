@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node bin/server.js",
     "test:unit": "node --test test/unit",
-    "test:web": "node --test \"test/web/app/**/*.test.mjs\""
+    "test:web": "node --test \"test/web/**/*.test.mjs\""
   },
   "repository": {
     "type": "git",

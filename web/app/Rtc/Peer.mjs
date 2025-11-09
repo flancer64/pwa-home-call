@@ -4,7 +4,18 @@
  */
 
 export default class HomeCall_Web_Rtc_Peer {
-  constructor() {
+  constructor({
+    HomeCall_Web_Env_Provider$: env,
+    HomeCall_Web_Shared_EventBus$: eventBus
+  } = {}) {
+    if (!env) {
+      throw new Error('HomeCall environment provider is required.');
+    }
+    const RTCPeerConnectionCtor = env.RTCPeerConnection;
+    const RTCSessionDescriptionCtor = env.RTCSessionDescription;
+    const RTCIceCandidateCtor = env.RTCIceCandidate;
+    const MediaStreamCtor = env.MediaStream;
+    const bus = eventBus;
     let handlers = {
       sendOffer: null,
       sendAnswer: null,
@@ -21,7 +32,10 @@ export default class HomeCall_Web_Rtc_Peer {
       if (connection) {
         return connection;
       }
-      const pc = new RTCPeerConnection({
+      if (typeof RTCPeerConnectionCtor !== 'function') {
+        throw new Error('RTCPeerConnection is not available in this environment.');
+      }
+      const pc = new RTCPeerConnectionCtor({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
       if (localStream) {
@@ -29,14 +43,17 @@ export default class HomeCall_Web_Rtc_Peer {
           pc.addTrack(track, localStream);
         });
       }
-      remoteStream = new MediaStream();
+      remoteStream = typeof MediaStreamCtor === 'function' ? new MediaStreamCtor() : null;
       pc.addEventListener('track', (event) => {
-        event.streams.forEach((stream) => {
-          stream.getTracks().forEach((track) => {
-            remoteStream.addTrack(track);
+        const stream = remoteStream ?? (typeof MediaStreamCtor === 'function' ? new MediaStreamCtor() : null);
+        remoteStream = stream;
+        event.streams.forEach((incoming) => {
+          incoming.getTracks().forEach((track) => {
+            stream?.addTrack(track);
           });
         });
-        handlers.onRemoteStream?.(remoteStream);
+        handlers.onRemoteStream?.(stream);
+        bus?.emit('rtc:track', { stream });
       });
       pc.addEventListener('icecandidate', (event) => {
         if (event.candidate && target && typeof handlers.sendCandidate === 'function') {
@@ -44,7 +61,9 @@ export default class HomeCall_Web_Rtc_Peer {
         }
       });
       pc.addEventListener('connectionstatechange', () => {
-        handlers.onStateChange?.(pc.connectionState);
+        const state = pc.connectionState;
+        handlers.onStateChange?.(state);
+        bus?.emit('rtc:state', { state });
       });
       connection = pc;
       return pc;
@@ -98,7 +117,10 @@ export default class HomeCall_Web_Rtc_Peer {
     this.handleOffer = async ({ from, sdp }) => {
       target = from;
       const pc = ensureConnection();
-      await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp }));
+      if (typeof RTCSessionDescriptionCtor !== 'function') {
+        throw new Error('RTCSessionDescription is not available.');
+      }
+      await pc.setRemoteDescription(new RTCSessionDescriptionCtor({ type: 'offer', sdp }));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       handlers.sendAnswer?.(from, answer.sdp);
@@ -106,18 +128,18 @@ export default class HomeCall_Web_Rtc_Peer {
     };
 
     this.handleAnswer = async ({ sdp }) => {
-      if (!connection) {
+      if (!connection || typeof RTCSessionDescriptionCtor !== 'function') {
         return;
       }
-      await connection.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp }));
+      await connection.setRemoteDescription(new RTCSessionDescriptionCtor({ type: 'answer', sdp }));
     };
 
     this.addCandidate = async ({ candidate }) => {
-      if (!connection) {
+      if (!connection || typeof RTCIceCandidateCtor !== 'function') {
         return;
       }
       try {
-        await connection.addIceCandidate(new RTCIceCandidate(candidate));
+        await connection.addIceCandidate(new RTCIceCandidateCtor(candidate));
       } catch (error) {
         console.error('[Peer] Failed to add ICE candidate', error);
       }

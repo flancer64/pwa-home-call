@@ -6,7 +6,8 @@
 export default class HomeCall_Web_Media_Manager {
   constructor({
     HomeCall_Web_Media_DeviceMonitor$: monitor,
-    HomeCall_Web_Env_Provider$: env
+    HomeCall_Web_Env_Provider$: env,
+    HomeCall_Web_Shared_EventBus$: eventBus
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
@@ -16,6 +17,7 @@ export default class HomeCall_Web_Media_Manager {
     const windowRef = env.window;
     const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
     const cancelTimeout = typeof windowRef?.clearTimeout === 'function' ? windowRef.clearTimeout.bind(windowRef) : null;
+    const bus = eventBus;
     let peerRef = null;
     let localStream = null;
     let warningActive = false;
@@ -78,6 +80,10 @@ export default class HomeCall_Web_Media_Manager {
           console.error('[MediaManager] Status listener failed', error);
         }
       });
+      bus?.emit('media:status', { status: type, message });
+      if (type === 'success') {
+        bus?.emit('media:ready', { stream: localStream });
+      }
     };
 
     const setLocalStreamInternal = (stream) => {
