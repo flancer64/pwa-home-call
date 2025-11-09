@@ -1,5 +1,9 @@
 import Container from 'https://cdn.jsdelivr.net/npm/@teqfw/di@latest/+esm';
 
+/**
+ * @LLM-DOC: This IIFE isolates the startup logic to keep the global scope clean.
+ * It initializes the DI container, registers namespace roots, and runs the App singleton.
+ */
 (async () => {
   /** @type {TeqFw_Di_Container} */
   const container = new Container();
