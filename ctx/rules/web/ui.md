@@ -1,0 +1,30 @@
+# Контур Ui и экранная логика (`ctx/rules/web/ui.md`)
+
+## Назначение
+
+Ui — это экранная логика и визуальный оркестратор, который получает команды из Core и транслирует действия пользователя обратно через события. Документ фиксирует разграничение состояний (см. `ui/screens.md`), способы подачи уведомлений о разрешениях и реакцию на сетевые и медиасигналы.
+
+## Границы и интерфейсы
+
+- **Входные события**: `core:state`, `core:ready`, `media:state`, `net:error`, `env:change` через `Shared.EventBus`; коллбэки `onScreenReady`, `onAction(userAction)` передаются из Core.
+- **Выходные сигналы**: `ui:action:<type>` (например, `ui:action:initiate-call`, `ui:action:exit`), `ui:navigate`, `ui:permission-request` через EventBus; синхронные ответы на Core (`ack`, `ready`).
+- **Экранное поведение**: Ui сам обрабатывает внутренние коллбэки (кнопки, swipe-события) и не обращается непосредственно к Media, Net или Env; вместо этого она постит `ui:action` события и ждёт реакций от Core.
+
+## Типичные DI-зависимости
+
+- `HomeCall_Web_Ui_ScreenFactory$`
+- `HomeCall_Web_Ui_Renderer$`
+- `HomeCall_Web_Ui_InputHandler$`
+- `HomeCall_Web_Shared_EventBus$`
+- `HomeCall_Web_Shared_Logger$`
+
+## Контейнер и взаимодействия
+
+Ui разрешается через `@teqfw/di` в момент инициализации Core. Никакие UI-модули не инстанцируются напрямую: все подписки и callbacks на `Shared.EventBus` происходят через зарегистрированные сервисы `HomeCall_Web_Ui_*`. Ui взаимодействует с Core по строго заданным интерфейсам, и все события проходят через контейнер, что позволяет агентам и тестам заменять UI-обработчики на фиктивные реализации.
+
+## Связи
+
+- `ctx/rules/web/ui/screens.md` — статусы и раскладки экранов.
+- `ctx/rules/web/core.md` — команды на переход в состояния и обработка `ui:action`.
+- `ctx/rules/web/media.md` — отображение состояния устройств (событие `media:state`).
+- `ctx/rules/web/shared.md` — EventBus и логгер, используемые для транслирования событий.
