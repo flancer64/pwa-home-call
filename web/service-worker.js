@@ -8,11 +8,29 @@ const STATIC_ASSETS = [
   'ui/lobby.html',
   'ui/call.html',
   'ui/end.html',
-  'rtc/peer.js',
-  'ws/client.js',
   'assets/icons/icon-192.svg',
   'assets/icons/icon-512.svg'
 ];
+const MODULE_ASSETS = [
+  'app/Core/App.mjs',
+  'app/Core/ServiceWorkerManager.mjs',
+  'app/Core/TemplateLoader.mjs',
+  'app/Core/VersionWatcher.mjs',
+  'app/Env/Provider.mjs',
+  'app/Media/DeviceMonitor.mjs',
+  'app/Media/Manager.mjs',
+  'app/Net/SignalClient.mjs',
+  'app/Rtc/Peer.mjs',
+  'app/Shared/EventBus.mjs',
+  'app/Shared/Logger.mjs',
+  'app/Shared/Util.mjs',
+  'app/Ui/Screen/Call.mjs',
+  'app/Ui/Screen/End.mjs',
+  'app/Ui/Screen/Enter.mjs',
+  'app/Ui/Screen/Lobby.mjs'
+];
+const CORE_ASSETS = [...STATIC_ASSETS, ...MODULE_ASSETS];
+const CORE_ASSET_SET = new Set(CORE_ASSETS);
 
 async function resolveCacheName() {
   try {
@@ -25,12 +43,44 @@ async function resolveCacheName() {
   }
 }
 
+function toAssetKey(requestUrl) {
+  try {
+    const url = new URL(requestUrl);
+    if (url.origin !== self.location.origin) {
+      return null;
+    }
+    return url.pathname.replace(/^\//, '');
+  } catch {
+    return null;
+  }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) {
+    return cached;
+  }
+  return fetch(request);
+}
+
+async function networkFirst(request) {
+  try {
+    return await fetch(request);
+  } catch (error) {
+    const offline = await caches.match('index.html');
+    if (offline) {
+      return offline;
+    }
+    throw error;
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cacheName = await resolveCacheName();
       const cache = await caches.open(cacheName);
-      await cache.addAll(STATIC_ASSETS);
+      await cache.addAll(CORE_ASSETS);
       self.skipWaiting();
     })()
   );
@@ -55,28 +105,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (new URL(request.url).pathname.endsWith(VERSION_URL)) {
+  const assetKey = toAssetKey(request.url);
+  if (assetKey === VERSION_URL) {
     event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }
 
-  event.respondWith(
-    (async () => {
-      const cache = await caches.match(request);
-      if (cache) {
-        return cache;
-      }
-      try {
-        const response = await fetch(request);
-        return response;
-      } catch (error) {
-        if (request.mode === 'navigate') {
-          return caches.match('index.html');
-        }
-        throw error;
-      }
-    })()
-  );
+  if (request.mode === 'navigate') {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  if (assetKey && CORE_ASSET_SET.has(assetKey)) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  event.respondWith(fetch(request));
 });
 
 self.addEventListener('message', (event) => {
