@@ -1,4 +1,6 @@
-# Контур Shared — инфраструктура (`ctx/rules/web/shared.md`)
+# Контур Shared — инфраструктура
+
+Этот документ описывает контур **Shared**, являющийся частью браузерного приложения HomeCall, определённого в `app.md`.
 
 ## Назначение
 
@@ -27,6 +29,12 @@ Shared регистрируется в `@teqfw/di` как центральный
 
 ## Связи
 
+- `ctx/rules/web/app.md` — единая событийная модель, описанная в сценариях состояния.
 - `ctx/rules/web/core.md` — Core публикует `core:*` события на EventBus.
 - `ctx/rules/web/net.md`, `ctx/rules/web/media.md`, `ctx/rules/web/rtc.md`, `ctx/rules/web/ui.md`, `ctx/rules/web/env.md` — все подписываются на `Shared.EventBus`.
 - `ctx/rules/web/ws.md` — EventBus транслирует сообщения Net в локальные события.
+
+## Итог
+
+Контур Shared обеспечивает единообразную шину событий и логирование для всех контуров, как требуется в модели `app.md`.  
+См. также `app.md` — обзорный документ браузерного приложения HomeCall.
