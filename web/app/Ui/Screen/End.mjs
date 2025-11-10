@@ -3,6 +3,9 @@
  * @description Shows summary after call ends.
  */
 
+/**
+ * @implements {HomeCall_Web_Ui_Screen_Interface}
+ */
 export default class HomeCall_Web_Ui_Screen_End {
   /**
    * @param {Object} deps
@@ -15,7 +18,7 @@ export default class HomeCall_Web_Ui_Screen_End {
   /**
    * Render end screen.
    * @param {Object} params
-   * @param {HTMLElement} params.container
+   * @param {HTMLElement} params.container - Root container for rendering the screen.
    * @param {string} params.message
    * @param {() => void} params.onBack
    */

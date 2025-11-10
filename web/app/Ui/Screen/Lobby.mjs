@@ -3,6 +3,9 @@
  * @description Displays lobby with participants list.
  */
 
+/**
+ * @implements {HomeCall_Web_Ui_Screen_Interface}
+ */
 export default class HomeCall_Web_Ui_Screen_Lobby {
   /**
    * @param {Object} deps
@@ -26,7 +29,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
   /**
    * Render lobby screen.
    * @param {Object} params
-   * @param {HTMLElement} params.container
+   * @param {HTMLElement} params.container - Root container for rendering the screen.
    * @param {string} params.roomCode
    * @param {string[]} params.users
    * @param {(user: string) => void} params.onCall

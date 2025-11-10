@@ -3,6 +3,9 @@
  * @description Handles UI for the enter screen.
  */
 
+/**
+ * @implements {HomeCall_Web_Ui_Screen_Interface}
+ */
 export default class HomeCall_Web_Ui_Screen_Enter {
   /**
    * @param {Object} deps
@@ -33,7 +36,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
   /**
    * Render screen and bind events.
    * @param {Object} params
-   * @param {HTMLElement} params.container
+   * @param {HTMLElement} params.container - Root container for rendering the screen.
    * @param {(data: {user: string, room: string}) => void} params.onEnter
    * @param {string} [params.connectionMessage]
    */

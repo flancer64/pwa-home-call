@@ -34,3 +34,14 @@
 /** @typedef {import('./Ui/Screen/Lobby.mjs').default} HomeCall_Web_Ui_Screen_Lobby */
 /** @typedef {import('./Ui/Screen/Call.mjs').default} HomeCall_Web_Ui_Screen_Call */
 /** @typedef {import('./Ui/Screen/End.mjs').default} HomeCall_Web_Ui_Screen_End */
+
+/**
+ * @interface HomeCall_Web_Ui_Screen_Interface
+ * @description Unified contract for all UI screens managed by the UI controller.
+ * Each screen must implement the `show(params)` method.
+ *
+ * @function show
+ * @param {Object} params
+ * @param {HTMLElement} params.container - Root container for rendering the screen.
+ * @description Renders the screen content inside the given container and binds events.
+ */

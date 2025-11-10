@@ -37,10 +37,29 @@ test('UiController delegates screen calls without leaking state', () => {
 
   assert.ok(controller, 'controller should be created with valid deps');
 
-  controller.showEnter('root', 'hello', () => {});
-  controller.showLobby('root', 'room', ['alice'], () => {}, () => {});
-  controller.showCall('root', 'stream-a', () => {}, () => {});
-  controller.showEnd('root', 'goodbye', () => {});
+  controller.showEnter({
+    container: 'root',
+    connectionMessage: 'hello',
+    onEnter: () => {}
+  });
+  controller.showLobby({
+    container: 'root',
+    roomCode: 'room',
+    users: ['alice'],
+    onCall: () => {},
+    onLeave: () => {}
+  });
+  controller.showCall({
+    container: 'root',
+    remoteStream: 'stream-a',
+    onEnd: () => {},
+    onRetry: () => {}
+  });
+  controller.showEnd({
+    container: 'root',
+    message: 'goodbye',
+    onBack: () => {}
+  });
   controller.updateRemoteStream('stream-b');
 
   assert.strictEqual(recorded.enter?.container, 'root');

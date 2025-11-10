@@ -5,10 +5,10 @@
 export default class HomeCall_Web_Core_UiController {
   /**
    * @param {Object} deps
-   * @param {HomeCall_Web_Ui_Screen_Enter} deps.HomeCall_Web_Ui_Screen_Enter$
-   * @param {HomeCall_Web_Ui_Screen_Lobby} deps.HomeCall_Web_Ui_Screen_Lobby$
-   * @param {HomeCall_Web_Ui_Screen_Call} deps.HomeCall_Web_Ui_Screen_Call$
-   * @param {HomeCall_Web_Ui_Screen_End} deps.HomeCall_Web_Ui_Screen_End$
+   * @param {HomeCall_Web_Ui_Screen_Interface} deps.HomeCall_Web_Ui_Screen_Enter$
+   * @param {HomeCall_Web_Ui_Screen_Interface} deps.HomeCall_Web_Ui_Screen_Lobby$
+   * @param {HomeCall_Web_Ui_Screen_Interface} deps.HomeCall_Web_Ui_Screen_Call$
+   * @param {HomeCall_Web_Ui_Screen_Interface} deps.HomeCall_Web_Ui_Screen_End$
    */
   constructor({
     HomeCall_Web_Ui_Screen_Enter$: screenEnter,
@@ -25,17 +25,13 @@ export default class HomeCall_Web_Core_UiController {
       throw new Error('All UI screen dependencies are required.');
     }
 
-    this.showEnter = (container, message, onEnter) =>
-      enter.show({ container, connectionMessage: message, onEnter });
+    this.showEnter = (params = {}) => enter.show(params);
 
-    this.showLobby = (container, roomCode, users, onCall, onLeave) =>
-      lobby.show({ container, roomCode, users, onCall, onLeave });
+    this.showLobby = (params = {}) => lobby.show(params);
 
-    this.showCall = (container, remoteStream, onEnd, onRetry) =>
-      call.show({ container, remoteStream, onEnd, onRetry });
+    this.showCall = (params = {}) => call.show(params);
 
-    this.showEnd = (container, message, onBack) =>
-      end.show({ container, message, onBack });
+    this.showEnd = (params = {}) => end.show(params);
 
     this.updateRemoteStream = (stream) => call.updateRemoteStream(stream);
   }
