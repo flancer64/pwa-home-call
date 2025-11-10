@@ -1,43 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0078d7" />
-    <link rel="icon" href="assets/icons/icon-192.svg" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="assets/style.css" />
-    <title>HomeCall</title>
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="toolbar" role="toolbar" aria-label="Global controls">
-        <div class="toolbar-actions">
-          <button id="toolbar-clear-cache" class="toolbar-button" type="button" aria-label="Clear cache">
-            <img src="assets/icons/cache.svg" alt="" class="toolbar-icon" />
-            <span class="sr-only">Clear cache</span>
-          </button>
-          <button id="toolbar-toggle-media" class="toolbar-button" type="button" aria-label="Toggle camera and microphone">
-            <img src="assets/icons/media.svg" alt="" class="toolbar-icon" />
-            <span class="sr-only">Toggle media</span>
-          </button>
-          <button id="toolbar-settings" class="toolbar-button" type="button" aria-label="Open environment settings">
-            <img src="assets/icons/settings.svg" alt="" class="toolbar-icon" />
-            <span class="sr-only">Open settings</span>
-          </button>
-          <button id="toolbar-refresh" class="toolbar-button" type="button" aria-label="Refresh application">
-            <img src="assets/icons/refresh.svg" alt="" class="toolbar-icon" />
-            <span class="sr-only">Refresh application</span>
-          </button>
-        </div>
-      </header>
-      <main class="main-area">
-        <div class="screen-wrapper" id="app" aria-live="polite"></div>
-      </main>
-      <footer class="cta-panel" aria-live="polite">
-        <button id="cta-action" class="primary" type="button">Primary action</button>
-      </footer>
-    </div>
-    <script type="module" src="app.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0078d7" />
+  <link rel="icon" href="assets/icons/icon-192.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <title>HomeCall</title>
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="toolbar" role="toolbar" aria-label="Global controls">
+      <div class="toolbar-actions">
+        <button id="toolbar-clear-cache" class="toolbar-button" type="button" aria-label="Clear cache"
+          title="Очистить кэш приложения">
+          <img src="assets/icons/trash-2.svg" alt="" class="toolbar-icon" />
+          <span class="sr-only">Clear cache</span>
+        </button>
+
+        <button id="toolbar-toggle-media" class="toolbar-button" type="button" aria-label="Toggle camera and microphone"
+          title="Включить или выключить камеру и микрофон">
+          <img src="assets/icons/video.svg" alt="" class="toolbar-icon" />
+          <img src="assets/icons/mic.svg" alt="" class="toolbar-icon icon-overlay" />
+          <span class="sr-only">Toggle media</span>
+        </button>
+
+        <button id="toolbar-settings" class="toolbar-button" type="button" aria-label="Open environment settings"
+          title="Открыть настройки окружения">
+          <img src="assets/icons/settings.svg" alt="" class="toolbar-icon" />
+          <span class="sr-only">Open settings</span>
+        </button>
+
+        <button id="toolbar-refresh" class="toolbar-button" type="button" aria-label="Refresh application"
+          title="Обновить приложение">
+          <img src="assets/icons/refresh-ccw.svg" alt="" class="toolbar-icon" />
+          <span class="sr-only">Refresh application</span>
+        </button>
+      </div>
+
+    </header>
+    <main class="main-area">
+      <div class="screen-wrapper" id="app" aria-live="polite"></div>
+    </main>
+    <footer class="cta-panel" aria-live="polite">
+      <button id="cta-action" class="primary" type="button">Primary action</button>
+    </footer>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+
 </html>
