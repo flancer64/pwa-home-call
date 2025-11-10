@@ -95,19 +95,29 @@ export default class HomeCall_Web_Media_Manager {
     };
 
     const showToast = (message) => {
-      if (!documentRef) {
+      if (!documentRef?.body) {
         return;
       }
       clearToast();
-      const element = documentRef.createElement?.('div') ?? { remove() {} };
+      const element = documentRef.createElement('div');
       element.className = 'toast';
-      element.textContent = message;
-      documentRef.body?.appendChild?.(element);
+      element.setAttribute('role', 'status');
+      element.setAttribute('aria-live', 'polite');
+      const messageNode = documentRef.createElement('p');
+      messageNode.textContent = message;
+      element.appendChild(messageNode);
+      const actionButton = documentRef.createElement('button');
+      actionButton.type = 'button';
+      actionButton.className = 'toast-action';
+      actionButton.textContent = 'Понятно';
+      actionButton.addEventListener('click', clearToast);
+      element.appendChild(actionButton);
+      documentRef.body.appendChild(element);
       toastElement = element;
       if (scheduleTimeout) {
         toastTimeout = scheduleTimeout(() => {
           clearToast();
-        }, 4000);
+        }, 5000);
       }
     };
 
