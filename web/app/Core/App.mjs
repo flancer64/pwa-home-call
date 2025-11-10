@@ -65,8 +65,7 @@ export default class HomeCall_Web_Core_App {
       ctaPanel: null,
       toolbarButtons: {
         clearCache: null,
-        toggleMedia: null,
-        refresh: null
+        toggleMedia: null
       }
     };
 
@@ -95,7 +94,6 @@ export default class HomeCall_Web_Core_App {
       layout.ctaPanel = document.querySelector('.cta-panel');
       layout.toolbarButtons.clearCache = document.getElementById('toolbar-clear-cache');
       layout.toolbarButtons.toggleMedia = document.getElementById('toolbar-toggle-media');
-      layout.toolbarButtons.refresh = document.getElementById('toolbar-refresh');
     };
 
     const hideCtaPanel = (hidden) => {
@@ -138,10 +136,18 @@ export default class HomeCall_Web_Core_App {
     };
 
     const attachToolbarHandlers = () => {
-      const { clearCache, toggleMedia, refresh } = layout.toolbarButtons;
-      clearCache?.addEventListener('click', (event) => {
+      const { clearCache, toggleMedia } = layout.toolbarButtons;
+      clearCache?.addEventListener('click', async (event) => {
         event.preventDefault();
-        bus.emit('ui:action:clear-cache');
+        if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
+          return;
+        }
+        showCacheClearedMessage();
+        try {
+          await cacheCleaner.clear();
+        } catch (error) {
+          log.error('[App] Unable to clear cache', error);
+        }
       });
       toggleMedia?.addEventListener('click', async (event) => {
         event.preventDefault();
@@ -153,12 +159,6 @@ export default class HomeCall_Web_Core_App {
           }
         } catch (error) {
           log.error('[App] Unable to toggle media tracks', error);
-        }
-      });
-      refresh?.addEventListener('click', (event) => {
-        event.preventDefault();
-        if (env.window?.location) {
-          env.window.location.reload();
         }
       });
     };
@@ -582,17 +582,6 @@ export default class HomeCall_Web_Core_App {
       statusElement.textContent = 'Кэш удалён. Приложение будет перезапущено.';
       statusElement.hidden = false;
     };
-
-    const handleClearCache = () => {
-      if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
-        return;
-      }
-      showCacheClearedMessage();
-      cacheCleaner.clear().catch((error) => {
-        log.error('[App] Unable to clear cache', error);
-      });
-    };
-    bus.on('ui:action:clear-cache', handleClearCache);
 
     this.run = async () => {
       if (!document) {
