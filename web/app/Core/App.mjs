@@ -84,6 +84,9 @@ export default class HomeCall_Web_Core_App {
     let hardReconnectInProgress = false;
     let reconnecting = false;
     let peerConnectionState = 'new';
+    let ignoreClosedEvent = false;
+    let manualShutdownInProgress = false;
+    let ignoreClosedResetTimer = null;
 
     const bindLayoutElements = () => {
       if (!document) {
@@ -222,6 +225,29 @@ export default class HomeCall_Web_Core_App {
       updateConnectionHint(false);
     };
 
+    const clearPeerShutdownIgnore = () => {
+      ignoreClosedEvent = false;
+      manualShutdownInProgress = false;
+      if (ignoreClosedResetTimer && cancelTimeout) {
+        cancelTimeout(ignoreClosedResetTimer);
+        ignoreClosedResetTimer = null;
+      }
+    };
+
+    const beginLocalPeerShutdown = ({ manual = false } = {}) => {
+      ignoreClosedEvent = true;
+      manualShutdownInProgress = Boolean(manual);
+      if (ignoreClosedResetTimer && cancelTimeout) {
+        cancelTimeout(ignoreClosedResetTimer);
+        ignoreClosedResetTimer = null;
+      }
+      if (scheduleTimeout) {
+        ignoreClosedResetTimer = scheduleTimeout(() => {
+          clearPeerShutdownIgnore();
+        }, 2000);
+      }
+    };
+
     const resetReconnectionAttempts = () => {
       state.reconnectAttempts = 0;
     };
@@ -344,6 +370,14 @@ export default class HomeCall_Web_Core_App {
         return;
       }
       if (peerState === 'closed') {
+        if (ignoreClosedEvent) {
+          const manualClosure = manualShutdownInProgress;
+          clearPeerShutdownIgnore();
+          if (manualClosure) {
+            log.info('[App] Manual shutdown completed, ignoring duplicate closed event.');
+          }
+          return;
+        }
         if (!reconnecting && state.currentState === 'call') {
           log.warn('[App] WebRTC connection closed unexpectedly.');
           endCall('Соединение потеряно.');
@@ -408,10 +442,11 @@ export default class HomeCall_Web_Core_App {
       });
     };
 
-    const endCall = (message) => {
+    const endCall = (message, { manual = false } = {}) => {
       stopReconnection();
       state.lastCallTarget = null;
       state.reconnectAttempts = 0;
+      beginLocalPeerShutdown({ manual });
       peer.end();
       media.stopLocalStream();
       media.setLocalStream(null);
@@ -431,7 +466,7 @@ export default class HomeCall_Web_Core_App {
         container: state.root,
         remoteStream: state.remoteStream,
         onEnd: () => {
-          endCall('Звонок завершён.');
+          endCall('Звонок завершён.', { manual: true });
         },
         onRetry: () => {
           media.prepare().catch((error) => {
