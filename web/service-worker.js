@@ -32,14 +32,15 @@ const MODULE_ASSETS = [
 const CORE_ASSETS = [...STATIC_ASSETS, ...MODULE_ASSETS];
 const CORE_ASSET_SET = new Set(CORE_ASSETS);
 
-async function resolveCacheName() {
+async function resolveVersionInfo() {
   try {
     const response = await fetch(VERSION_URL, { cache: 'no-store' });
     const data = await response.json();
-    return `homecall-v${data.version}`;
+    const version = typeof data?.version === 'string' ? data.version : '0';
+    return { version, cacheName: `homecall-v${version}` };
   } catch (error) {
     console.warn('[ServiceWorker] Failed to resolve version, using fallback cache.', error);
-    return 'homecall-v0';
+    return { version: '0', cacheName: 'homecall-v0' };
   }
 }
 
@@ -78,7 +79,7 @@ async function networkFirst(request) {
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
-      const cacheName = await resolveCacheName();
+      const { cacheName } = await resolveVersionInfo();
       const cache = await caches.open(cacheName);
       await cache.addAll(CORE_ASSETS);
       self.skipWaiting();
@@ -89,10 +90,13 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      const expected = await resolveCacheName();
+      const { cacheName: expected, version } = await resolveVersionInfo();
       const cacheNames = await caches.keys();
       await Promise.all(
         cacheNames.map((name) => (name === expected ? null : caches.delete(name)))
+      );
+      console.info(
+        `[ServiceWorker] Activated version ${version}, old caches removed`
       );
       await self.clients.claim();
     })()

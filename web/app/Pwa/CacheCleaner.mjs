@@ -34,6 +34,7 @@ export default class HomeCall_Web_Pwa_CacheCleaner {
       }
     }
     await this.unregisterServiceWorkers();
+    this.log?.info?.('[CacheCleaner] PWA cache cleared and service worker reinstalled');
     this.reload();
   }
 
