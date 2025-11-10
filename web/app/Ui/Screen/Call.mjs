@@ -4,6 +4,7 @@
  */
 
 const remoteVideoRefs = new WeakMap();
+const connectionStatusRefs = new WeakMap();
 
 /**
  * @implements {HomeCall_Web_Ui_Screen_Interface}
@@ -33,6 +34,8 @@ export default class HomeCall_Web_Ui_Screen_Call {
     const noMedia = container.querySelector('#no-media');
     const retryButton = container.querySelector('#retry-media');
     const endButton = container.querySelector('#end-call');
+    const statusMessage = container.querySelector('#call-connection-status');
+    connectionStatusRefs.set(this, statusMessage ?? null);
     this.media.bindLocalElements({
       video: localVideo ?? null,
       message: noMedia ?? null,
@@ -47,6 +50,15 @@ export default class HomeCall_Web_Ui_Screen_Call {
     retryButton?.addEventListener('click', () => {
       onRetry?.();
     });
+  }
+
+  updateConnectionStatus({ message = '', visible = false } = {}) {
+    const statusElement = connectionStatusRefs.get(this);
+    if (!statusElement) {
+      return;
+    }
+    statusElement.textContent = message;
+    statusElement.hidden = !visible;
   }
 
   updateRemoteStream(stream) {

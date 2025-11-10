@@ -145,6 +145,31 @@ export default class HomeCall_Web_Rtc_Peer {
       }
     };
 
+    this.restartIce = () => {
+      if (!connection || typeof connection.restartIce !== 'function') {
+        return false;
+      }
+      try {
+        connection.restartIce();
+        return true;
+      } catch (error) {
+        console.warn('[Peer] restartIce failed', error);
+        return false;
+      }
+    };
+
+    this.forceReconnect = async () => {
+      if (!target) {
+        throw new Error('Cannot reconnect without a target.');
+      }
+      if (connection) {
+        connection.close();
+      }
+      connection = null;
+      remoteStream = null;
+      return this.start(target);
+    };
+
     this.end = () => {
       if (connection) {
         connection.close();

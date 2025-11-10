@@ -34,5 +34,6 @@ export default class HomeCall_Web_Core_UiController {
     this.showEnd = (params = {}) => end.show(params);
 
     this.updateRemoteStream = (stream) => call.updateRemoteStream(stream);
+    this.updateCallConnectionStatus = (params = {}) => call.updateConnectionStatus(params);
   }
 }

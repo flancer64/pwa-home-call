@@ -55,7 +55,9 @@ export default class HomeCall_Web_Core_App {
       roomCode: '',
       onlineUsers: [],
       remoteStream: null,
-      connectionMessage: ''
+      connectionMessage: '',
+      lastCallTarget: null,
+      reconnectAttempts: 0
     };
 
     const layout = {
@@ -68,6 +70,20 @@ export default class HomeCall_Web_Core_App {
         refresh: null
       }
     };
+
+    const MAX_RECONNECT_ATTEMPTS = 3;
+    const RECONNECT_WAIT_MS = 5000;
+    const RECONNECT_MESSAGE = 'Потеря связи, пытаемся восстановить…';
+    const CONNECTION_LOST_MESSAGE = 'Связь потеряна.';
+    const scheduleTimeout =
+      typeof env.window?.setTimeout === 'function' ? env.window.setTimeout.bind(env.window) : null;
+    const cancelTimeout =
+      typeof env.window?.clearTimeout === 'function' ? env.window.clearTimeout.bind(env.window) : null;
+    let reconnectTimer = null;
+    let reconnectPhase = null;
+    let hardReconnectInProgress = false;
+    let reconnecting = false;
+    let peerConnectionState = 'new';
 
     const bindLayoutElements = () => {
       if (!document) {
@@ -174,6 +190,167 @@ export default class HomeCall_Web_Core_App {
       document.body.classList.toggle('state-call', state.currentState === 'call');
     };
 
+    const updateConnectionHint = (visible) => {
+      if (state.currentState !== 'call') {
+        return;
+      }
+      if (typeof ui.updateCallConnectionStatus !== 'function') {
+        return;
+      }
+      ui.updateCallConnectionStatus({ message: RECONNECT_MESSAGE, visible });
+    };
+
+    const clearRemoteStreamView = () => {
+      state.remoteStream = null;
+      if (typeof ui.updateRemoteStream === 'function') {
+        ui.updateRemoteStream(null);
+      }
+    };
+
+    const clearReconnectionTimer = () => {
+      if (reconnectTimer && cancelTimeout) {
+        cancelTimeout(reconnectTimer);
+      }
+      reconnectTimer = null;
+    };
+
+    const stopReconnection = () => {
+      reconnecting = false;
+      reconnectPhase = null;
+      hardReconnectInProgress = false;
+      clearReconnectionTimer();
+      updateConnectionHint(false);
+    };
+
+    const resetReconnectionAttempts = () => {
+      state.reconnectAttempts = 0;
+    };
+
+    const tryConsumeReconnectAttempt = () => {
+      if (state.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        return false;
+      }
+      state.reconnectAttempts += 1;
+      return true;
+    };
+
+    const finalizeConnectionLoss = () => {
+      stopReconnection();
+      log.error(`[App] Reconnection limit reached (${state.reconnectAttempts})`);
+      endCall(CONNECTION_LOST_MESSAGE);
+    };
+
+    const beginReconnection = () => {
+      reconnecting = true;
+      clearRemoteStreamView();
+      updateConnectionHint(true);
+    };
+
+    const startHardReconnect = async () => {
+      if (state.currentState !== 'call') {
+        return;
+      }
+      if (hardReconnectInProgress) {
+        return;
+      }
+      if (!tryConsumeReconnectAttempt()) {
+        finalizeConnectionLoss();
+        return;
+      }
+      reconnectPhase = 'hard';
+      if (!reconnecting) {
+        beginReconnection();
+      }
+      hardReconnectInProgress = true;
+      log.warn(`[App] Hard reconnection attempt #${state.reconnectAttempts}`);
+      if (!state.lastCallTarget) {
+        hardReconnectInProgress = false;
+        log.error('[App] Missing target for hard reconnection.');
+        finalizeConnectionLoss();
+        return;
+      }
+      clearReconnectionTimer();
+      try {
+        await peer.forceReconnect();
+        log.info('[App] Hard reconnection offer sent.');
+      } catch (error) {
+        log.error('[App] Hard reconnection failed to rebuild the connection.', error);
+        if (state.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+          finalizeConnectionLoss();
+        }
+      } finally {
+        hardReconnectInProgress = false;
+      }
+    };
+
+    const startSoftReconnect = () => {
+      if (state.currentState !== 'call' || reconnectPhase === 'soft') {
+        return;
+      }
+      if (!tryConsumeReconnectAttempt()) {
+        finalizeConnectionLoss();
+        return;
+      }
+      reconnectPhase = 'soft';
+      if (!reconnecting) {
+        beginReconnection();
+      }
+      log.warn(`[App] Connection state 'disconnected'. Soft reconnection attempt #${state.reconnectAttempts}`);
+      const restarted = peer.restartIce();
+      if (!restarted) {
+        log.warn('[App] restartIce is not available, escalating to hard reconnection.');
+        void startHardReconnect();
+        return;
+      }
+      if (!scheduleTimeout) {
+        void startHardReconnect();
+        return;
+      }
+      clearReconnectionTimer();
+      reconnectTimer = scheduleTimeout(() => {
+        reconnectTimer = null;
+        if (peerConnectionState !== 'connected') {
+          log.warn('[App] Soft reconnection timed out, escalating to hard reconnect.');
+          void startHardReconnect();
+        }
+      }, RECONNECT_WAIT_MS);
+    };
+
+    const handlePeerStateChange = (peerState) => {
+      peerConnectionState = peerState;
+      if (peerState === 'connected') {
+        if (reconnecting) {
+          log.info('[App] WebRTC connection restored.');
+        }
+        stopReconnection();
+        resetReconnectionAttempts();
+        return;
+      }
+      if (peerState === 'disconnected') {
+        if (state.currentState !== 'call') {
+          return;
+        }
+        log.warn('[App] WebRTC connection lost (disconnected).');
+        startSoftReconnect();
+        return;
+      }
+      if (peerState === 'failed') {
+        if (state.currentState !== 'call') {
+          return;
+        }
+        log.warn('[App] WebRTC connection failed.');
+        clearReconnectionTimer();
+        void startHardReconnect();
+        return;
+      }
+      if (peerState === 'closed') {
+        if (!reconnecting && state.currentState === 'call') {
+          log.warn('[App] WebRTC connection closed unexpectedly.');
+          endCall('Соединение потеряно.');
+        }
+      }
+    };
+
     const transitionState = (nextState) => {
       state.currentState = nextState;
       updateBodyState();
@@ -232,6 +409,9 @@ export default class HomeCall_Web_Core_App {
     };
 
     const endCall = (message) => {
+      stopReconnection();
+      state.lastCallTarget = null;
+      state.reconnectAttempts = 0;
       peer.end();
       media.stopLocalStream();
       media.setLocalStream(null);
@@ -246,6 +426,7 @@ export default class HomeCall_Web_Core_App {
 
     const showCall = () => {
       transitionState('call');
+      stopReconnection();
       ui.showCall({
         container: state.root,
         remoteStream: state.remoteStream,
@@ -285,6 +466,9 @@ export default class HomeCall_Web_Core_App {
     };
 
     const startCall = async (target) => {
+      state.lastCallTarget = target;
+      state.reconnectAttempts = 0;
+      stopReconnection();
       try {
         let localStream = media.getLocalStream();
         if (!localStream && typeof MediaStreamCtor === 'function') {
@@ -314,9 +498,7 @@ export default class HomeCall_Web_Core_App {
           }
         },
         onStateChange: (peerState) => {
-          if (peerState === 'disconnected' || peerState === 'failed') {
-            endCall('Соединение потеряно.');
-          }
+          handlePeerStateChange(peerState);
         }
       });
     };
@@ -330,6 +512,9 @@ export default class HomeCall_Web_Core_App {
       });
 
       signal.on('offer', async (data) => {
+        state.lastCallTarget = data?.from ?? null;
+        state.reconnectAttempts = 0;
+        stopReconnection();
         if (state.currentState !== 'call') {
           showCall();
         }
