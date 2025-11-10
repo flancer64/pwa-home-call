@@ -4,6 +4,19 @@
  */
 
 export default class HomeCall_Web_Core_App {
+ /**
+  * @param {Object} deps
+  * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
+  * @param {HomeCall_Web_Core_ServiceWorkerManager} deps.HomeCall_Web_Core_ServiceWorkerManager$
+  * @param {HomeCall_Web_Core_VersionWatcher} deps.HomeCall_Web_Core_VersionWatcher$
+  * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
+  * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
+  * @param {HomeCall_Web_Rtc_Peer} deps.HomeCall_Web_Rtc_Peer$
+   * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
+  * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
+  * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
+  * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
+  */
   constructor({
     HomeCall_Web_Core_TemplateLoader$: templates,
     HomeCall_Web_Core_ServiceWorkerManager$: sw,
@@ -11,10 +24,7 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Net_SignalClient$: signal,
     HomeCall_Web_Rtc_Peer$: peer,
-    HomeCall_Web_Ui_Screen_Enter$: screenEnter,
-    HomeCall_Web_Ui_Screen_Lobby$: screenLobby,
-    HomeCall_Web_Ui_Screen_Call$: screenCall,
-    HomeCall_Web_Ui_Screen_End$: screenEnd,
+    HomeCall_Web_Core_UiController$: uiController,
     HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Shared_Logger$: logger,
     HomeCall_Web_Env_Provider$: env
@@ -25,10 +35,14 @@ export default class HomeCall_Web_Core_App {
     if (!eventBus) {
       throw new Error('Shared event bus is required for HomeCall core.');
     }
+    if (!uiController) {
+      throw new Error('UI controller is required for HomeCall core.');
+    }
     const document = env.document;
     const MediaStreamCtor = env.MediaStream;
     const log = logger ?? console;
     const bus = eventBus;
+    const ui = uiController;
     const state = {
       root: null,
       currentState: null,
@@ -55,7 +69,7 @@ export default class HomeCall_Web_Core_App {
 
     const showLobby = () => {
       transitionState('lobby');
-      screenLobby.show({
+      ui.showLobby({
         container: state.root,
         roomCode: state.roomCode,
         users: state.onlineUsers,
@@ -74,7 +88,7 @@ export default class HomeCall_Web_Core_App {
 
     const showEnd = () => {
       transitionState('end');
-      screenEnd.show({
+      ui.showEnd({
         container: state.root,
         message: state.connectionMessage,
         onBack: () => {
@@ -99,7 +113,7 @@ export default class HomeCall_Web_Core_App {
 
     const showCall = () => {
       transitionState('call');
-      screenCall.show({
+      ui.showCall({
         container: state.root,
         remoteStream: state.remoteStream,
         onEnd: () => {
@@ -117,7 +131,7 @@ export default class HomeCall_Web_Core_App {
       transitionState('enter');
       const message = state.connectionMessage;
       state.connectionMessage = '';
-      screenEnter.show({
+      ui.showEnter({
         container: state.root,
         connectionMessage: message,
         onEnter: ({ user, room }) => {
@@ -155,7 +169,7 @@ export default class HomeCall_Web_Core_App {
         onRemoteStream: (stream) => {
           state.remoteStream = stream;
           if (state.currentState === 'call') {
-            screenCall.updateRemoteStream(stream);
+            ui.updateRemoteStream(stream);
           }
         },
         onStateChange: (peerState) => {
@@ -179,11 +193,11 @@ export default class HomeCall_Web_Core_App {
           showCall();
         }
         try {
-        if (!media.getLocalStream() && typeof MediaStreamCtor === 'function') {
-          media.setLocalStream(new MediaStreamCtor());
-        }
-        await peer.handleOffer(data);
-      } catch (error) {
+          if (!media.getLocalStream() && typeof MediaStreamCtor === 'function') {
+            media.setLocalStream(new MediaStreamCtor());
+          }
+          await peer.handleOffer(data);
+        } catch (error) {
           log.error('[App] Failed to handle offer', error);
           endCall('Unable to accept call.');
         }
