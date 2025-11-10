@@ -27,7 +27,7 @@ export default class HomeCall_Web_Ui_Screen_End {
     const messageBox = container.querySelector('#end-message');
     const backButton = container.querySelector('#back-to-lobby');
     if (messageBox) {
-      messageBox.textContent = message || 'The session has finished. You can return to the lobby.';
+      messageBox.textContent = message || 'Сессия завершена. Вы можете вернуться в лобби.';
     }
     backButton?.addEventListener('click', () => {
       onBack?.();

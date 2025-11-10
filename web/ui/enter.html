@@ -1,23 +1,23 @@
 <section data-screen="enter">
   <h1>HomeCall</h1>
-  <p>Enter your room code to join the lobby.</p>
+  <p>Введите код комнаты, чтобы войти в лобби.</p>
   <section id="media-info">
-    <h2>Prepare for your call</h2>
-    <p>HomeCall uses your camera and microphone so you can talk face to face. You choose when to enable them.</p>
+    <h2>Подготовьтесь к звонку</h2>
+    <p>HomeCall использует вашу камеру и микрофон, чтобы вы могли поговорить лицом к лицу. Вы сами решаете, когда их включить.</p>
     <div id="media-status" class="alert" hidden></div>
-    <button id="prepare-media" class="secondary" type="button">Prepare camera</button>
-    <a id="open-settings" href="#">Open browser settings</a>
+    <button id="prepare-media" class="secondary" type="button">Подготовить камеру</button>
+    <a id="open-settings" href="#">Открыть настройки браузера</a>
   </section>
   <form id="enter-form">
     <label>
-      Display name
+      Отображаемое имя
       <input type="text" name="user" autocomplete="name" required minlength="2" />
     </label>
     <label>
-      Room code
+      Код комнаты
       <input type="text" name="room" autocomplete="one-time-code" required minlength="3" />
     </label>
-    <button class="primary" type="submit">Join</button>
+    <button class="primary" type="submit">Присоединиться</button>
   </form>
   <p class="hint" id="enter-error" role="alert"></p>
 </section>

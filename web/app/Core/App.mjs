@@ -117,7 +117,7 @@ export default class HomeCall_Web_Core_App {
         container: state.root,
         remoteStream: state.remoteStream,
         onEnd: () => {
-          endCall('Call ended.');
+          endCall('Звонок завершён.');
         },
         onRetry: () => {
           media.prepare().catch((error) => {
@@ -156,7 +156,7 @@ export default class HomeCall_Web_Core_App {
         log.error('[App] Unable to start call', error);
         peer.end();
         state.remoteStream = null;
-        state.connectionMessage = 'Failed to start call.';
+        state.connectionMessage = 'Не удалось начать звонок.';
         showEnd();
       }
     };
@@ -174,7 +174,7 @@ export default class HomeCall_Web_Core_App {
         },
         onStateChange: (peerState) => {
           if (peerState === 'disconnected' || peerState === 'failed') {
-            endCall('Connection lost.');
+            endCall('Соединение потеряно.');
           }
         }
       });
@@ -199,7 +199,7 @@ export default class HomeCall_Web_Core_App {
           await peer.handleOffer(data);
         } catch (error) {
           log.error('[App] Failed to handle offer', error);
-          endCall('Unable to accept call.');
+          endCall('Не удалось принять звонок.');
         }
       });
 
@@ -220,7 +220,7 @@ export default class HomeCall_Web_Core_App {
       });
 
       signal.on('error', (data) => {
-        state.connectionMessage = data?.message || 'Signal error occurred.';
+        state.connectionMessage = data?.message || 'Произошла ошибка сигнализации.';
         if (state.currentState === 'enter') {
           showEnter();
         }
@@ -230,7 +230,7 @@ export default class HomeCall_Web_Core_App {
         if (status === 'closed' && state.currentState !== 'enter') {
           peer.end();
           state.remoteStream = null;
-          state.connectionMessage = 'Connection to the signaling server lost.';
+          state.connectionMessage = 'Соединение с сервером сигнализации потеряно.';
           showEnter();
         }
       });

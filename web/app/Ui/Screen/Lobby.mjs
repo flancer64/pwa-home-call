@@ -41,7 +41,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
     const list = container.querySelector('#user-list');
     const leaveButton = container.querySelector('#leave-room');
     if (roomLabel) {
-      roomLabel.textContent = `Room: ${roomCode}`;
+      roomLabel.textContent = `Комната: ${roomCode}`;
     }
     const ownerDocument = container.ownerDocument ?? this.document;
     const createElement = (tag) => ownerDocument?.createElement?.(tag) ?? null;
@@ -50,7 +50,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
       if (!users || users.length === 0) {
         const empty = createElement('p');
         if (empty) {
-          empty.textContent = 'Waiting for other participants...';
+          empty.textContent = 'Ожидаю других участников...';
           list.appendChild(empty);
         }
       } else {
@@ -70,7 +70,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
           if (button) {
             button.className = 'primary';
             button.type = 'button';
-            button.textContent = 'Call';
+            button.textContent = 'Позвонить';
             button.addEventListener('click', () => {
               onCall?.(user);
             });

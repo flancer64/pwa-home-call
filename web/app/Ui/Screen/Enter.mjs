@@ -74,7 +74,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
       const room = (formData.get('room') || '').toString().trim();
       if (!user || !room) {
         if (errorBox) {
-          errorBox.textContent = 'Both fields are required.';
+          errorBox.textContent = 'Оба поля обязательны для заполнения.';
         }
         return;
       }
@@ -85,7 +85,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
       } catch (error) {
         console.error('[EnterScreen] Failed to connect to signaling server', error);
         if (errorBox) {
-          errorBox.textContent = 'Unable to connect. Please try again later.';
+          errorBox.textContent = 'Не удалось подключиться. Попробуйте позже.';
         }
       }
     });

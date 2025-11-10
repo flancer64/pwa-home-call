@@ -130,29 +130,29 @@ export default class HomeCall_Web_Media_Manager {
         if (blockedCamera || blockedMicrophone) {
           return {
             status: 'blocked',
-            message: 'Camera or microphone access is blocked. Use the browser settings link below to allow access.'
+            message: 'Доступ к камере или микрофону блокирован. Разрешите его через настройки браузера ниже.'
           };
         }
         return {
           status: 'denied',
-          message: 'Camera or microphone access was denied. Please allow access to continue.'
+          message: 'Доступ к камере или микрофону был запрещён. Разрешите его, чтобы продолжить.'
         };
       }
       if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
         return {
           status: 'not-found',
-          message: 'No camera or microphone detected.'
+          message: 'Камера или микрофон не найдены.'
         };
       }
       if (name === 'NotReadableError' || name === 'TrackStartError') {
         return {
           status: 'device-error',
-          message: 'The camera or microphone is not working. Check your device and try again.'
+          message: 'Камера или микрофон не работают. Проверьте устройство и попробуйте снова.'
         };
       }
       return {
         status: 'error',
-        message: 'Unable to access media devices.'
+        message: 'Не удалось получить доступ к медиа-устройствам.'
       };
     };
 
@@ -203,9 +203,9 @@ export default class HomeCall_Web_Media_Manager {
       if (!navigatorRef?.mediaDevices || typeof navigatorRef.mediaDevices.enumerateDevices !== 'function') {
         this.stopLocalStream();
         setLocalStreamInternal(null);
-        setStatus('warning', 'Media devices are not supported in this browser.');
+        setStatus('warning', 'Медиа-устройства не поддерживаются в этом браузере.');
         warningActive = true;
-        return { status: 'unsupported', message: 'Media devices are not supported in this browser.' };
+        return { status: 'unsupported', message: 'Медиа-устройства не поддерживаются в этом браузере.' };
       }
 
       monitor?.register(() => {
@@ -229,9 +229,9 @@ export default class HomeCall_Web_Media_Manager {
         if (!hasAudioInput && !hasVideoInput) {
           this.stopLocalStream();
           setLocalStreamInternal(null);
-          setStatus('warning', 'No camera or microphone detected.');
+          setStatus('warning', 'Камера или микрофон не найдены.');
           warningActive = true;
-          return { status: 'not-found', message: 'No camera or microphone detected.' };
+          return { status: 'not-found', message: 'Камера или микрофон не найдены.' };
         }
 
         const stream = await navigatorRef.mediaDevices.getUserMedia(constraints);
@@ -239,17 +239,17 @@ export default class HomeCall_Web_Media_Manager {
           this.stopLocalStream();
         }
         setLocalStreamInternal(stream);
-        let successMessage = 'Camera and microphone are ready.';
+        let successMessage = 'Камера и микрофон готовы.';
         if (constraints.audio && !constraints.video) {
-          successMessage = 'Microphone is ready. No camera detected.';
+          successMessage = 'Микрофон готов. Камера не найдена.';
         } else if (!constraints.audio && constraints.video) {
-          successMessage = 'Camera is ready. No microphone detected.';
+          successMessage = 'Камера готова. Микрофон не найден.';
         } else if (!constraints.audio && !constraints.video) {
-          successMessage = 'Media access granted.';
+          successMessage = 'Доступ к медиа разрешён.';
         }
         setStatus('success', successMessage);
         if (warningActive) {
-          showToast('Camera is active again.');
+          showToast('Камера снова активна.');
         }
         warningActive = false;
         return { status: 'ready', message: successMessage };
