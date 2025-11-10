@@ -66,7 +66,6 @@ export default class HomeCall_Web_Core_App {
       toolbarButtons: {
         clearCache: null,
         toggleMedia: null,
-        settings: null,
         refresh: null
       }
     };
@@ -96,7 +95,6 @@ export default class HomeCall_Web_Core_App {
       layout.ctaPanel = document.querySelector('.cta-panel');
       layout.toolbarButtons.clearCache = document.getElementById('toolbar-clear-cache');
       layout.toolbarButtons.toggleMedia = document.getElementById('toolbar-toggle-media');
-      layout.toolbarButtons.settings = document.getElementById('toolbar-settings');
       layout.toolbarButtons.refresh = document.getElementById('toolbar-refresh');
     };
 
@@ -139,25 +137,8 @@ export default class HomeCall_Web_Core_App {
       hideCtaPanel(hidden);
     };
 
-    const openBrowserSettings = () => {
-      const browserWindow = env.window;
-      const userAgent = env.navigator?.userAgent || '';
-      if (!browserWindow) {
-        return;
-      }
-      let target = 'chrome://settings/content/camera';
-      if (/edg/i.test(userAgent)) {
-        target = 'edge://settings/content/camera';
-      } else if (/firefox/i.test(userAgent)) {
-        target = 'about:preferences#privacy';
-      } else if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) {
-        target = 'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera';
-      }
-      browserWindow.open(target, '_blank', 'noopener');
-    };
-
     const attachToolbarHandlers = () => {
-      const { clearCache, toggleMedia, settings, refresh } = layout.toolbarButtons;
+      const { clearCache, toggleMedia, refresh } = layout.toolbarButtons;
       clearCache?.addEventListener('click', (event) => {
         event.preventDefault();
         bus.emit('ui:action:clear-cache');
@@ -173,10 +154,6 @@ export default class HomeCall_Web_Core_App {
         } catch (error) {
           log.error('[App] Unable to toggle media tracks', error);
         }
-      });
-      settings?.addEventListener('click', (event) => {
-        event.preventDefault();
-        openBrowserSettings();
       });
       refresh?.addEventListener('click', (event) => {
         event.preventDefault();
