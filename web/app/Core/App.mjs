@@ -12,9 +12,10 @@ export default class HomeCall_Web_Core_App {
   * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
   * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
   * @param {HomeCall_Web_Rtc_Peer} deps.HomeCall_Web_Rtc_Peer$
-   * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
+  * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
   * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
+  * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
   * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
   */
   constructor({
@@ -27,6 +28,7 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Core_UiController$: uiController,
     HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Shared_Logger$: logger,
+    HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
     HomeCall_Web_Env_Provider$: env
   } = {}) {
     if (!env) {
@@ -37,6 +39,9 @@ export default class HomeCall_Web_Core_App {
     }
     if (!uiController) {
       throw new Error('UI controller is required for HomeCall core.');
+    }
+    if (!cacheCleaner) {
+      throw new Error('Cache cleaner module is required for HomeCall core.');
     }
     const document = env.document;
     const MediaStreamCtor = env.MediaStream;
@@ -235,6 +240,16 @@ export default class HomeCall_Web_Core_App {
         }
       });
     };
+
+    const handleClearCache = () => {
+      if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
+        return;
+      }
+      cacheCleaner.clear().catch((error) => {
+        log.error('[App] Unable to clear cache', error);
+      });
+    };
+    bus.on('ui:action:clear-cache', handleClearCache);
 
     this.run = async () => {
       if (!document) {

@@ -41,6 +41,7 @@ test('Enter screen handles events and propagates data', async () => {
     }
   };
   let openedUrl = null;
+  const cacheEvents = [];
   const windowStub = {
     open(url) {
       openedUrl = url;
@@ -75,6 +76,9 @@ test('Enter screen handles events and propagates data', async () => {
   const prepareButton = createElement('prepare');
   const settingsLink = createElement('settings');
   const statusBox = createElement('status');
+  const cacheButton = createElement('cache');
+  const cacheStatus = createElement('cacheStatus');
+  cacheStatus.hidden = true;
 
   const containerStub = {
     appliedTemplate: null,
@@ -90,6 +94,10 @@ test('Enter screen handles events and propagates data', async () => {
           return settingsLink;
         case '#media-status':
           return statusBox;
+        case '#clear-cache':
+          return cacheButton;
+        case '#cache-status':
+          return cacheStatus;
         default:
           return null;
       }
@@ -127,6 +135,12 @@ test('Enter screen handles events and propagates data', async () => {
     }
   });
 
+  container.register('HomeCall_Web_Shared_EventBus$', {
+    emit(event) {
+      cacheEvents.push(event);
+    }
+  });
+
   try {
     const screen = await container.get('HomeCall_Web_Ui_Screen_Enter$');
     let received = null;
@@ -141,6 +155,12 @@ test('Enter screen handles events and propagates data', async () => {
 
     settingsLink.trigger('click', { preventDefault() {} });
     assert.ok(openedUrl?.startsWith('chrome'));
+
+    cacheButton.trigger('click', { preventDefault() {} });
+    assert.equal(cacheStatus.textContent, 'Кэш удалён. Приложение будет перезапущено.');
+    assert.equal(cacheStatus.hidden, false);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(cacheEvents, ['ui:action:clear-cache']);
 
     await form.trigger('submit', { preventDefault() {} });
     assert.equal(connectCalled, 1);

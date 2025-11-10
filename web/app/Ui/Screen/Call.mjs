@@ -3,6 +3,8 @@
  * @description Manages UI for active call.
  */
 
+const remoteVideoRefs = new WeakMap();
+
 /**
  * @implements {HomeCall_Web_Ui_Screen_Interface}
  */
@@ -10,7 +12,6 @@ export default class HomeCall_Web_Ui_Screen_Call {
   constructor({ HomeCall_Web_Core_TemplateLoader$: templates, HomeCall_Web_Media_Manager$: media } = {}) {
     this.templates = templates;
     this.media = media;
-    this.remoteVideo = null;
   }
 
   /**
@@ -27,7 +28,8 @@ export default class HomeCall_Web_Ui_Screen_Call {
     }
     this.templates.apply('call', container);
     const localVideo = container.querySelector('#local-video');
-    this.remoteVideo = container.querySelector('#remote-video');
+    const remoteVideo = container.querySelector('#remote-video');
+    remoteVideoRefs.set(this, remoteVideo ?? null);
     const noMedia = container.querySelector('#no-media');
     const retryButton = container.querySelector('#retry-media');
     const endButton = container.querySelector('#end-call');
@@ -48,15 +50,16 @@ export default class HomeCall_Web_Ui_Screen_Call {
   }
 
   updateRemoteStream(stream) {
-    if (!this.remoteVideo) {
+    const remoteVideo = remoteVideoRefs.get(this);
+    if (!remoteVideo) {
       return;
     }
     if (stream) {
-      if (this.remoteVideo.srcObject !== stream) {
-        this.remoteVideo.srcObject = stream;
+      if (remoteVideo.srcObject !== stream) {
+        remoteVideo.srcObject = stream;
       }
     } else {
-      this.remoteVideo.srcObject = null;
+      remoteVideo.srcObject = null;
     }
   }
 }

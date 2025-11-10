@@ -39,6 +39,7 @@
  * @interface HomeCall_Web_Ui_Screen_Interface
  * @description Unified contract for all UI screens managed by the UI controller.
  * Each screen must implement the `show(params)` method.
+ * @note Implementations must not mutate instance fields because the DI container returns frozen singletons.
  *
  * @function show
  * @param {Object} params

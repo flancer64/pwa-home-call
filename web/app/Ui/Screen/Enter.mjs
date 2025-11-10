@@ -12,6 +12,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
    * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
    * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
    * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
+   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
    * @param {Document} [deps.document]
    * @param {Window} [deps.window]
    * @param {Navigator} [deps.navigator]
@@ -20,6 +21,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     HomeCall_Web_Core_TemplateLoader$: templates,
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Net_SignalClient$: signal,
+    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Env_Provider$: env
   } = {}) {
     if (!env) {
@@ -31,6 +33,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     this.document = env.document;
     this.window = env.window;
     this.navigator = env.navigator;
+    this.eventBus = eventBus;
   }
 
   /**
@@ -68,6 +71,26 @@ export default class HomeCall_Web_Ui_Screen_Enter {
       settingsLink.addEventListener('click', (event) => {
         event.preventDefault();
         this.openBrowserSettings();
+      });
+    }
+    const clearCacheButton = container.querySelector('#clear-cache');
+    const cacheStatusElement = container.querySelector('#cache-status');
+    if (clearCacheButton) {
+      clearCacheButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (cacheStatusElement) {
+          cacheStatusElement.textContent = 'Кэш удалён. Приложение будет перезапущено.';
+          cacheStatusElement.hidden = false;
+        }
+        const schedule =
+          this.window && typeof this.window.setTimeout === 'function'
+            ? this.window.setTimeout.bind(this.window)
+            : typeof setTimeout === 'function'
+            ? setTimeout
+            : (fn) => fn();
+        schedule(() => {
+          this.eventBus?.emit('ui:action:clear-cache');
+        }, 0);
       });
     }
     form?.addEventListener('submit', async (event) => {
