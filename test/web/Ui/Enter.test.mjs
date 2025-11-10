@@ -40,13 +40,7 @@ test('Enter screen handles events and propagates data', async () => {
       joinArgs = { room, user };
     }
   };
-  let openedUrl = null;
-  const cacheEvents = [];
-  const windowStub = {
-    open(url) {
-      openedUrl = url;
-    }
-  };
+  const windowStub = {};
   const navigatorStub = { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0' };
   const documentStub = {};
 
@@ -74,12 +68,7 @@ test('Enter screen handles events and propagates data', async () => {
   form.fields = { user: 'Alice', room: 'Room123' };
   const errorBox = createElement('error');
   const prepareButton = createElement('prepare');
-  const settingsLink = createElement('settings');
   const statusBox = createElement('status');
-  const cacheButton = createElement('cache');
-  const cacheStatus = createElement('cacheStatus');
-  cacheStatus.hidden = true;
-
   const containerStub = {
     appliedTemplate: null,
     querySelector(selector) {
@@ -90,14 +79,8 @@ test('Enter screen handles events and propagates data', async () => {
           return errorBox;
         case '#prepare-media':
           return prepareButton;
-        case '#open-settings':
-          return settingsLink;
         case '#media-status':
           return statusBox;
-        case '#clear-cache':
-          return cacheButton;
-        case '#cache-status':
-          return cacheStatus;
         default:
           return null;
       }
@@ -136,9 +119,7 @@ test('Enter screen handles events and propagates data', async () => {
   });
 
   container.register('HomeCall_Web_Shared_EventBus$', {
-    emit(event) {
-      cacheEvents.push(event);
-    }
+    emit() {}
   });
 
   try {
@@ -152,15 +133,6 @@ test('Enter screen handles events and propagates data', async () => {
 
     prepareButton.trigger('click', { preventDefault() {} });
     assert.equal(prepareCalled, 1);
-
-    settingsLink.trigger('click', { preventDefault() {} });
-    assert.ok(openedUrl?.startsWith('chrome'));
-
-    cacheButton.trigger('click', { preventDefault() {} });
-    assert.equal(cacheStatus.textContent, 'Кэш удалён. Приложение будет перезапущено.');
-    assert.equal(cacheStatus.hidden, false);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.deepEqual(cacheEvents, ['ui:action:clear-cache']);
 
     await form.trigger('submit', { preventDefault() {} });
     assert.equal(connectCalled, 1);

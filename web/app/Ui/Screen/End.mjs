@@ -17,23 +17,18 @@ export default class HomeCall_Web_Ui_Screen_End {
 
   /**
    * Render end screen.
-   * @param {Object} params
-   * @param {HTMLElement} params.container - Root container for rendering the screen.
-   * @param {string} params.message
-   * @param {() => void} params.onBack
-   */
-  show({ container, message, onBack } = {}) {
+ * @param {Object} params
+ * @param {HTMLElement} params.container - Root container for rendering the screen.
+ * @param {string} params.message
+ */
+ show({ container, message } = {}) {
     if (!container) {
       return;
     }
     this.templates.apply('end', container);
     const messageBox = container.querySelector('#end-message');
-    const backButton = container.querySelector('#back-to-lobby');
     if (messageBox) {
       messageBox.textContent = message || 'Сессия завершена. Вы можете вернуться в лобби.';
     }
-    backButton?.addEventListener('click', () => {
-      onBack?.();
-    });
   }
 }

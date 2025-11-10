@@ -274,6 +274,30 @@ export default class HomeCall_Web_Media_Manager {
       }
     };
 
+    this.toggleMedia = async () => {
+      const currentStream = localStream;
+      if (!currentStream || currentStream.getTracks().length === 0) {
+        await this.prepare();
+        return { state: 'enabled' };
+      }
+      const tracks = currentStream.getTracks();
+      const isActive = tracks.some((track) => track.enabled);
+      const nextState = !isActive;
+      tracks.forEach((track) => {
+        try {
+          track.enabled = nextState;
+        } catch (error) {
+          console.warn('[MediaManager] Failed to toggle track', error);
+        }
+      });
+      if (nextState) {
+        setStatus('success', 'Камера и микрофон включены.');
+      } else {
+        setStatus('warning', 'Камера и микрофон отключены.');
+      }
+      return { state: nextState ? 'enabled' : 'disabled' };
+    };
+
     this.stopLocalStream = () => {
       if (!localStream) {
         return;

@@ -1,4 +1,4 @@
-<section data-screen="enter" class="screen-enter">
+<section data-screen="enter" class="screen-card screen-enter">
   <div class="screen-copy">
     <h1>HomeCall</h1>
     <p>Сосредоточьтесь на разговоре — приложение подскажет, когда всё готово.</p>
@@ -9,11 +9,10 @@
     <p>HomeCall использует вашу камеру и микрофон, чтобы вы могли говорить лицом к лицу. Вы сами решаете, когда их включить.</p>
     <div id="media-status" class="alert" hidden></div>
     <button id="prepare-media" class="primary" type="button">Подготовить камеру</button>
-    <a id="open-settings" href="#">Открыть настройки браузера</a>
   </section>
   <section id="cache-actions">
     <div id="cache-status" class="alert alert-success" role="status" aria-live="polite" hidden></div>
-    <button id="clear-cache" class="secondary" type="button">Очистить кэш</button>
+    <p>Сбросьте кеш через панель инструментов, чтобы перезапустить приложение.</p>
   </section>
   <form id="enter-form">
     <label>
@@ -24,7 +23,6 @@
       Код комнаты
       <input type="text" name="room" autocomplete="one-time-code" required minlength="3" />
     </label>
-    <button class="primary" type="submit">Присоединиться</button>
   </form>
   <p class="hint" id="enter-error" role="alert"></p>
 </section>

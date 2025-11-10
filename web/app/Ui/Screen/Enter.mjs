@@ -51,7 +51,6 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     const form = container.querySelector('#enter-form');
     const errorBox = container.querySelector('#enter-error');
     const prepareButton = container.querySelector('#prepare-media');
-    const settingsLink = container.querySelector('#open-settings');
     const statusBox = container.querySelector('#media-status');
     this.media.bindStatusElement(statusBox);
     if (connectionMessage && errorBox) {
@@ -65,32 +64,6 @@ export default class HomeCall_Web_Ui_Screen_Enter {
         this.media.prepare().catch((error) => {
           console.error('[EnterScreen] Failed to prepare media', error);
         });
-      });
-    }
-    if (settingsLink) {
-      settingsLink.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.openBrowserSettings();
-      });
-    }
-    const clearCacheButton = container.querySelector('#clear-cache');
-    const cacheStatusElement = container.querySelector('#cache-status');
-    if (clearCacheButton) {
-      clearCacheButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        if (cacheStatusElement) {
-          cacheStatusElement.textContent = 'Кэш удалён. Приложение будет перезапущено.';
-          cacheStatusElement.hidden = false;
-        }
-        const schedule =
-          this.window && typeof this.window.setTimeout === 'function'
-            ? this.window.setTimeout.bind(this.window)
-            : typeof setTimeout === 'function'
-            ? setTimeout
-            : (fn) => fn();
-        schedule(() => {
-          this.eventBus?.emit('ui:action:clear-cache');
-        }, 0);
       });
     }
     form?.addEventListener('submit', async (event) => {
@@ -117,22 +90,4 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     });
   }
 
-  /**
-   * Open browser specific privacy settings.
-   */
-  openBrowserSettings() {
-    if (!this.window) {
-      return;
-    }
-    const agent = this.navigator?.userAgent || '';
-    let target = 'chrome://settings/content/camera';
-    if (/edg/i.test(agent)) {
-      target = 'edge://settings/content/camera';
-    } else if (/firefox/i.test(agent)) {
-      target = 'about:preferences#privacy';
-    } else if (/safari/i.test(agent) && !/chrome/i.test(agent)) {
-      target = 'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera';
-    }
-    this.window.open(target, '_blank', 'noopener');
-  }
 }

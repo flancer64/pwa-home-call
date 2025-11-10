@@ -58,6 +58,115 @@ export default class HomeCall_Web_Core_App {
       connectionMessage: ''
     };
 
+    const layout = {
+      ctaButton: null,
+      ctaPanel: null,
+      toolbarButtons: {
+        clearCache: null,
+        toggleMedia: null,
+        settings: null,
+        refresh: null
+      }
+    };
+
+    const bindLayoutElements = () => {
+      if (!document) {
+        return;
+      }
+      layout.ctaButton = document.getElementById('cta-action');
+      layout.ctaPanel = document.querySelector('.cta-panel');
+      layout.toolbarButtons.clearCache = document.getElementById('toolbar-clear-cache');
+      layout.toolbarButtons.toggleMedia = document.getElementById('toolbar-toggle-media');
+      layout.toolbarButtons.settings = document.getElementById('toolbar-settings');
+      layout.toolbarButtons.refresh = document.getElementById('toolbar-refresh');
+    };
+
+    const hideCtaPanel = (hidden) => {
+      if (!layout.ctaPanel) {
+        return;
+      }
+      layout.ctaPanel.classList.toggle('cta-hidden', hidden);
+      layout.ctaPanel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+    };
+
+    const updateCta = ({
+      label = '',
+      type = 'button',
+      formId = null,
+      disabled = false,
+      onTrigger = null,
+      hidden = false
+    } = {}) => {
+      const button = layout.ctaButton;
+      if (!button) {
+        return;
+      }
+      button.textContent = label;
+      button.type = type;
+      button.disabled = disabled || hidden;
+      if (formId) {
+        button.setAttribute('form', formId);
+      } else {
+        button.removeAttribute('form');
+      }
+      if (typeof onTrigger === 'function') {
+        button.onclick = (event) => {
+          event.preventDefault();
+          onTrigger();
+        };
+      } else {
+        button.onclick = null;
+      }
+      hideCtaPanel(hidden);
+    };
+
+    const openBrowserSettings = () => {
+      const browserWindow = env.window;
+      const userAgent = env.navigator?.userAgent || '';
+      if (!browserWindow) {
+        return;
+      }
+      let target = 'chrome://settings/content/camera';
+      if (/edg/i.test(userAgent)) {
+        target = 'edge://settings/content/camera';
+      } else if (/firefox/i.test(userAgent)) {
+        target = 'about:preferences#privacy';
+      } else if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) {
+        target = 'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera';
+      }
+      browserWindow.open(target, '_blank', 'noopener');
+    };
+
+    const attachToolbarHandlers = () => {
+      const { clearCache, toggleMedia, settings, refresh } = layout.toolbarButtons;
+      clearCache?.addEventListener('click', (event) => {
+        event.preventDefault();
+        bus.emit('ui:action:clear-cache');
+      });
+      toggleMedia?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        try {
+          const result = await media.toggleMedia();
+          const stateName = result?.state;
+          if (stateName) {
+            toggleMedia.dataset.state = stateName;
+          }
+        } catch (error) {
+          log.error('[App] Unable to toggle media tracks', error);
+        }
+      });
+      settings?.addEventListener('click', (event) => {
+        event.preventDefault();
+        openBrowserSettings();
+      });
+      refresh?.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (env.window?.location) {
+          env.window.location.reload();
+        }
+      });
+    };
+
     const updateBodyState = () => {
       if (!document?.body) {
         return;
@@ -89,14 +198,33 @@ export default class HomeCall_Web_Core_App {
           showEnter();
         }
       });
+      const hasUsers = state.onlineUsers.length > 0;
+      updateCta({
+        label: 'Позвонить',
+        type: 'button',
+        disabled: !hasUsers,
+        hidden: false,
+        onTrigger: () => {
+          if (!state.onlineUsers.length) {
+            return;
+          }
+          startCall(state.onlineUsers[0]);
+        }
+      });
     };
 
     const showEnd = () => {
       transitionState('end');
       ui.showEnd({
         container: state.root,
-        message: state.connectionMessage,
-        onBack: () => {
+        message: state.connectionMessage
+      });
+      updateCta({
+        label: 'Вернуться',
+        type: 'button',
+        disabled: false,
+        hidden: false,
+        onTrigger: () => {
           state.connectionMessage = '';
           showLobby();
         }
@@ -130,6 +258,7 @@ export default class HomeCall_Web_Core_App {
           });
         }
       });
+      updateCta({ hidden: true });
     };
 
     const showEnter = () => {
@@ -145,6 +274,13 @@ export default class HomeCall_Web_Core_App {
           state.connectionMessage = '';
           showLobby();
         }
+      });
+      updateCta({
+        label: 'Войти',
+        type: 'submit',
+        formId: 'enter-form',
+        disabled: false,
+        hidden: false
       });
     };
 
@@ -241,10 +377,20 @@ export default class HomeCall_Web_Core_App {
       });
     };
 
+    const showCacheClearedMessage = () => {
+      const statusElement = document?.querySelector('#cache-status');
+      if (!statusElement) {
+        return;
+      }
+      statusElement.textContent = 'Кэш удалён. Приложение будет перезапущено.';
+      statusElement.hidden = false;
+    };
+
     const handleClearCache = () => {
       if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
         return;
       }
+      showCacheClearedMessage();
       cacheCleaner.clear().catch((error) => {
         log.error('[App] Unable to clear cache', error);
       });
@@ -259,6 +405,8 @@ export default class HomeCall_Web_Core_App {
       if (!state.root) {
         throw new Error('Element with id "app" was not found.');
       }
+      bindLayoutElements();
+      attachToolbarHandlers();
       configurePeer();
       media.setPeer(peer);
       await sw.register();

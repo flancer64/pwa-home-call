@@ -10,7 +10,34 @@
     <title>HomeCall</title>
   </head>
   <body>
-    <main id="app" aria-live="polite"></main>
+    <div class="app-shell">
+      <header class="toolbar" role="toolbar" aria-label="Global controls">
+        <div class="toolbar-actions">
+          <button id="toolbar-clear-cache" class="toolbar-button" type="button" aria-label="Clear cache">
+            <img src="assets/icons/cache.svg" alt="" class="toolbar-icon" />
+            <span class="sr-only">Clear cache</span>
+          </button>
+          <button id="toolbar-toggle-media" class="toolbar-button" type="button" aria-label="Toggle camera and microphone">
+            <img src="assets/icons/media.svg" alt="" class="toolbar-icon" />
+            <span class="sr-only">Toggle media</span>
+          </button>
+          <button id="toolbar-settings" class="toolbar-button" type="button" aria-label="Open environment settings">
+            <img src="assets/icons/settings.svg" alt="" class="toolbar-icon" />
+            <span class="sr-only">Open settings</span>
+          </button>
+          <button id="toolbar-refresh" class="toolbar-button" type="button" aria-label="Refresh application">
+            <img src="assets/icons/refresh.svg" alt="" class="toolbar-icon" />
+            <span class="sr-only">Refresh application</span>
+          </button>
+        </div>
+      </header>
+      <main class="main-area">
+        <div class="screen-wrapper" id="app" aria-live="polite"></div>
+      </main>
+      <footer class="cta-panel" aria-live="polite">
+        <button id="cta-action" class="primary" type="button">Primary action</button>
+      </footer>
+    </div>
     <script type="module" src="app.js"></script>
   </body>
 </html>
