@@ -18,6 +18,7 @@ export default class HomeCall_Web_Core_App {
  * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
  * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
  * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
+ * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
  */
   constructor({
     HomeCall_Web_Core_TemplateLoader$: templates,
@@ -31,6 +32,7 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Shared_Logger$: logger,
     HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
     HomeCall_Web_Ui_Toolbar$: toolbar,
+    HomeCall_Web_Ui_Toast$: toast,
     HomeCall_Web_Env_Provider$: env
   } = {}) {
     if (!env) {
@@ -48,11 +50,15 @@ export default class HomeCall_Web_Core_App {
     if (!toolbar) {
       throw new Error('Toolbar module is required for HomeCall core.');
     }
+    if (!toast) {
+      throw new Error('Toast module is required for HomeCall core.');
+    }
     const document = env.document;
     const MediaStreamCtor = env.MediaStream;
     const log = logger ?? console;
     const bus = eventBus;
     const ui = uiController;
+    const toastNotifier = toast;
     const state = {
       root: null,
       currentState: null,
@@ -580,12 +586,10 @@ export default class HomeCall_Web_Core_App {
     };
 
     const showCacheClearedMessage = () => {
-      const statusElement = document?.querySelector('#cache-status');
-      if (!statusElement) {
-        return;
+      const notifier = typeof toastNotifier?.info === 'function' ? toastNotifier.info.bind(toastNotifier) : null;
+      if (notifier) {
+        notifier('Кэш очищен. Приложение будет перезапущено.');
       }
-      statusElement.textContent = 'Кэш удалён. Приложение будет перезапущено.';
-      statusElement.hidden = false;
     };
 
     this.run = async () => {
@@ -597,6 +601,7 @@ export default class HomeCall_Web_Core_App {
         throw new Error('Element with id "app" was not found.');
       }
       bindLayoutElements();
+      toastNotifier?.init();
       attachToolbarHandlers();
       toolbar.init();
       configurePeer();

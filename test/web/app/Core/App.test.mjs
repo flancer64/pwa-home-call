@@ -163,6 +163,18 @@ test('App wires screens and services through DI', async () => {
       calls.toolbarInit += 1;
     }
   };
+  const toastCalls = [];
+  const toast = {
+    init() {
+      toastCalls.push('init');
+    },
+    info(message) {
+      toastCalls.push({ type: 'info', message });
+    },
+    warn() {},
+    success() {},
+    error() {}
+  };
   const documentStub = {
     getElementById(id) {
       if (id === 'app') return rootElement;
@@ -228,6 +240,7 @@ test('App wires screens and services through DI', async () => {
   container.register('HomeCall_Web_Ui_Screen_Call$', callScreen);
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
   container.register('HomeCall_Web_Ui_Toolbar$', toolbar);
+  container.register('HomeCall_Web_Ui_Toast$', toast);
 
   try {
     const app = await container.get('HomeCall_Web_Core_App$');
@@ -240,6 +253,7 @@ test('App wires screens and services through DI', async () => {
     assert.ok(configuredHandlers, 'peer handlers configured');
     assert.equal(typeof enterScreen.lastOnEnter, 'function');
     assert.equal(calls.toolbarInit, 1);
+    assert.ok(toastCalls.includes('init'));
 
     enterScreen.lastOnEnter({ user: 'alice', room: 'room1' });
     assert.equal(lobbyScreen.shows, 1);

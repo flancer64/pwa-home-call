@@ -96,6 +96,13 @@ test('Media manager prepares devices and updates UI bindings', async () => {
   });
   container.register('HomeCall_Web_Media_DeviceMonitor$', monitor);
   container.register('HomeCall_Web_Rtc_Peer$', peer);
+  container.register('HomeCall_Web_Ui_Toast$', {
+    init() {},
+    info() {},
+    success() {},
+    warn() {},
+    error() {}
+  });
 
   const manager = await container.get('HomeCall_Web_Media_Manager$');
   manager.setPeer(peer);

@@ -34,6 +34,7 @@
 /** @typedef {import('./Ui/Screen/Lobby.mjs').default} HomeCall_Web_Ui_Screen_Lobby */
 /** @typedef {import('./Ui/Screen/Call.mjs').default} HomeCall_Web_Ui_Screen_Call */
 /** @typedef {import('./Ui/Screen/End.mjs').default} HomeCall_Web_Ui_Screen_End */
+/** @typedef {import('./Ui/Toast.mjs').default} HomeCall_Web_Ui_Toast */
 
 /**
  * @interface HomeCall_Web_Ui_Screen_Interface

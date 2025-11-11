@@ -358,35 +358,44 @@ button.secondary:hover {
   display: none;
 }
 
-.toast {
+#toast-container {
   position: fixed;
-  top: 1.5rem;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: #fff;
-  color: #111;
-  border: 2px solid var(--accent-color);
-  border-radius: 0.9rem;
-  padding: 1rem 1.5rem;
-  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   align-items: center;
-  text-align: center;
-  z-index: 9999;
-  min-width: min(26rem, 90%);
+  gap: 8px;
+  z-index: 1000;
 }
 
-.toast button {
-  width: 100%;
-  background: transparent;
-  color: var(--accent-color);
-  border-color: var(--accent-color);
+.toast {
+  min-width: 280px;
+  max-width: 90vw;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  opacity: 0.95;
+  animation: fadeInOut 4s ease-in-out;
 }
 
-.toast button:hover {
-  background: rgba(0, 120, 215, 0.08);
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  10%,
+  90% {
+    opacity: 0.95;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 }
 
 .call-stage {

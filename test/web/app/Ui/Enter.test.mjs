@@ -66,7 +66,6 @@ test('Enter screen handles events and propagates data', async () => {
   };
   const form = createElement('form');
   form.fields = { user: 'Alice', room: 'Room123' };
-  const errorBox = createElement('error');
   const prepareButton = createElement('prepare');
   const statusBox = createElement('status');
   const containerStub = {
@@ -75,8 +74,6 @@ test('Enter screen handles events and propagates data', async () => {
       switch (selector) {
         case '#enter-form':
           return form;
-        case '#enter-error':
-          return errorBox;
         case '#prepare-media':
           return prepareButton;
         case '#media-status':
@@ -121,6 +118,18 @@ test('Enter screen handles events and propagates data', async () => {
   container.register('HomeCall_Web_Shared_EventBus$', {
     emit() {}
   });
+  const toastCalls = [];
+  const toast = {
+    error(message) {
+      toastCalls.push({ type: 'error', message });
+    },
+    success(message) {
+      toastCalls.push({ type: 'success', message });
+    },
+    warn() {},
+    info() {}
+  };
+  container.register('HomeCall_Web_Ui_Toast$', toast);
 
   try {
     const screen = await container.get('HomeCall_Web_Ui_Screen_Enter$');
@@ -128,7 +137,8 @@ test('Enter screen handles events and propagates data', async () => {
     screen.show({ container: containerStub, connectionMessage: 'Server down', onEnter: (data) => { received = data; } });
 
     assert.equal(containerStub.appliedTemplate, 'enter');
-    assert.equal(errorBox.textContent, 'Server down');
+    assert.equal(toastCalls[0]?.type, 'error');
+    assert.equal(toastCalls[0]?.message, 'Server down');
     assert.equal(media.statusElement, statusBox);
 
     prepareButton.trigger('click', { preventDefault() {} });
@@ -138,6 +148,7 @@ test('Enter screen handles events and propagates data', async () => {
     assert.equal(connectCalled, 1);
     assert.deepEqual(joinArgs, { room: 'Room123', user: 'Alice' });
     assert.deepEqual(received, { user: 'Alice', room: 'Room123' });
+    assert.ok(toastCalls.some((call) => call.type === 'success' && call.message === 'Подключение установлено.'));
   } finally {
     globalThis.FormData = originalFormData;
   }

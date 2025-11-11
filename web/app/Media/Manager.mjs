@@ -8,17 +8,21 @@ export default class HomeCall_Web_Media_Manager {
     HomeCall_Web_Media_DeviceMonitor$: monitor,
     HomeCall_Web_State_Media$: mediaState,
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_EventBus$: eventBus
+    HomeCall_Web_Shared_EventBus$: eventBus,
+    HomeCall_Web_Ui_Toast$: toast
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
     }
+    if (!toast) {
+      throw new Error('Toast module is required for media manager.');
+    }
     const navigatorRef = env.navigator;
-    const documentRef = env.document;
     const windowRef = env.window;
     const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
     const cancelTimeout = typeof windowRef?.clearTimeout === 'function' ? windowRef.clearTimeout.bind(windowRef) : null;
     const bus = eventBus;
+    const toastNotifier = toast;
     let peerRef = null;
     let localStream = null;
     let warningActive = false;
@@ -28,9 +32,6 @@ export default class HomeCall_Web_Media_Manager {
     let localVideo = null;
     let localFallbackMessage = null;
     let retryButton = null;
-    let toastElement = null;
-    let toastTimeout = null;
-
     const stateTracker = mediaState ?? null;
     const capitalize = (value) => (typeof value === 'string' && value.length > 0 ? `${value[0].toUpperCase()}${value.slice(1)}` : '');
     const invokeStateSetter = (type, suffix) => {
@@ -180,44 +181,6 @@ export default class HomeCall_Web_Media_Manager {
       syncStreamState();
     };
 
-    const showToast = (message) => {
-      if (!documentRef?.body) {
-        return;
-      }
-      clearToast();
-      const element = documentRef.createElement('div');
-      element.className = 'toast';
-      element.setAttribute('role', 'status');
-      element.setAttribute('aria-live', 'polite');
-      const messageNode = documentRef.createElement('p');
-      messageNode.textContent = message;
-      element.appendChild(messageNode);
-      const actionButton = documentRef.createElement('button');
-      actionButton.type = 'button';
-      actionButton.className = 'toast-action';
-      actionButton.textContent = 'Понятно';
-      actionButton.addEventListener('click', clearToast);
-      element.appendChild(actionButton);
-      documentRef.body.appendChild(element);
-      toastElement = element;
-      if (scheduleTimeout) {
-        toastTimeout = scheduleTimeout(() => {
-          clearToast();
-        }, 5000);
-      }
-    };
-
-    const clearToast = () => {
-      if (toastElement && typeof toastElement.remove === 'function') {
-        toastElement.remove();
-      }
-      if (toastTimeout && cancelTimeout) {
-        cancelTimeout(toastTimeout);
-        toastTimeout = null;
-      }
-      toastElement = null;
-    };
-
     const mapMediaError = async (error) => {
       const name = error?.name || error?.code || 'UnknownError';
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
@@ -250,6 +213,17 @@ export default class HomeCall_Web_Media_Manager {
         status: 'error',
         message: 'Не удалось получить доступ к медиа-устройствам.'
       };
+    };
+
+    const displayNotification = (mapped) => {
+      if (!mapped || !mapped.message) {
+        return;
+      }
+      const severity = mapped.status === 'error' || mapped.status === 'device-error' ? 'error' : 'warn';
+      const notifier = typeof toastNotifier?.[severity] === 'function' ? toastNotifier[severity] : null;
+      if (notifier) {
+        notifier.call(toastNotifier, mapped.message);
+      }
     };
 
     const isPermissionPermanentlyDenied = async (name) => {
@@ -348,8 +322,8 @@ export default class HomeCall_Web_Media_Manager {
           successMessage = 'Доступ к медиа разрешён.';
         }
         setStatus('success', successMessage);
-        if (warningActive) {
-          showToast('Камера снова активна.');
+        if (warningActive && typeof toastNotifier.success === 'function') {
+          toastNotifier.success('Камера снова активна.');
         }
         warningActive = false;
         return { status: 'ready', message: successMessage };
@@ -361,6 +335,7 @@ export default class HomeCall_Web_Media_Manager {
         setStatus('warning', mapped.message);
         warningActive = true;
         applyErrorState(mapped.status);
+        displayNotification(mapped);
         return mapped;
       }
     };
@@ -411,6 +386,5 @@ export default class HomeCall_Web_Media_Manager {
 
     this.mapMediaError = mapMediaError;
     this.isPermissionPermanentlyDenied = isPermissionPermanentlyDenied;
-    this.clearToast = clearToast;
   }
 }
