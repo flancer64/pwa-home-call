@@ -6,6 +6,7 @@
 export default class HomeCall_Web_Media_Manager {
   constructor({
     HomeCall_Web_Media_DeviceMonitor$: monitor,
+    HomeCall_Web_State_Media$: mediaState,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Shared_EventBus$: eventBus
   } = {}) {
@@ -29,6 +30,90 @@ export default class HomeCall_Web_Media_Manager {
     let retryButton = null;
     let toastElement = null;
     let toastTimeout = null;
+
+    const stateTracker = mediaState ?? null;
+    const capitalize = (value) => (typeof value === 'string' && value.length > 0 ? `${value[0].toUpperCase()}${value.slice(1)}` : '');
+    const invokeStateSetter = (type, suffix) => {
+      if (!stateTracker) {
+        return;
+      }
+      const setterName = `set${capitalize(type)}${capitalize(suffix)}`;
+      const setter = stateTracker[setterName];
+      if (typeof setter === 'function') {
+        setter.call(stateTracker);
+      }
+    };
+
+    const setTypeState = (type, stateName) => {
+      invokeStateSetter(type, stateName);
+    };
+
+    const collectTracks = (kind) => {
+      if (!localStream) {
+        return [];
+      }
+      const accessor = kind === 'video' ? 'getVideoTracks' : 'getAudioTracks';
+      if (typeof localStream[accessor] === 'function') {
+        return localStream[accessor]();
+      }
+      if (typeof localStream.getTracks === 'function') {
+        return localStream.getTracks().filter((track) => track?.kind === kind);
+      }
+      return [];
+    };
+
+    const updateTrackState = (type, tracks) => {
+      if (!tracks || tracks.length === 0) {
+        setTypeState(type, 'off');
+        return;
+      }
+      const hasEnabled = tracks.some((track) => track?.enabled !== false);
+      if (hasEnabled) {
+        setTypeState(type, 'ready');
+        return;
+      }
+      setTypeState(type, 'paused');
+    };
+
+    const syncStreamState = () => {
+      updateTrackState('video', collectTracks('video'));
+      updateTrackState('audio', collectTracks('audio'));
+    };
+
+    const setAllOff = () => {
+      setTypeState('video', 'off');
+      setTypeState('audio', 'off');
+    };
+
+    const setAllBlocked = () => {
+      setTypeState('video', 'blocked');
+      setTypeState('audio', 'blocked');
+    };
+
+    const setAllUnsupported = () => {
+      setTypeState('video', 'unsupported');
+      setTypeState('audio', 'unsupported');
+    };
+
+    const applyErrorState = (statusName) => {
+      if (!statusName) {
+        setAllOff();
+        return;
+      }
+      if (statusName === 'blocked' || statusName === 'denied') {
+        setAllBlocked();
+        return;
+      }
+      if (statusName === 'device-error' || statusName === 'error') {
+        setAllUnsupported();
+        return;
+      }
+      if (statusName === 'not-found') {
+        setAllOff();
+        return;
+      }
+      setAllOff();
+    };
 
     const updateStatusElement = () => {
       if (!statusElement) {
@@ -92,6 +177,7 @@ export default class HomeCall_Web_Media_Manager {
         peerRef.setLocalStream(localStream);
       }
       updateLocalBindings();
+      syncStreamState();
     };
 
     const showToast = (message) => {
@@ -210,11 +296,14 @@ export default class HomeCall_Web_Media_Manager {
     };
 
     this.prepare = async () => {
+      setTypeState('video', 'initializing');
+      setTypeState('audio', 'initializing');
       if (!navigatorRef?.mediaDevices || typeof navigatorRef.mediaDevices.enumerateDevices !== 'function') {
         this.stopLocalStream();
         setLocalStreamInternal(null);
         setStatus('warning', 'Медиа-устройства не поддерживаются в этом браузере.');
         warningActive = true;
+        setAllUnsupported();
         return { status: 'unsupported', message: 'Медиа-устройства не поддерживаются в этом браузере.' };
       }
 
@@ -241,6 +330,7 @@ export default class HomeCall_Web_Media_Manager {
           setLocalStreamInternal(null);
           setStatus('warning', 'Камера или микрофон не найдены.');
           warningActive = true;
+          setAllOff();
           return { status: 'not-found', message: 'Камера или микрофон не найдены.' };
         }
 
@@ -270,6 +360,7 @@ export default class HomeCall_Web_Media_Manager {
         const mapped = await mapMediaError(error);
         setStatus('warning', mapped.message);
         warningActive = true;
+        applyErrorState(mapped.status);
         return mapped;
       }
     };
@@ -295,6 +386,7 @@ export default class HomeCall_Web_Media_Manager {
       } else {
         setStatus('warning', 'Камера и микрофон отключены.');
       }
+      syncStreamState();
       return { state: nextState ? 'enabled' : 'disabled' };
     };
 

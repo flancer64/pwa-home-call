@@ -38,14 +38,62 @@ body {
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   box-shadow: 0 0.4rem 0.8rem rgba(0, 0, 0, 0.08);
   z-index: 12;
+  padding: 0 1rem;
 }
 
 .toolbar-actions {
   display: flex;
   gap: 0.75rem;
+}
+
+#toolbar-media {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.media-indicator {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.media-indicator img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+}
+
+.media-indicator.ok {
+  background: #4caf50;
+}
+
+.media-indicator.paused {
+  background: #ffc107;
+}
+
+.media-indicator.blocked {
+  background: #f44336;
+}
+
+.media-indicator.unsupported {
+  background: #9e9e9e;
+}
+
+.media-indicator.off {
+  opacity: 0.5;
 }
 
 .toolbar-button {

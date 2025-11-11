@@ -15,9 +15,10 @@ export default class HomeCall_Web_Core_App {
   * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
   * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
-  * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
-  * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
-  */
+ * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
+ * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
+ * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
+ */
   constructor({
     HomeCall_Web_Core_TemplateLoader$: templates,
     HomeCall_Web_Core_ServiceWorkerManager$: sw,
@@ -29,6 +30,7 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Shared_Logger$: logger,
     HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
+    HomeCall_Web_Ui_Toolbar$: toolbar,
     HomeCall_Web_Env_Provider$: env
   } = {}) {
     if (!env) {
@@ -42,6 +44,9 @@ export default class HomeCall_Web_Core_App {
     }
     if (!cacheCleaner) {
       throw new Error('Cache cleaner module is required for HomeCall core.');
+    }
+    if (!toolbar) {
+      throw new Error('Toolbar module is required for HomeCall core.');
     }
     const document = env.document;
     const MediaStreamCtor = env.MediaStream;
@@ -593,6 +598,7 @@ export default class HomeCall_Web_Core_App {
       }
       bindLayoutElements();
       attachToolbarHandlers();
+      toolbar.init();
       configurePeer();
       media.setPeer(peer);
       await sw.register();

@@ -14,11 +14,15 @@ test('Media manager prepares devices and updates UI bindings', async () => {
   }
   globalThis.MediaStream = FakeMediaStream;
   const container = await createWebContainer();
+  const mediaState = await container.get('HomeCall_Web_State_Media$');
   const fakeDevices = [
     { kind: 'audioinput' },
     { kind: 'videoinput' }
   ];
-  const tracks = [{ kind: 'audio', stopCalled: false, stop() { this.stopCalled = true; } }];
+  const tracks = [
+    { kind: 'audio', enabled: true, stopCalled: false, stop() { this.stopCalled = true; } },
+    { kind: 'video', enabled: true, stopCalled: false, stop() { this.stopCalled = true; } }
+  ];
   const stream = {
     getTracks() {
       return tracks;
@@ -114,6 +118,7 @@ test('Media manager prepares devices and updates UI bindings', async () => {
     assert.equal(videoElement.srcObject, stream);
     assert.equal(messageElement.hidden, true);
     assert.equal(retryButton.hidden, true);
+    assert.deepEqual(mediaState.get(), { video: 'ready', audio: 'ready' });
   } finally {
     globalThis.MediaStream = OriginalMediaStream;
   }
