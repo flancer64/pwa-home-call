@@ -109,6 +109,7 @@ test('App wires screens and services through DI', async () => {
     shows: 0,
     lastParams: null,
     updateRemoteStream() {},
+    updateConnectionStatus() {},
     show(params) {
       this.shows += 1;
       this.lastParams = params;
@@ -124,9 +125,54 @@ test('App wires screens and services through DI', async () => {
   };
   const toggles = [];
   const rootElement = {};
+  const ctaButton = {
+    textContent: '',
+    type: 'button',
+    disabled: false,
+    dataset: {},
+    onclick: null,
+    setAttribute() {},
+    removeAttribute() {}
+  };
+  const ctaPanel = {
+    classList: {
+      toggle(_, __) {}
+    },
+    setAttribute() {}
+  };
+  const toolbarButtons = {
+    clearCache: {
+      addEventListener() {}
+    },
+    toggleMedia: {
+      addEventListener() {},
+      dataset: {}
+    }
+  };
+  const cacheStatus = {
+    hidden: true,
+    textContent: '',
+    className: '',
+    classList: {
+      add() {}
+    }
+  };
   const documentStub = {
     getElementById(id) {
-      return id === 'app' ? rootElement : null;
+      if (id === 'app') return rootElement;
+      if (id === 'cta-action') return ctaButton;
+      if (id === 'toolbar-clear-cache') return toolbarButtons.clearCache;
+      if (id === 'toolbar-toggle-media') return toolbarButtons.toggleMedia;
+      return null;
+    },
+    querySelector(selector) {
+      if (selector === '.cta-panel') {
+        return ctaPanel;
+      }
+      if (selector === '#cache-status') {
+        return cacheStatus;
+      }
+      return null;
     },
     body: {
       classList: {
@@ -198,7 +244,7 @@ test('App wires screens and services through DI', async () => {
     callScreen.lastParams.onEnd();
     assert.equal(endScreen.shows, 1);
     assert.equal(calls.peerEnd, 1);
-    assert.ok(endScreen.lastParams.message.includes('Call ended'));
+    assert.ok(endScreen.lastParams.message.includes('Звонок'));
   } finally {
     globalThis.MediaStream = OriginalMediaStream;
   }

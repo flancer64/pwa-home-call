@@ -108,7 +108,7 @@ test('Media manager prepares devices and updates UI bindings', async () => {
     assert.equal(result.status, 'ready');
     assert.equal(peerStream, stream);
     assert.equal(statusElement.hidden, false);
-    assert.match(statusElement.textContent, /Camera/);
+    assert.match(statusElement.textContent, /Камера/);
     assert.ok(statusElement.classList['alert-success']);
     assert.equal(videoElement.hidden, false);
     assert.equal(videoElement.srcObject, stream);
