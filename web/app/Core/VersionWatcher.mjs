@@ -19,66 +19,22 @@ export default class HomeCall_Web_Core_VersionWatcher {
     let currentVersion = null;
     let timer = null;
 
-    const notifySkipWaiting = (registration) => {
-      if (!registration) {
-        return;
-      }
-
-      const sendMessage = (worker) => {
-        if (worker && typeof worker.postMessage === 'function') {
-          worker.postMessage('skip-waiting');
-          return true;
-        }
-        return false;
-      };
-
-      if (sendMessage(registration.waiting)) {
-        return;
-      }
-
-      const installing = registration.installing;
-      if (!installing || typeof installing.addEventListener !== 'function') {
-        return;
-      }
-
-      const handleStateChange = () => {
-        if (installing.state === 'installed') {
-          sendMessage(registration.waiting) || sendMessage(installing);
-          installing.removeEventListener('statechange', handleStateChange);
-          return;
-        }
-        if (installing.state === 'redundant') {
-          installing.removeEventListener('statechange', handleStateChange);
-        }
-      };
-
-      installing.addEventListener('statechange', handleStateChange);
-    };
-
-    const ensureRegistrationUpdate = async (registration) => {
-      if (!registration || typeof registration.update !== 'function') {
-        return;
-      }
-      try {
-        await registration.update();
-      } catch (updateError) {
-        log.warn('[VersionWatcher] Failed to update service worker', updateError);
-      }
-    };
-
     const checkOnce = async () => {
       try {
         const response = await fetchRef('version.json', { cache: 'no-store' });
         const data = await response.json();
         const nextVersion = data?.version ?? null;
-        const registration = sw?.getRegistration();
         if (currentVersion && nextVersion && currentVersion !== nextVersion) {
           log?.info?.(
             `[VersionWatcher] Version change detected: ${currentVersion} → ${nextVersion}`
           );
-          if (registration) {
-            await ensureRegistrationUpdate(registration);
-            notifySkipWaiting(registration);
+          const registration = await sw?.getRegistration();
+          if (registration?.active && typeof registration.active.postMessage === 'function') {
+            registration.active.postMessage({
+              type: 'clear-caches-and-rebuild',
+              version: nextVersion
+            });
+            log?.info?.(`[VersionWatcher] Triggered cache rebuild for ${nextVersion}`);
           }
         }
         if (nextVersion) {
@@ -89,7 +45,7 @@ export default class HomeCall_Web_Core_VersionWatcher {
       }
     };
 
-    this.start = async (intervalMs = 60_000) => {
+    this.start = async (intervalMs = 3_600_000) => {
       await checkOnce();
       if (intervalMs > 0 && typeof setIntervalRef === 'function') {
         this.stop();

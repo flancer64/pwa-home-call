@@ -31,16 +31,18 @@ const MODULE_ASSETS = [
 ];
 const CORE_ASSETS = [...STATIC_ASSETS, ...MODULE_ASSETS];
 const CORE_ASSET_SET = new Set(CORE_ASSETS);
+let CURRENT_VERSION = '0';
+let CURRENT_CACHE_NAME = 'homecall-v0';
 
 async function resolveVersionInfo() {
   try {
     const response = await fetch(VERSION_URL, { cache: 'no-store' });
     const data = await response.json();
     const version = typeof data?.version === 'string' ? data.version : '0';
-    return { version, cacheName: `homecall-v${version}` };
+    return version;
   } catch (error) {
     console.warn('[ServiceWorker] Failed to resolve version, using fallback cache.', error);
-    return { version: '0', cacheName: 'homecall-v0' };
+    return '0';
   }
 }
 
@@ -79,8 +81,10 @@ async function networkFirst(request) {
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
-      const { cacheName } = await resolveVersionInfo();
-      const cache = await caches.open(cacheName);
+      const version = await resolveVersionInfo();
+      CURRENT_VERSION = version;
+      CURRENT_CACHE_NAME = `homecall-v${version}`;
+      const cache = await caches.open(CURRENT_CACHE_NAME);
       await cache.addAll(CORE_ASSETS);
       self.skipWaiting();
     })()
@@ -90,13 +94,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      const { cacheName: expected, version } = await resolveVersionInfo();
       const cacheNames = await caches.keys();
       await Promise.all(
-        cacheNames.map((name) => (name === expected ? null : caches.delete(name)))
+        cacheNames.map((name) => (name === CURRENT_CACHE_NAME ? null : caches.delete(name)))
       );
       console.info(
-        `[ServiceWorker] Activated version ${version}, old caches removed`
+        `[ServiceWorker] Activated version ${CURRENT_VERSION}, old caches removed`
       );
       await self.clients.claim();
     })()
@@ -129,7 +132,25 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data === 'skip-waiting') {
-    self.skipWaiting();
-  }
+  event.waitUntil(
+    (async () => {
+      const { type, version } = event.data ?? {};
+      if (type !== 'clear-caches-and-rebuild' || !version) {
+        return;
+      }
+
+      try {
+        const newCache = `homecall-v${version}`;
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+        const cache = await caches.open(newCache);
+        await cache.addAll(CORE_ASSETS);
+        CURRENT_VERSION = version;
+        CURRENT_CACHE_NAME = newCache;
+        console.info(`[ServiceWorker] Cache rebuilt for version ${version}`);
+      } catch (error) {
+        console.warn('[ServiceWorker] Failed to rebuild cache', error);
+      }
+    })()
+  );
 });
