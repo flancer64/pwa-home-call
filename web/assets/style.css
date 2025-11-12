@@ -555,7 +555,7 @@ button.secondary:hover {
   z-index: 0;
 }
 
-.call-stage > :not(#remote-video):not(#local-video) {
+.call-stage > :not(#remote-video):not(#local-video):not(.call-controls) {
   position: relative;
   z-index: 1;
 }
@@ -580,13 +580,13 @@ button.secondary:hover {
 }
 
 .call-controls {
-  position: absolute;
+  position: fixed;
   bottom: 1.25rem;
-  right: 1.25rem;
+  left: 1.25rem;
   z-index: 3;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .fab {
