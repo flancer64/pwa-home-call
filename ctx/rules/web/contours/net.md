@@ -29,11 +29,11 @@ Net разворачивается через `@teqfw/di` и получает `S
 ## Связи
 
 - `ctx/rules/web/app.md` — сигналы сети на этапе `call` и переходы между состояниями.
-- `ctx/rules/web/core.md` — сигналы о готовности и команды на смену комнаты.
-- `ctx/rules/web/rtc.md` — `net:signal` для обмена SDP/ICE.
-- `ctx/rules/web/ui.md` — `net:online` для обновления списка собеседников.
-- `ctx/rules/web/shared.md` — EventBus и логгер.
-- `ctx/rules/web/ws.md` — подробное описание JSON-сообщений.
+- `ctx/rules/web/contours/core.md` — сигналы о готовности и команды на смену комнаты.
+- `ctx/rules/web/contours/rtc.md` — `net:signal` для обмена SDP/ICE.
+- `ctx/rules/web/contours/ui.md` — `net:online` для обновления списка собеседников.
+- `ctx/rules/web/contours/shared.md` — EventBus и логгер.
+- `ctx/rules/web/infra/ws.md` — подробное описание JSON-сообщений.
 
 ## Итог
 

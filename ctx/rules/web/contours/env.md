@@ -27,10 +27,10 @@ Env зарегистрирован в `@teqfw/di` как `HomeCall_Web_Env_Provi
 ## Связи
 
 - `ctx/rules/web/app.md` — конфигурация окружения на этапах входа и звонка.
-- `ctx/rules/web/core.md` — Core опрашивает Env перед запуском состояний.
-- `ctx/rules/web/media.md` — Media получает разрешения через Env (например, `env.permissions.media`).
-- `ctx/rules/web/net.md` — Net использует Env для построения URL `wss://`.
-- `ctx/rules/web/shared.md` — EventBus и логгер Env делит с остальными.
+- `ctx/rules/web/contours/core.md` — Core опрашивает Env перед запуском состояний.
+- `ctx/rules/web/contours/media.md` — Media получает разрешения через Env (например, `env.permissions.media`).
+- `ctx/rules/web/contours/net.md` — Net использует Env для построения URL `wss://`.
+- `ctx/rules/web/contours/shared.md` — EventBus и логгер Env делит с остальными.
 
 ## Итог
 

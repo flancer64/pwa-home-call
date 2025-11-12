@@ -92,10 +92,10 @@ toast.hide();
 
 ## 9. Связи
 
-- `ctx/rules/web/ui.md` — общие принципы интерфейса;
+- `ctx/rules/web/contours/ui.md` — общие принципы интерфейса;
 - `ctx/rules/web/style.md` — визуальное оформление и адаптивность;
 - `ctx/rules/web/app.md` — сценарии отображения уведомлений;
-- `ctx/rules/web/shared.md` — логирование ошибок.
+- `ctx/rules/web/contours/shared.md` — логирование ошибок.
 
 ---
 

@@ -81,7 +81,7 @@
 ## Связи
 
 - `ctx/rules/web/app.md` — сценарии состояний `enter`, `lobby`, `call`, `end`.
-- `ctx/rules/web/ui.md` — экранная логика и реакции на `ui:action`.
+- `ctx/rules/web/contours/ui.md` — экранная логика и реакции на `ui:action`.
 
 ## Итог
 

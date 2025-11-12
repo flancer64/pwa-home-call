@@ -30,9 +30,9 @@ Shared регистрируется в `@teqfw/di` как центральный
 ## Связи
 
 - `ctx/rules/web/app.md` — единая событийная модель, описанная в сценариях состояния.
-- `ctx/rules/web/core.md` — Core публикует `core:*` события на EventBus.
-- `ctx/rules/web/net.md`, `ctx/rules/web/media.md`, `ctx/rules/web/rtc.md`, `ctx/rules/web/ui.md`, `ctx/rules/web/env.md` — все подписываются на `Shared.EventBus`.
-- `ctx/rules/web/ws.md` — EventBus транслирует сообщения Net в локальные события.
+- `ctx/rules/web/contours/core.md` — Core публикует `core:*` события на EventBus.
+- `ctx/rules/web/contours/net.md`, `ctx/rules/web/contours/media.md`, `ctx/rules/web/contours/rtc.md`, `ctx/rules/web/contours/ui.md`, `ctx/rules/web/contours/env.md` — все подписываются на `Shared.EventBus`.
+- `ctx/rules/web/infra/ws.md` — EventBus транслирует сообщения Net в локальные события.
 
 ## Итог
 

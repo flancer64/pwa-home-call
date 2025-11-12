@@ -30,11 +30,11 @@ Core получает все зависимости только через `@te
 ## Связи
 
 - `ctx/rules/web/app.md` — сценарии состояний, переходы и вызовы `core:state`.
-- `ctx/rules/web/ui.md` — команды на переключение UI.
-- `ctx/rules/web/net.md` — сигналы и события сетевого слоя.
-- `ctx/rules/web/media.md` — управление потоками и разрешениями устройств.
-- `ctx/rules/web/env.md` — запрос и обновление контекста окружения.
-- `ctx/rules/web/shared.md` — `EventBus` и логгер.
+- `ctx/rules/web/contours/ui.md` — команды на переключение UI.
+- `ctx/rules/web/contours/net.md` — сигналы и события сетевого слоя.
+- `ctx/rules/web/contours/media.md` — управление потоками и разрешениями устройств.
+- `ctx/rules/web/contours/env.md` — запрос и обновление контекста окружения.
+- `ctx/rules/web/contours/shared.md` — `EventBus` и логгер.
 
 ## Итог
 

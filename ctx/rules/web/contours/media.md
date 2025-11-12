@@ -29,10 +29,10 @@ Media разворачивается через `@teqfw/di` и не инициа
 ## Связи
 
 - `ctx/rules/web/app.md` — моменты запроса и освобождения устройств в сценариях приложения.
-- `ctx/rules/web/env.md` — разрешения и специфика платформы.
-- `ctx/rules/web/rtc.md` — передача треков и управление `RTCPeerConnection`.
-- `ctx/rules/web/ui.md` — виджет уведомлений о состоянии устройств.
-- `ctx/rules/web/shared.md` — EventBus и логгер.
+- `ctx/rules/web/contours/env.md` — разрешения и специфика платформы.
+- `ctx/rules/web/contours/rtc.md` — передача треков и управление `RTCPeerConnection`.
+- `ctx/rules/web/contours/ui.md` — виджет уведомлений о состоянии устройств.
+- `ctx/rules/web/contours/shared.md` — EventBus и логгер.
 
 ## Итог
 
