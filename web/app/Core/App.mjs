@@ -15,8 +15,9 @@ export default class HomeCall_Web_Core_App {
   * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
   * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
- * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
- * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
+  * @param {HomeCall_Web_Infra_Storage} deps.HomeCall_Web_Infra_Storage$
+  * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
+  * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
  * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
  * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
  */
@@ -30,6 +31,7 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Core_UiController$: uiController,
     HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Shared_Logger$: logger,
+    HomeCall_Web_Infra_Storage$: storage,
     HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
     HomeCall_Web_Ui_Toolbar$: toolbar,
     HomeCall_Web_Ui_Toast$: toast,
@@ -40,6 +42,9 @@ export default class HomeCall_Web_Core_App {
     }
     if (!eventBus) {
       throw new Error('Shared event bus is required for HomeCall core.');
+    }
+    if (!storage) {
+      throw new Error('Storage module is required for HomeCall core.');
     }
     if (!uiController) {
       throw new Error('UI controller is required for HomeCall core.');
@@ -70,10 +75,39 @@ export default class HomeCall_Web_Core_App {
       lastCallTarget: null,
       reconnectAttempts: 0
     };
+    let savedDataNotified = false;
 
     const updateToolbarContext = () => {
       if (typeof toolbar.setContext === 'function') {
         toolbar.setContext({ user: state.userName, room: state.roomCode });
+      }
+    };
+
+    const broadcastStorageLoaded = (entry) => {
+      if (!entry) {
+        return;
+      }
+      const payload = {
+        userName: entry.userName,
+        roomName: entry.roomName,
+        timestamp: entry.timestamp ?? null
+      };
+      bus.emit('storage:loaded', payload);
+    };
+
+    const showSavedDataNotification = (entry) => {
+      if (savedDataNotified) {
+        return;
+      }
+      const hasUser = entry && typeof entry.userName === 'string' && entry.userName.length > 0;
+      const hasRoom = entry && typeof entry.roomName === 'string' && entry.roomName.length > 0;
+      if (!hasUser || !hasRoom) {
+        return;
+      }
+      savedDataNotified = true;
+      const notifier = typeof toastNotifier?.info === 'function' ? toastNotifier.info.bind(toastNotifier) : null;
+      if (notifier) {
+        notifier('Saved data loaded');
       }
     };
 
@@ -83,10 +117,20 @@ export default class HomeCall_Web_Core_App {
       }
     };
 
+    const notifyStorageCleared = () => {
+      storage.clearUserData();
+      const warnNotifier = typeof toastNotifier?.warn === 'function' ? toastNotifier.warn.bind(toastNotifier) : null;
+      if (warnNotifier) {
+        warnNotifier('Saved data cleared');
+      }
+      bus.emit('storage:cleared');
+    };
+
     const clearApplicationCache = async () => {
       if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
         return;
       }
+      notifyStorageCleared();
       showCacheClearedMessage();
       try {
         await cacheCleaner.clear();
@@ -431,9 +475,16 @@ export default class HomeCall_Web_Core_App {
       state.roomCode = '';
       state.onlineUsers = [];
       updateToolbarContext();
+      const storedData = storage.getUserData();
+      const initialUserName = storedData?.userName ?? '';
+      const initialRoomName = storedData?.roomName ?? '';
+      broadcastStorageLoaded(storedData);
+      showSavedDataNotification(storedData);
       ui.showEnter({
         container: state.root,
         connectionMessage: message,
+        initialUserName,
+        initialRoomName,
         onEnter: ({ user, room }) => {
           state.userName = user;
           state.roomCode = room;

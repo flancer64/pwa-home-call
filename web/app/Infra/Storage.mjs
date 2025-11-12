@@ -65,7 +65,7 @@ export default class HomeCall_Web_Infra_Storage {
     this.setUserData = function setUserData(data = {}) {
       const storage = resolveStorage();
       if (!storage) {
-        return;
+        return false;
       }
 
       const entry = {
@@ -76,26 +76,30 @@ export default class HomeCall_Web_Infra_Storage {
 
       const serialized = safeSerialize(entry);
       if (!serialized) {
-        return;
+        return false;
       }
 
       try {
         storage.setItem(STORAGE_KEY, serialized);
+        return true;
       } catch (error) {
         // swallow storage write errors to preserve flow
+        return false;
       }
     };
 
     this.clearUserData = function clearUserData() {
       const storage = resolveStorage();
       if (!storage) {
-        return;
+        return false;
       }
 
       try {
         storage.removeItem(STORAGE_KEY);
+        return true;
       } catch (error) {
         // ignore removal failures
+        return false;
       }
     };
 

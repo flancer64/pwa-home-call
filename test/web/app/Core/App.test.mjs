@@ -185,9 +185,15 @@ test('App wires screens and services through DI', async () => {
     info(message) {
       toastCalls.push({ type: 'info', message });
     },
-    warn() {},
-    success() {},
-    error() {}
+    warn(message) {
+      toastCalls.push({ type: 'warn', message });
+    },
+    success(message) {
+      toastCalls.push({ type: 'success', message });
+    },
+    error(message) {
+      toastCalls.push({ type: 'error', message });
+    }
   };
   const documentStub = {
     getElementById(id) {
@@ -253,6 +259,20 @@ test('App wires screens and services through DI', async () => {
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
   container.register('HomeCall_Web_Ui_Toolbar$', toolbar);
   container.register('HomeCall_Web_Ui_Toast$', toast);
+  const storageEvents = [];
+  const storage = {
+    getUserData() {
+      return null;
+    },
+    setUserData() {
+      return true;
+    },
+    clearUserData() {
+      storageEvents.push('clear');
+      return true;
+    }
+  };
+  container.register('HomeCall_Web_Infra_Storage$', storage);
   container.register('HomeCall_Web_Pwa_CacheCleaner$', cacheCleaner);
 
   try {
@@ -272,6 +292,8 @@ test('App wires screens and services through DI', async () => {
     assert.ok(toolbarMediaStates.includes('off'));
     await toolbarHandlers[0]('clear-cache');
     assert.equal(calls.cacheCleared, 1);
+    assert.equal(storageEvents.length, 1);
+    assert.ok(toastCalls.some((call) => call.type === 'warn' && call.message === 'Saved data cleared'));
     await toolbarHandlers[0]('toggle-media');
     assert.equal(calls.mediaToggle, 1);
     assert.ok(toolbarMediaStates.includes('ready'));

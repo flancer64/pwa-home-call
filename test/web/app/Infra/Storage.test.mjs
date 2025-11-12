@@ -44,7 +44,7 @@ test('stores and retrieves user data', async () => {
   try {
     assert.equal(storageModule.getUserData(), null);
 
-    storageModule.setUserData({ userName: 'Alice', roomName: 'Lobby' });
+    assert.equal(storageModule.setUserData({ userName: 'Alice', roomName: 'Lobby' }), true);
     const saved = storageModule.getUserData();
 
     assert.equal(saved.userName, 'Alice');
@@ -58,11 +58,11 @@ test('stores and retrieves user data', async () => {
 test('replaces saved data on consecutive writes', async () => {
   const { storageModule } = await loadStorageModuleWithMock();
   try {
-    storageModule.setUserData({ userName: 'Alice', roomName: 'Lobby' });
+    assert.equal(storageModule.setUserData({ userName: 'Alice', roomName: 'Lobby' }), true);
     const first = storageModule.getUserData();
 
     assert.ok(first);
-    storageModule.setUserData({ userName: 'Bob', roomName: 'Studio' });
+    assert.equal(storageModule.setUserData({ userName: 'Bob', roomName: 'Studio' }), true);
     const second = storageModule.getUserData();
 
     assert.equal(second.userName, 'Bob');
@@ -76,10 +76,10 @@ test('replaces saved data on consecutive writes', async () => {
 test('clears stored user data', async () => {
   const { storageModule } = await loadStorageModuleWithMock();
   try {
-    storageModule.setUserData({ userName: 'Alice', roomName: 'Lobby' });
+    assert.equal(storageModule.setUserData({ userName: 'Alice', roomName: 'Lobby' }), true);
     assert.ok(storageModule.getUserData());
 
-    storageModule.clearUserData();
+    assert.equal(storageModule.clearUserData(), true);
     assert.equal(storageModule.getUserData(), null);
   } finally {
     detachWindowStorage();
@@ -91,8 +91,8 @@ test('returns null when localStorage is unavailable', async () => {
   const container = await createWebContainer();
   const storageModule = await container.get('HomeCall_Web_Infra_Storage$');
   assert.equal(storageModule.getUserData(), null);
-  storageModule.setUserData({ userName: 'Ghost', roomName: 'Void' });
-  storageModule.clearUserData();
+  assert.equal(storageModule.setUserData({ userName: 'Ghost', roomName: 'Void' }), false);
+  assert.equal(storageModule.clearUserData(), false);
   assert.equal(storageModule.getUserData(), null);
   detachWindowStorage();
 });

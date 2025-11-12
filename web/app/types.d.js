@@ -21,6 +21,9 @@
 /* ---------- Net ---------- */
 /** @typedef {import('./Net/SignalClient.mjs').default} HomeCall_Web_Net_SignalClient */
 
+/* ---------- Infra ---------- */
+/** @typedef {import('./Infra/Storage.mjs').default} HomeCall_Web_Infra_Storage */
+
 /* ---------- RTC ---------- */
 /** @typedef {import('./Rtc/Peer.mjs').default} HomeCall_Web_Rtc_Peer */
 

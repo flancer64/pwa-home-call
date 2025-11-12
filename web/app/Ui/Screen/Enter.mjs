@@ -13,6 +13,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
  * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
  * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
  * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
+ * @param {HomeCall_Web_Infra_Storage} deps.HomeCall_Web_Infra_Storage$
  * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
  * @param {Document} [deps.document]
  * @param {Window} [deps.window]
@@ -23,6 +24,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Net_SignalClient$: signal,
     HomeCall_Web_Shared_EventBus$: eventBus,
+    HomeCall_Web_Infra_Storage$: storage,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast
   } = {}) {
@@ -36,20 +38,23 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     this.window = env.window;
     this.navigator = env.navigator;
     this.eventBus = eventBus;
+    this.storage = storage;
     if (!toast) {
       throw new Error('Toast module is required for enter screen.');
     }
     this.toast = toast;
   }
 
-  /**
-   * Render screen and bind events.
-   * @param {Object} params
-   * @param {HTMLElement} params.container - Root container for rendering the screen.
-   * @param {(data: {user: string, room: string}) => void} params.onEnter
-   * @param {string} [params.connectionMessage]
-   */
-  show({ container, onEnter, connectionMessage } = {}) {
+ /**
+  * Render screen and bind events.
+  * @param {Object} params
+  * @param {HTMLElement} params.container - Root container for rendering the screen.
+  * @param {(data: {user: string, room: string}) => void} params.onEnter
+  * @param {string} [params.connectionMessage]
+   * @param {string} [params.initialUserName]
+   * @param {string} [params.initialRoomName]
+  */
+  show({ container, onEnter, connectionMessage, initialUserName, initialRoomName } = {}) {
     if (!container) {
       return;
     }
@@ -58,6 +63,14 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     const prepareButton = container.querySelector('#prepare-media');
     const statusBox = container.querySelector('#media-status');
     this.media.bindStatusElement(statusBox);
+    const userInput = container.querySelector('input[name="user"]');
+    const roomInput = container.querySelector('input[name="room"]');
+    if (userInput) {
+      userInput.value = typeof initialUserName === 'string' ? initialUserName : '';
+    }
+    if (roomInput) {
+      roomInput.value = typeof initialRoomName === 'string' ? initialRoomName : '';
+    }
     if (connectionMessage) {
       this.toast.error(connectionMessage);
     }
@@ -81,6 +94,20 @@ export default class HomeCall_Web_Ui_Screen_Enter {
       try {
         await this.signal.connect();
         this.signal.join(room, user);
+        const saveResult = typeof this.storage?.setUserData === 'function'
+          ? this.storage.setUserData({ userName: user, roomName: room })
+          : null;
+        if (saveResult === true) {
+          this.toast.success('Data saved');
+          if (this.eventBus && typeof this.eventBus.emit === 'function') {
+            this.eventBus.emit('storage:saved', { userName: user, roomName: room });
+          }
+        } else if (saveResult === false) {
+          this.toast.error('Failed to save data');
+          if (this.eventBus && typeof this.eventBus.emit === 'function') {
+            this.eventBus.emit('storage:failed', { userName: user, roomName: room });
+          }
+        }
         this.toast.success('Подключение установлено.');
         onEnter?.({ user, room });
       } catch (error) {
