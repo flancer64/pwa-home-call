@@ -14,26 +14,53 @@
 <body>
   <div class="app-shell">
     <header class="toolbar" role="toolbar" aria-label="Global controls">
-      <div class="toolbar-actions">
-        <button id="toolbar-clear-cache" class="toolbar-button" type="button" aria-label="Clear cache"
-          title="Очистить кэш приложения">
-          <img src="assets/icons/trash-2.svg" alt="" class="toolbar-icon" />
-          <span class="sr-only">Clear cache</span>
-        </button>
-
-        <button id="toolbar-toggle-media" class="toolbar-button" type="button" aria-label="Toggle camera and microphone"
-          title="Включить или выключить камеру и микрофон">
-          <img src="assets/icons/video.svg" alt="" class="toolbar-icon" />
-          <span class="sr-only">Toggle media</span>
-        </button>
+      <div class="toolbar-left">
+        <div class="state-indicators" aria-label="Connection indicators">
+          <div class="state-indicator" id="toolbar-indicator-ws" aria-label="Websocket connection">
+            <span class="indicator-dot"></span>
+            <span class="indicator-label">WS</span>
+          </div>
+          <div class="state-indicator" id="toolbar-indicator-rtc" aria-label="RTC connection">
+            <span class="indicator-dot"></span>
+            <span class="indicator-label">RTC</span>
+          </div>
+          <div class="media-indicator" id="toolbar-indicator-video" aria-label="Video devices">
+            <img src="assets/icons/camera.svg" alt="Video" />
+          </div>
+          <div class="media-indicator" id="toolbar-indicator-audio" aria-label="Audio devices">
+            <img src="assets/icons/mic.svg" alt="Audio" />
+          </div>
+        </div>
       </div>
 
-      <div id="toolbar-media">
-        <div id="toolbar-indicator-video" class="media-indicator">
-          <img src="assets/icons/camera.svg" alt="Video" />
+      <div class="toolbar-center">
+        <div class="toolbar-info">
+          <p id="toolbar-user" class="toolbar-info-user">Гость</p>
+          <p id="toolbar-room" class="toolbar-info-room">Комната: —</p>
         </div>
-        <div id="toolbar-indicator-audio" class="media-indicator">
-          <img src="assets/icons/mic.svg" alt="Audio" />
+      </div>
+
+      <div class="toolbar-right">
+        <div class="toolbar-actions toolbar-desktop">
+          <button id="toolbar-toggle-media" class="toolbar-button" type="button" aria-label="Toggle camera and microphone">
+            <img src="assets/icons/video.svg" alt="" class="toolbar-icon" />
+            <span class="toolbar-action-label">Медиа</span>
+          </button>
+          <button id="toolbar-settings" class="toolbar-button" type="button" aria-label="Открыть настройки">Настройки</button>
+          <button id="toolbar-info" class="toolbar-button" type="button" aria-label="Сведения о приложении">Сведения</button>
+          <button id="toolbar-clear-cache" class="toolbar-button" type="button" aria-label="Очистить кеш">Очистить кэш</button>
+        </div>
+        <div class="toolbar-menu">
+          <button id="toolbar-menu-toggle" class="toolbar-button toolbar-menu-toggle" type="button" aria-haspopup="true"
+            aria-expanded="false" aria-label="Открыть меню">
+            <img src="assets/icons/menu.svg" alt="Меню" class="toolbar-icon" />
+          </button>
+          <div id="toolbar-menu-panel" class="toolbar-menu-panel" hidden>
+            <button data-menu-action="toggle-media" type="button">Медиа</button>
+            <button data-menu-action="settings" type="button">Настройки</button>
+            <button data-menu-action="info" type="button">Сведения</button>
+            <button data-menu-action="clear-cache" type="button">Очистить кэш</button>
+          </div>
         </div>
       </div>
     </header>
@@ -41,9 +68,6 @@
       <div class="screen-wrapper" id="app" aria-live="polite"></div>
     </main>
     <div id="toast-container" aria-live="polite"></div>
-    <footer class="cta-panel" aria-live="polite">
-      <button id="cta-action" class="primary" type="button">Primary action</button>
-    </footer>
   </div>
   <script type="module" src="app.js"></script>
 </body>

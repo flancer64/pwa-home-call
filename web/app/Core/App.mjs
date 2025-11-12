@@ -71,12 +71,64 @@ export default class HomeCall_Web_Core_App {
       reconnectAttempts: 0
     };
 
-    const layout = {
-      ctaButton: null,
-      ctaPanel: null,
-      toolbarButtons: {
-        clearCache: null,
-        toggleMedia: null
+    const updateToolbarContext = () => {
+      if (typeof toolbar.setContext === 'function') {
+        toolbar.setContext({ user: state.userName, room: state.roomCode });
+      }
+    };
+
+    const setToolbarMediaState = (value) => {
+      if (typeof toolbar.setMediaButtonState === 'function') {
+        toolbar.setMediaButtonState(value);
+      }
+    };
+
+    const clearApplicationCache = async () => {
+      if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
+        return;
+      }
+      showCacheClearedMessage();
+      try {
+        await cacheCleaner.clear();
+      } catch (error) {
+        log.error('[App] Unable to clear cache', error);
+      }
+    };
+
+    const toggleMediaTracks = async () => {
+      try {
+        const result = await media.toggleMedia();
+        const stateName = result?.state;
+        if (stateName) {
+          setToolbarMediaState(stateName);
+        }
+      } catch (error) {
+        log.error('[App] Unable to toggle media tracks', error);
+      }
+    };
+
+    const handleToolbarAction = async (action) => {
+      if (!action) {
+        return;
+      }
+      switch (action) {
+        case 'clear-cache':
+          await clearApplicationCache();
+          break;
+        case 'toggle-media':
+          await toggleMediaTracks();
+          break;
+        case 'settings':
+          toastNotifier?.info('Настройки появятся в следующих версиях.');
+          break;
+        case 'info': {
+          const userLabel = state.userName || 'Гость';
+          const roomLabel = state.roomCode ? `Комната ${state.roomCode}` : 'Комната не выбрана';
+          toastNotifier?.info(`Сведения: ${userLabel}, ${roomLabel}.`);
+          break;
+        }
+        default:
+          break;
       }
     };
 
@@ -96,83 +148,6 @@ export default class HomeCall_Web_Core_App {
     let ignoreClosedEvent = false;
     let manualShutdownInProgress = false;
     let ignoreClosedResetTimer = null;
-
-    const bindLayoutElements = () => {
-      if (!document) {
-        return;
-      }
-      layout.ctaButton = document.getElementById('cta-action');
-      layout.ctaPanel = document.querySelector('.cta-panel');
-      layout.toolbarButtons.clearCache = document.getElementById('toolbar-clear-cache');
-      layout.toolbarButtons.toggleMedia = document.getElementById('toolbar-toggle-media');
-    };
-
-    const hideCtaPanel = (hidden) => {
-      if (!layout.ctaPanel) {
-        return;
-      }
-      layout.ctaPanel.classList.toggle('cta-hidden', hidden);
-      layout.ctaPanel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
-    };
-
-    const updateCta = ({
-      label = '',
-      type = 'button',
-      formId = null,
-      disabled = false,
-      onTrigger = null,
-      hidden = false
-    } = {}) => {
-      const button = layout.ctaButton;
-      if (!button) {
-        return;
-      }
-      button.textContent = label;
-      button.type = type;
-      button.disabled = disabled || hidden;
-      if (formId) {
-        button.setAttribute('form', formId);
-      } else {
-        button.removeAttribute('form');
-      }
-      if (typeof onTrigger === 'function') {
-        button.onclick = (event) => {
-          event.preventDefault();
-          onTrigger();
-        };
-      } else {
-        button.onclick = null;
-      }
-      hideCtaPanel(hidden);
-    };
-
-    const attachToolbarHandlers = () => {
-      const { clearCache, toggleMedia } = layout.toolbarButtons;
-      clearCache?.addEventListener('click', async (event) => {
-        event.preventDefault();
-        if (!cacheCleaner || typeof cacheCleaner.clear !== 'function') {
-          return;
-        }
-        showCacheClearedMessage();
-        try {
-          await cacheCleaner.clear();
-        } catch (error) {
-          log.error('[App] Unable to clear cache', error);
-        }
-      });
-      toggleMedia?.addEventListener('click', async (event) => {
-        event.preventDefault();
-        try {
-          const result = await media.toggleMedia();
-          const stateName = result?.state;
-          if (stateName) {
-            toggleMedia.dataset.state = stateName;
-          }
-        } catch (error) {
-          log.error('[App] Unable to toggle media tracks', error);
-        }
-      });
-    };
 
     const updateBodyState = () => {
       if (!document?.body) {
@@ -397,37 +372,20 @@ export default class HomeCall_Web_Core_App {
           showEnter();
         }
       });
-      const hasUsers = state.onlineUsers.length > 0;
-      updateCta({
-        label: 'Позвонить',
-        type: 'button',
-        disabled: !hasUsers,
-        hidden: false,
-        onTrigger: () => {
-          if (!state.onlineUsers.length) {
-            return;
-          }
-          startCall(state.onlineUsers[0]);
-        }
-      });
+      updateToolbarContext();
     };
 
     const showEnd = () => {
       transitionState('end');
       ui.showEnd({
         container: state.root,
-        message: state.connectionMessage
-      });
-      updateCta({
-        label: 'Вернуться',
-        type: 'button',
-        disabled: false,
-        hidden: false,
-        onTrigger: () => {
+        message: state.connectionMessage,
+        onReturn: () => {
           state.connectionMessage = '';
           showLobby();
         }
       });
+      updateToolbarContext();
     };
 
     const endCall = (message, { manual = false } = {}) => {
@@ -462,13 +420,17 @@ export default class HomeCall_Web_Core_App {
           });
         }
       });
-      updateCta({ hidden: true });
+      updateToolbarContext();
     };
 
     const showEnter = () => {
       transitionState('enter');
       const message = state.connectionMessage;
       state.connectionMessage = '';
+      state.userName = '';
+      state.roomCode = '';
+      state.onlineUsers = [];
+      updateToolbarContext();
       ui.showEnter({
         container: state.root,
         connectionMessage: message,
@@ -478,13 +440,6 @@ export default class HomeCall_Web_Core_App {
           state.connectionMessage = '';
           showLobby();
         }
-      });
-      updateCta({
-        label: 'Войти',
-        type: 'submit',
-        formId: 'enter-form',
-        disabled: false,
-        hidden: false
       });
     };
 
@@ -600,10 +555,11 @@ export default class HomeCall_Web_Core_App {
       if (!state.root) {
         throw new Error('Element with id "app" was not found.');
       }
-      bindLayoutElements();
       toastNotifier?.init();
-      attachToolbarHandlers();
+      toolbar.onAction(handleToolbarAction);
       toolbar.init();
+      setToolbarMediaState('off');
+      updateToolbarContext();
       configurePeer();
       media.setPeer(peer);
       await sw.register();

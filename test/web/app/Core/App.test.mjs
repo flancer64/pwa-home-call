@@ -24,7 +24,9 @@ test('App wires screens and services through DI', async () => {
     peerEnd: 0,
     stopLocal: 0,
     disconnect: 0,
-    toolbarInit: 0
+    toolbarInit: 0,
+    mediaToggle: 0,
+    cacheCleared: 0
   };
   const templateLoader = {
     async loadAll() {
@@ -62,6 +64,10 @@ test('App wires screens and services through DI', async () => {
     },
     async prepare() {
       calls.mediaPrepare += 1;
+    },
+    async toggleMedia() {
+      calls.mediaToggle += 1;
+      return { state: 'ready' };
     }
   };
   const signalHandlers = new Map();
@@ -141,15 +147,6 @@ test('App wires screens and services through DI', async () => {
     },
     setAttribute() {}
   };
-  const toolbarButtons = {
-    clearCache: {
-      addEventListener() {}
-    },
-    toggleMedia: {
-      addEventListener() {},
-      dataset: {}
-    }
-  };
   const cacheStatus = {
     hidden: true,
     textContent: '',
@@ -158,9 +155,26 @@ test('App wires screens and services through DI', async () => {
       add() {}
     }
   };
+  const toolbarHandlers = [];
+  const toolbarContextUpdates = [];
+  const toolbarMediaStates = [];
   const toolbar = {
     init() {
       calls.toolbarInit += 1;
+    },
+    onAction(handler) {
+      toolbarHandlers.push(handler);
+    },
+    setContext(context) {
+      toolbarContextUpdates.push(context);
+    },
+    setMediaButtonState(state) {
+      toolbarMediaStates.push(state);
+    }
+  };
+  const cacheCleaner = {
+    async clear() {
+      calls.cacheCleared += 1;
     }
   };
   const toastCalls = [];
@@ -179,8 +193,6 @@ test('App wires screens and services through DI', async () => {
     getElementById(id) {
       if (id === 'app') return rootElement;
       if (id === 'cta-action') return ctaButton;
-      if (id === 'toolbar-clear-cache') return toolbarButtons.clearCache;
-      if (id === 'toolbar-toggle-media') return toolbarButtons.toggleMedia;
       return null;
     },
     querySelector(selector) {
@@ -241,6 +253,7 @@ test('App wires screens and services through DI', async () => {
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
   container.register('HomeCall_Web_Ui_Toolbar$', toolbar);
   container.register('HomeCall_Web_Ui_Toast$', toast);
+  container.register('HomeCall_Web_Pwa_CacheCleaner$', cacheCleaner);
 
   try {
     const app = await container.get('HomeCall_Web_Core_App$');
@@ -254,6 +267,14 @@ test('App wires screens and services through DI', async () => {
     assert.equal(typeof enterScreen.lastOnEnter, 'function');
     assert.equal(calls.toolbarInit, 1);
     assert.ok(toastCalls.includes('init'));
+    assert.equal(toolbarHandlers.length, 1);
+    assert.ok(toolbarContextUpdates.length > 0);
+    assert.ok(toolbarMediaStates.includes('off'));
+    await toolbarHandlers[0]('clear-cache');
+    assert.equal(calls.cacheCleared, 1);
+    await toolbarHandlers[0]('toggle-media');
+    assert.equal(calls.mediaToggle, 1);
+    assert.ok(toolbarMediaStates.includes('ready'));
 
     enterScreen.lastOnEnter({ user: 'alice', room: 'room1' });
     assert.equal(lobbyScreen.shows, 1);

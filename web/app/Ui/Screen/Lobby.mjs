@@ -71,7 +71,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
           }
           const button = createElement('button');
           if (button) {
-            button.className = 'primary';
+            button.className = 'primary cta-button';
             button.type = 'button';
             button.textContent = 'Позвонить';
             button.addEventListener('click', () => {
