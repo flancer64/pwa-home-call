@@ -57,7 +57,7 @@ replacer.add("HomeCall_Back_Contract_Logger", "HomeCall_Back_Logger");
 ## Связанные документы
 
 - `../teqfw.md` — проектные правила применения этих принципов.
-- `../../architecture.md` — архитектурный обзор HomeCall, указывающий на роль DI.
+- `../../architecture.md` — архитектурный обзор ДомоЗвон, указывающий на роль DI.
 - `./module-template.md` — шаблон ES6-модуля, используемый при генерации новых компонентов TeqFW.
 
 ## Результат

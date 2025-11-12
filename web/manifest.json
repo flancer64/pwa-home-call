@@ -1,7 +1,7 @@
 {
-  "name": "HomeCall",
-  "short_name": "HomeCall",
-  "description": "One-to-one video calls with HomeCall.",
+  "name": "ДомоЗвон",
+  "short_name": "ДомоЗвон",
+  "description": "One-to-one video calls with ДомоЗвон.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f5f5f5",
