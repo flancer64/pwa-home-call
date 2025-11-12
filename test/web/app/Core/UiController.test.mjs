@@ -1,40 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import UiController from '../../../../web/app/Core/UiController.mjs';
+import { createWebContainer } from '../../helper.mjs';
 
-test('UiController delegates screen calls without leaking state', () => {
+test('UiController delegates screen calls without leaking state', async () => {
+  const container = await createWebContainer();
   const recorded = {};
-  const mockEnter = {
-    show: (params) => {
-      recorded.enter = params;
+  const createScreen = (key) => ({
+    show(params) {
+      recorded[key] = params;
     }
-  };
-  const mockLobby = {
-    show: (params) => {
-      recorded.lobby = params;
-    }
-  };
-  const mockCall = {
-    show: (params) => {
+  });
+  const enterScreen = createScreen('enter');
+  const lobbyScreen = createScreen('lobby');
+  const endScreen = createScreen('end');
+  const callScreen = {
+    show(params) {
       recorded.call = params;
     },
-    updateRemoteStream: (stream) => {
+    updateRemoteStream(stream) {
       recorded.stream = stream;
-    }
-  };
-  const mockEnd = {
-    show: (params) => {
-      recorded.end = params;
+    },
+    updateConnectionStatus(params) {
+      recorded.connectionStatus = params;
     }
   };
 
-  const controller = new UiController({
-    HomeCall_Web_Ui_Screen_Enter$: mockEnter,
-    HomeCall_Web_Ui_Screen_Lobby$: mockLobby,
-    HomeCall_Web_Ui_Screen_Call$: mockCall,
-    HomeCall_Web_Ui_Screen_End$: mockEnd
-  });
+  container.register('HomeCall_Web_Ui_Screen_Enter$', enterScreen);
+  container.register('HomeCall_Web_Ui_Screen_Lobby$', lobbyScreen);
+  container.register('HomeCall_Web_Ui_Screen_Call$', callScreen);
+  container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
 
+  const controller = await container.get('HomeCall_Web_Core_UiController$');
   assert.ok(controller, 'controller should be created with valid deps');
 
   controller.showEnter({

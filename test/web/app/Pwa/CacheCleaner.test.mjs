@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createWebContainer } from '../../helper.mjs';
 
 test('CacheCleaner removes caches and triggers reload', async () => {
-  const moduleUrl = new URL('../../../../web/app/Pwa/CacheCleaner.mjs', import.meta.url);
-  const { default: CacheCleaner } = await import(moduleUrl);
+  const container = await createWebContainer();
   const originalCaches = globalThis.caches;
   const deletedKeys = [];
   globalThis.caches = {
@@ -46,7 +46,8 @@ test('CacheCleaner removes caches and triggers reload', async () => {
     }
   };
 
-  const cleaner = new CacheCleaner({ HomeCall_Web_Env_Provider$: envProvider });
+  container.register('HomeCall_Web_Env_Provider$', envProvider);
+  const cleaner = await container.get('HomeCall_Web_Pwa_CacheCleaner$');
   try {
     await cleaner.clear();
     assert.deepEqual(deletedKeys, ['homecall-v0', 'homecall-v1']);

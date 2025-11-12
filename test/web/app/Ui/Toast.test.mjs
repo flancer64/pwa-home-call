@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import HomeCall_Web_Ui_Toast from '../../../../web/app/Ui/Toast.mjs';
+import { createWebContainer } from '../../helper.mjs';
 
 function createFakeEnv() {
   const timers = new Map();
@@ -51,13 +51,13 @@ function createLoggerSpy() {
   return { logger, calls };
 }
 
-test('web toast queue honors env timers and logger levels', () => {
+test('web toast queue honors env timers and logger levels', async () => {
+  const container = await createWebContainer();
   const env = createFakeEnv();
   const { logger, calls } = createLoggerSpy();
-  const toast = new HomeCall_Web_Ui_Toast({
-    HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_Logger$: logger
-  });
+  container.register('HomeCall_Web_Env_Provider$', env);
+  container.register('HomeCall_Web_Shared_Logger$', logger);
+  const toast = await container.get('HomeCall_Web_Ui_Toast$');
 
   toast.info('alpha');
   toast.warn('beta');
@@ -77,13 +77,13 @@ test('web toast queue honors env timers and logger levels', () => {
   assert.strictEqual(toast.queue.length, 0);
 });
 
-test('web toast hide interrupts display and starts next', () => {
+test('web toast hide interrupts display and starts next', async () => {
+  const container = await createWebContainer();
   const env = createFakeEnv();
   const { logger, calls } = createLoggerSpy();
-  const toast = new HomeCall_Web_Ui_Toast({
-    HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_Logger$: logger
-  });
+  container.register('HomeCall_Web_Env_Provider$', env);
+  container.register('HomeCall_Web_Shared_Logger$', logger);
+  const toast = await container.get('HomeCall_Web_Ui_Toast$');
 
   toast.success('first');
   toast.error('second');
