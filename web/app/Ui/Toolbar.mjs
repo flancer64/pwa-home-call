@@ -105,6 +105,7 @@ export default class HomeCall_Web_Ui_Toolbar {
     let toggleButton = null;
     let menuToggle = null;
     let menuPanel = null;
+    let shareButton = null;
     let outsideClickHandler = null;
     let initialized = false;
     const mediaStateRef = mediaState;
@@ -153,6 +154,22 @@ export default class HomeCall_Web_Ui_Toolbar {
         return;
       }
       handler(action);
+    };
+
+    const updateShareActionVisibility = (screenState) => {
+      if (!shareButton) {
+        return;
+      }
+      const isCallState = screenState === 'call';
+      if (isCallState) {
+        shareButton.setAttribute('hidden', '');
+        shareButton.setAttribute('aria-hidden', 'true');
+        shareButton.setAttribute('disabled', '');
+        return;
+      }
+      shareButton.removeAttribute('hidden');
+      shareButton.removeAttribute('aria-hidden');
+      shareButton.removeAttribute('disabled');
     };
 
     const toggleMenu = (open) => {
@@ -279,6 +296,7 @@ export default class HomeCall_Web_Ui_Toolbar {
       toggleButton = documentRef.getElementById('toolbar-toggle-media');
       menuToggle = documentRef.getElementById('toolbar-menu-toggle');
       menuPanel = documentRef.getElementById('toolbar-menu-panel');
+      shareButton = menuPanel?.querySelector('button[data-menu-action="share-link"]') ?? null;
       bindConnectionEvents();
       bindMediaState();
       bindMenuActions();
@@ -291,13 +309,14 @@ export default class HomeCall_Web_Ui_Toolbar {
       ACTION_HANDLERS.set(this, typeof handler === 'function' ? handler : null);
     };
 
-    this.setContext = ({ user, room } = {}) => {
+    this.setContext = ({ user, room, state } = {}) => {
       if (info.user) {
         info.user.textContent = user ? user : 'Гость';
       }
       if (info.room) {
         info.room.textContent = room ? `Комната: ${room}` : 'Комната: —';
       }
+      updateShareActionVisibility(state);
     };
 
     this.setMediaButtonState = (stateName) => {

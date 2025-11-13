@@ -77,10 +77,126 @@ export default class HomeCall_Web_Core_App {
     };
     let savedDataNotified = false;
 
+    const INVITE_URL_BASE = 'https://domozvon.app/';
+    let inviteSession = null;
+
     const updateToolbarContext = () => {
       if (typeof toolbar.setContext === 'function') {
-        toolbar.setContext({ user: state.userName, room: state.roomCode });
+        toolbar.setContext({ user: state.userName, room: state.roomCode, state: state.currentState });
       }
+    };
+
+    const buildInviteUrl = (roomName, guestName) => {
+      const params = new URLSearchParams();
+      if (typeof roomName === 'string' && roomName.length > 0) {
+        params.set('room', roomName);
+      }
+      if (typeof guestName === 'string' && guestName.length > 0) {
+        params.set('name', guestName);
+      }
+      const query = params.toString();
+      return query ? `${INVITE_URL_BASE}?${query}` : INVITE_URL_BASE;
+    };
+
+    const restoreInviteState = () => {
+      if (!inviteSession) {
+        return;
+      }
+      const previousState = inviteSession.previousState;
+      inviteSession = null;
+      switch (previousState) {
+        case 'lobby':
+          showLobby();
+          return;
+        case 'call':
+          showCall();
+          return;
+        case 'end':
+          showEnd();
+          return;
+        default:
+          showEnter();
+      }
+    };
+
+    const handleInviteConfirm = async ({ guestName, roomName } = {}) => {
+      if (!inviteSession) {
+        return;
+      }
+      const url = buildInviteUrl(roomName, guestName);
+      const navigatorRef = env.navigator;
+      let handled = false;
+      if (navigatorRef && typeof navigatorRef.share === 'function') {
+        try {
+          await navigatorRef.share({ title: 'ДомоЗвон', text: 'Присоединяйся к разговору', url });
+          toastNotifier?.success('Ссылка отправлена');
+          handled = true;
+        } catch (error) {
+          log.error('[App] Unable to share link', error);
+        }
+      }
+      if (!handled) {
+        const clipboard = navigatorRef?.clipboard;
+        if (clipboard && typeof clipboard.writeText === 'function') {
+          try {
+            await clipboard.writeText(url);
+            toastNotifier?.info('Ссылка скопирована в буфер обмена');
+            handled = true;
+          } catch (error) {
+            log.error('[App] Clipboard copy failed', error);
+          }
+        }
+      }
+      if (!handled) {
+        toastNotifier?.error('Не удалось поделиться ссылкой');
+      }
+      restoreInviteState();
+    };
+
+    const handleInviteCancel = () => {
+      restoreInviteState();
+    };
+
+    const handleShareLink = () => {
+      if (!state.root || inviteSession || state.currentState === 'call') {
+        return;
+      }
+      if (typeof ui.showInvite !== 'function') {
+        log.warn('[App] Invite screen is unavailable.');
+        toastNotifier?.warn('Экран приглашения недоступен.');
+        return;
+      }
+      inviteSession = { previousState: state.currentState };
+      ui.showInvite({
+        container: state.root,
+        initialGuestName: state.userName,
+        initialRoomName: state.roomCode
+      });
+    };
+
+    const readInviteParamsFromUrl = () => {
+      const search = env.window?.location?.search;
+      if (!search) {
+        return null;
+      }
+      const params = new URLSearchParams(search);
+      const rawRoom = params.get('room') ?? '';
+      const rawName = params.get('name') ?? '';
+      const room = rawRoom.trim();
+      const name = rawName.trim();
+      if (!room && !name) {
+        return null;
+      }
+      const stored = storage.getUserData() ?? {};
+      const entry = {
+        userName: name || stored.userName || null,
+        roomName: room || stored.roomName || null
+      };
+      storage.setUserData(entry);
+      return {
+        initialUserName: entry.userName ?? '',
+        initialRoomName: entry.roomName ?? ''
+      };
     };
 
     const broadcastStorageLoaded = (entry) => {
@@ -171,6 +287,9 @@ export default class HomeCall_Web_Core_App {
           toastNotifier?.info(`Сведения: ${userLabel}, ${roomLabel}.`);
           break;
         }
+        case 'share-link':
+          bus.emit('ui:action:share-link');
+          break;
         default:
           break;
       }
@@ -467,7 +586,7 @@ export default class HomeCall_Web_Core_App {
       updateToolbarContext();
     };
 
-    const showEnter = () => {
+    const showEnter = ({ initialUserName: overrideUser, initialRoomName: overrideRoom } = {}) => {
       transitionState('enter');
       const message = state.connectionMessage;
       state.connectionMessage = '';
@@ -476,8 +595,8 @@ export default class HomeCall_Web_Core_App {
       state.onlineUsers = [];
       updateToolbarContext();
       const storedData = storage.getUserData();
-      const initialUserName = storedData?.userName ?? '';
-      const initialRoomName = storedData?.roomName ?? '';
+      const initialUserName = typeof overrideUser === 'string' ? overrideUser : storedData?.userName ?? '';
+      const initialRoomName = typeof overrideRoom === 'string' ? overrideRoom : storedData?.roomName ?? '';
       broadcastStorageLoaded(storedData);
       showSavedDataNotification(storedData);
       ui.showEnter({
@@ -617,7 +736,15 @@ export default class HomeCall_Web_Core_App {
       await templates.loadAll();
       await version.start();
       setupSignalClient();
-      showEnter();
+      bus.on('ui:action:share-link', handleShareLink);
+      bus.on('invite:confirm', handleInviteConfirm);
+      bus.on('invite:cancel', handleInviteCancel);
+      const urlOverrides = readInviteParamsFromUrl();
+      if (urlOverrides) {
+        showEnter(urlOverrides);
+      } else {
+        showEnter();
+      }
       bus.emit('core:ready', { state: state.currentState });
     };
   }

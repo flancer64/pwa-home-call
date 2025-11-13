@@ -1,0 +1,20 @@
+<section data-screen="invite" class="screen-card screen-invite">
+  <div class="screen-copy">
+    <h1>Поделиться ссылкой</h1>
+    <p>Сгенерируйте приглашение и отправьте ссылку собеседнику.</p>
+  </div>
+  <form id="invite-form" class="invite-form">
+    <label>
+      Имя собеседника
+      <input type="text" name="guestName" autocomplete="name" required minlength="2" />
+    </label>
+    <label>
+      Комната назначения
+      <input type="text" name="roomName" autocomplete="off" required minlength="3" />
+    </label>
+    <div class="invite-actions">
+      <button data-invite-action="confirm" class="primary cta-button" type="submit" disabled>Отправить приглашение</button>
+      <button data-invite-action="cancel" class="ghost cta-button" type="button">Отмена</button>
+    </div>
+  </form>
+</section>
