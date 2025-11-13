@@ -61,5 +61,5 @@
 
 - **overview.md** — объясняет ценность и целевую аудиторию.
 - **scenarios/share-and-join.md** — описывает сценарий подключения через ссылку.
-- **rules/web/ui/screens/invite.md** — описывает промежуточный экран `invite`, где подтверждаются `room`/`name` перед входом.
-- **features/share.md** — уточняет роль экрана `invite` и Web Share API в сценарии приглашений.
+- **rules/web/ui/screens/invite.md** — описывает экран `invite` для инициатора (формирование ссылки).
+- **features/invite.md** — описывает функцию приглашения и роль Web Share API.
