@@ -1,8 +1,11 @@
 # HomeCall
 
-**HomeCall** is a simple, self-hosted PWA for private video calls between family members.  
-Built with pure JavaScript and WebRTC, it runs directly in your browser — no installs, no accounts, no data sharing.
+**HomeCall** is a small self-hosted PWA for private video calls between family members.  
+Pure JavaScript, WebRTC, no installs, no accounts.
 
-Just open the link and call home.
+**Live demo:** https://call.wiredgeese.com/
 
-> Note: This repository is a demonstration/testing project developed in tandem with the Codex agent following the ADSM methodology. All documentation is in Russian; use [AGENTS.md](./AGENTS.md) as the entry point.
+The product is developed together with the OpenAI Codex agent using the ADSM methodology  
+(**Agent-Driven Software Methodology**, a context-driven programming approach).
+
+The user interface and the full cognitive-context documentation are in Russian; see [AGENTS.md](./AGENTS.md) as the entry point.
