@@ -8,7 +8,6 @@ export default class HomeCall_Web_Media_Manager {
     HomeCall_Web_Media_DeviceMonitor$: monitor,
     HomeCall_Web_State_Media$: mediaState,
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Ui_Toast$: toast
   } = {}) {
     if (!env) {
@@ -21,7 +20,6 @@ export default class HomeCall_Web_Media_Manager {
     const windowRef = env.window;
     const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
     const cancelTimeout = typeof windowRef?.clearTimeout === 'function' ? windowRef.clearTimeout.bind(windowRef) : null;
-    const bus = eventBus;
     const toastNotifier = toast;
     let peerRef = null;
     let localStream = null;
@@ -166,10 +164,6 @@ export default class HomeCall_Web_Media_Manager {
           console.error('[MediaManager] Status listener failed', error);
         }
       });
-      bus?.emit('media:status', { status: type, message });
-      if (type === 'success') {
-        bus?.emit('media:ready', { stream: localStream });
-      }
     };
 
     const setLocalStreamInternal = (stream) => {

@@ -6,7 +6,6 @@
 export default class HomeCall_Web_Rtc_Peer {
   constructor({
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_EventBus$: eventBus
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
@@ -15,13 +14,30 @@ export default class HomeCall_Web_Rtc_Peer {
     const RTCSessionDescriptionCtor = env.RTCSessionDescription;
     const RTCIceCandidateCtor = env.RTCIceCandidate;
     const MediaStreamCtor = env.MediaStream;
-    const bus = eventBus;
     let handlers = {
       sendOffer: null,
       sendAnswer: null,
       sendCandidate: null,
       onRemoteStream: null,
       onStateChange: null
+    };
+    const connectionStateListeners = new Set();
+    const remoteStreamListeners = new Set();
+
+    const subscribeConnectionState = (handler) => {
+      if (typeof handler !== 'function') {
+        return () => {};
+      }
+      connectionStateListeners.add(handler);
+      return () => connectionStateListeners.delete(handler);
+    };
+
+    const subscribeRemoteStream = (handler) => {
+      if (typeof handler !== 'function') {
+        return () => {};
+      }
+      remoteStreamListeners.add(handler);
+      return () => remoteStreamListeners.delete(handler);
     };
     let localStream = null;
     let remoteStream = null;
@@ -53,7 +69,13 @@ export default class HomeCall_Web_Rtc_Peer {
           });
         });
         handlers.onRemoteStream?.(stream);
-        bus?.emit('rtc:track', { stream });
+        remoteStreamListeners.forEach((listener) => {
+          try {
+            listener(stream);
+          } catch (error) {
+            console.error('[Peer] Remote stream listener failed', error);
+          }
+        });
       });
       pc.addEventListener('icecandidate', (event) => {
         if (event.candidate && target && typeof handlers.sendCandidate === 'function') {
@@ -63,7 +85,13 @@ export default class HomeCall_Web_Rtc_Peer {
       pc.addEventListener('connectionstatechange', () => {
         const state = pc.connectionState;
         handlers.onStateChange?.(state);
-        bus?.emit('rtc:state', { state });
+        connectionStateListeners.forEach((listener) => {
+          try {
+            listener(state);
+          } catch (error) {
+            console.error('[Peer] Connection state listener failed', error);
+          }
+        });
       });
       connection = pc;
       return pc;
@@ -99,6 +127,10 @@ export default class HomeCall_Web_Rtc_Peer {
     this.configure = (newHandlers = {}) => {
       handlers = { ...handlers, ...newHandlers };
     };
+
+    this.onConnectionState = (handler) => subscribeConnectionState(handler);
+
+    this.onRemoteStream = (handler) => subscribeRemoteStream(handler);
 
     this.setLocalStream = (stream) => {
       localStream = stream ?? null;

@@ -28,9 +28,7 @@
 /** @typedef {import('./Rtc/Peer.mjs').default} HomeCall_Web_Rtc_Peer */
 
 /* ---------- Shared ---------- */
-/** @typedef {import('./Shared/EventBus.mjs').default} HomeCall_Web_Shared_EventBus */
 /** @typedef {import('./Shared/Logger.mjs').default} HomeCall_Web_Shared_Logger */
-/** @typedef {import('./Shared/Util.mjs').default} HomeCall_Web_Shared_Util */
 
 /* ---------- UI ---------- */
 /** @typedef {import('./Ui/Screen/Enter.mjs').default} HomeCall_Web_Ui_Screen_Enter */

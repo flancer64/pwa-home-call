@@ -84,7 +84,12 @@ const normalizeRtcState = (value) => {
 };
 
 export default class HomeCall_Web_Ui_Toolbar {
-  constructor({ HomeCall_Web_State_Media$: mediaState, HomeCall_Web_Shared_EventBus$: eventBus, HomeCall_Web_Env_Provider$: env } = {}) {
+  constructor({
+    HomeCall_Web_State_Media$: mediaState,
+    HomeCall_Web_Net_SignalClient$: signalClient,
+    HomeCall_Web_Rtc_Peer$: peer,
+    HomeCall_Web_Env_Provider$: env
+  } = {}) {
     if (!env) {
       throw new Error('Environment provider is required for the toolbar.');
     }
@@ -109,7 +114,8 @@ export default class HomeCall_Web_Ui_Toolbar {
     let outsideClickHandler = null;
     let initialized = false;
     const mediaStateRef = mediaState;
-    const eventBusRef = eventBus;
+    const signalClientRef = signalClient;
+    const peerRef = peer;
     ACTION_HANDLERS.set(this, null);
 
     const setIndicatorState = (type, stateName) => {
@@ -244,15 +250,16 @@ export default class HomeCall_Web_Ui_Toolbar {
     };
 
     const bindConnectionEvents = () => {
-      if (!eventBusRef) {
-        return;
+      if (signalClientRef && typeof signalClientRef.onStatus === 'function') {
+        signalClientRef.onStatus(({ state }) => {
+          setIndicatorState('ws', normalizeWsState(state));
+        });
       }
-      eventBusRef.on('net:status', ({ state }) => {
-        setIndicatorState('ws', normalizeWsState(state));
-      });
-      eventBusRef.on('rtc:state', ({ state }) => {
-        setIndicatorState('rtc', normalizeRtcState(state));
-      });
+      if (peerRef && typeof peerRef.onConnectionState === 'function') {
+        peerRef.onConnectionState((state) => {
+          setIndicatorState('rtc', normalizeRtcState(state));
+        });
+      }
     };
 
     const bindMediaState = () => {

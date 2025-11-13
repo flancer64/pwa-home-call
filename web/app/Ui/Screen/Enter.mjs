@@ -12,7 +12,6 @@ export default class HomeCall_Web_Ui_Screen_Enter {
  * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
  * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
  * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
- * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
  * @param {HomeCall_Web_Infra_Storage} deps.HomeCall_Web_Infra_Storage$
  * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
  * @param {Document} [deps.document]
@@ -23,7 +22,6 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     HomeCall_Web_Core_TemplateLoader$: templates,
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Net_SignalClient$: signal,
-    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Infra_Storage$: storage,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast
@@ -37,7 +35,6 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     this.document = env.document;
     this.window = env.window;
     this.navigator = env.navigator;
-    this.eventBus = eventBus;
     this.storage = storage;
     if (!toast) {
       throw new Error('Toast module is required for enter screen.');
@@ -99,14 +96,8 @@ export default class HomeCall_Web_Ui_Screen_Enter {
           : null;
         if (saveResult === true) {
           this.toast.success('Data saved');
-          if (this.eventBus && typeof this.eventBus.emit === 'function') {
-            this.eventBus.emit('storage:saved', { userName: user, roomName: room });
-          }
         } else if (saveResult === false) {
           this.toast.error('Failed to save data');
-          if (this.eventBus && typeof this.eventBus.emit === 'function') {
-            this.eventBus.emit('storage:failed', { userName: user, roomName: room });
-          }
         }
         this.toast.success('Подключение установлено.');
         onEnter?.({ user, room });

@@ -126,15 +126,6 @@ test('Enter screen handles events and propagates data', async () => {
     }
   });
 
-  const eventBusCalls = [];
-  container.register('HomeCall_Web_Shared_EventBus$', {
-    emit(event, payload) {
-      eventBusCalls.push({ event, payload });
-    },
-    on() {},
-    once() {},
-    off() {}
-  });
   const storageCalls = [];
   const storage = {
     getUserData() {
@@ -194,11 +185,6 @@ test('Enter screen handles events and propagates data', async () => {
     assert.ok(toastCalls.some((call) => call.type === 'success' && call.message === 'Подключение установлено.'));
     assert.equal(storageCalls.length, 1);
     assert.deepEqual(storageCalls[0], { userName: 'Alice', roomName: 'Room123' });
-    assert.equal(eventBusCalls.length, 1);
-    assert.deepEqual(eventBusCalls[0], {
-      event: 'storage:saved',
-      payload: { userName: 'Alice', roomName: 'Room123' }
-    });
   } finally {
     globalThis.FormData = originalFormData;
   }
@@ -315,15 +301,6 @@ test('Enter screen warns when storage save fails', async () => {
     }
   });
 
-  const eventBusCalls = [];
-  container.register('HomeCall_Web_Shared_EventBus$', {
-    emit(event, payload) {
-      eventBusCalls.push({ event, payload });
-    },
-    on() {},
-    once() {},
-    off() {}
-  });
   const storageCalls = [];
   const storage = {
     getUserData() {
@@ -383,11 +360,6 @@ test('Enter screen warns when storage save fails', async () => {
     assert.ok(toastCalls.some((call) => call.type === 'success' && call.message === 'Подключение установлено.'));
     assert.equal(storageCalls.length, 1);
     assert.deepEqual(storageCalls[0], { userName: 'Alice', roomName: 'Room123' });
-    assert.equal(eventBusCalls.length, 1);
-    assert.deepEqual(eventBusCalls[0], {
-      event: 'storage:failed',
-      payload: { userName: 'Alice', roomName: 'Room123' }
-    });
   } finally {
     globalThis.FormData = originalFormData;
   }

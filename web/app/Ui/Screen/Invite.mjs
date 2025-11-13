@@ -9,26 +9,20 @@
 export default class HomeCall_Web_Ui_Screen_Invite {
   /**
    * @param {Object} deps
-   * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
-   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
-   * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
+ * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
+ * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
    */
   constructor({
     HomeCall_Web_Core_TemplateLoader$: templates,
-    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Ui_Toast$: toast
   } = {}) {
     if (!templates) {
       throw new Error('Template loader is required for the invite screen.');
     }
-    if (!eventBus) {
-      throw new Error('Event bus is required for the invite screen.');
-    }
     if (!toast) {
       throw new Error('Toast module is required for the invite screen.');
     }
     this.templates = templates;
-    this.eventBus = eventBus;
     this.toast = toast;
   }
 
@@ -38,7 +32,7 @@ export default class HomeCall_Web_Ui_Screen_Invite {
    * @param {string} [params.initialGuestName]
    * @param {string} [params.initialRoomName]
    */
-  show({ container, initialGuestName, initialRoomName } = {}) {
+  show({ container, initialGuestName, initialRoomName, onConfirm, onCancel } = {}) {
     if (!container) {
       return;
     }
@@ -90,12 +84,16 @@ export default class HomeCall_Web_Ui_Screen_Invite {
         this.toast.error('Оба поля обязательны для заполнения.');
         return;
       }
-      this.eventBus.emit('invite:confirm', { guestName, roomName });
+      if (typeof onConfirm === 'function') {
+        onConfirm({ guestName, roomName });
+      }
     });
 
     cancelButton?.addEventListener('click', (event) => {
       event.preventDefault();
-      this.eventBus.emit('invite:cancel');
+      if (typeof onCancel === 'function') {
+        onCancel();
+      }
     });
   }
 }

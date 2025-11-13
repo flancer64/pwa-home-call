@@ -13,8 +13,7 @@ export default class HomeCall_Web_Core_App {
    * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
    * @param {HomeCall_Web_Rtc_Peer} deps.HomeCall_Web_Rtc_Peer$
    * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
-   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
-   * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
+ * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
    * @param {HomeCall_Web_Infra_Storage} deps.HomeCall_Web_Infra_Storage$
    * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
    * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
@@ -29,7 +28,6 @@ export default class HomeCall_Web_Core_App {
     HomeCall_Web_Net_SignalClient$: signal,
     HomeCall_Web_Rtc_Peer$: peer,
     HomeCall_Web_Core_UiController$: uiController,
-    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Shared_Logger$: logger,
     HomeCall_Web_Infra_Storage$: storage,
     HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
@@ -39,9 +37,6 @@ export default class HomeCall_Web_Core_App {
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
-    }
-    if (!eventBus) {
-      throw new Error('Shared event bus is required for HomeCall core.');
     }
     if (!storage) {
       throw new Error('Storage module is required for HomeCall core.');
@@ -61,7 +56,6 @@ export default class HomeCall_Web_Core_App {
     const document = env.document;
     const MediaStreamCtor = env.MediaStream;
     const log = logger ?? console;
-    const bus = eventBus;
     const ui = uiController;
     const toastNotifier = toast;
     const state = {
@@ -173,7 +167,9 @@ export default class HomeCall_Web_Core_App {
       ui.showInvite({
         container: state.root,
         initialGuestName: state.userName,
-        initialRoomName: state.roomCode
+        initialRoomName: state.roomCode,
+        onConfirm: handleInviteConfirm,
+        onCancel: handleInviteCancel
       });
     };
 
@@ -200,18 +196,6 @@ export default class HomeCall_Web_Core_App {
         initialUserName: entry.userName ?? '',
         initialRoomName: entry.roomName ?? ''
       };
-    };
-
-    const broadcastStorageLoaded = (entry) => {
-      if (!entry) {
-        return;
-      }
-      const payload = {
-        userName: entry.userName,
-        roomName: entry.roomName,
-        timestamp: entry.timestamp ?? null
-      };
-      bus.emit('storage:loaded', payload);
     };
 
     const showSavedDataNotification = (entry) => {
@@ -242,7 +226,6 @@ export default class HomeCall_Web_Core_App {
       if (warnNotifier) {
         warnNotifier('Saved data cleared');
       }
-      bus.emit('storage:cleared');
     };
 
     const clearApplicationCache = async () => {
@@ -291,7 +274,7 @@ export default class HomeCall_Web_Core_App {
           break;
         }
         case 'share-link':
-          bus.emit('ui:action:share-link');
+          handleShareLink();
           break;
         default:
           break;
@@ -517,7 +500,6 @@ export default class HomeCall_Web_Core_App {
     const transitionState = (nextState) => {
       state.currentState = nextState;
       updateBodyState();
-      bus.emit('core:state', { state: nextState, room: state.roomCode, user: state.userName });
       log.info(`[App] transition -> ${nextState}`);
     };
 
@@ -564,7 +546,6 @@ export default class HomeCall_Web_Core_App {
       media.setLocalStream(null);
       state.remoteStream = null;
       state.connectionMessage = message || '';
-      bus.emit('core:shutdown', { reason: state.connectionMessage });
       showEnd();
       media.prepare().catch((error) => {
         log.error('[App] Unable to prepare media after ending call', error);
@@ -600,7 +581,6 @@ export default class HomeCall_Web_Core_App {
       const storedData = storage.getUserData();
       const initialUserName = typeof overrideUser === 'string' ? overrideUser : storedData?.userName ?? '';
       const initialRoomName = typeof overrideRoom === 'string' ? overrideRoom : storedData?.roomName ?? '';
-      broadcastStorageLoaded(storedData);
       showSavedDataNotification(storedData);
       ui.showEnter({
         container: state.root,
@@ -739,16 +719,12 @@ export default class HomeCall_Web_Core_App {
       await templates.loadAll();
       await version.start();
       setupSignalClient();
-      bus.on('ui:action:share-link', handleShareLink);
-      bus.on('invite:confirm', handleInviteConfirm);
-      bus.on('invite:cancel', handleInviteCancel);
       const urlOverrides = readInviteParamsFromUrl();
       if (urlOverrides) {
         showEnter(urlOverrides);
       } else {
         showEnter();
       }
-      bus.emit('core:ready', { state: state.currentState });
     };
   }
 }

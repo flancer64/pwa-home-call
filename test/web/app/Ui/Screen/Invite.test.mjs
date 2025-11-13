@@ -76,7 +76,7 @@ const createInviteMocks = () => {
   return { container, form, guestInput, roomInput, confirmButton, cancelButton };
 };
 
-test('Invite screen toggles submit and emits confirm event', () => {
+test('Invite screen toggles submit and forwards confirm data', () => {
   const templates = { apply() {} };
   const toast = {
     errors: [],
@@ -84,20 +84,19 @@ test('Invite screen toggles submit and emits confirm event', () => {
       this.errors.push(message);
     }
   };
-  const eventBus = {
-    emitted: [],
-    emit(event, payload) {
-      this.emitted.push({ event, payload });
-    }
-  };
+  const confirmCalls = [];
   const { container, form, guestInput, roomInput, confirmButton } = createInviteMocks();
   const screen = new HomeCall_Web_Ui_Screen_Invite({
     HomeCall_Web_Core_TemplateLoader$: templates,
-    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Ui_Toast$: toast
   });
 
-  screen.show({ container });
+  screen.show({
+    container,
+    onConfirm: (payload) => {
+      confirmCalls.push(payload);
+    }
+  });
   assert.equal(confirmButton.disabled, true);
   form.triggerSubmit();
   assert.deepEqual(toast.errors, ['Оба поля обязательны для заполнения.']);
@@ -109,30 +108,27 @@ test('Invite screen toggles submit and emits confirm event', () => {
   assert.equal(confirmButton.disabled, false);
 
   form.triggerSubmit();
-  assert.equal(eventBus.emitted.length, 1);
-  assert.deepEqual(eventBus.emitted[0], {
-    event: 'invite:confirm',
-    payload: { guestName: 'Guest', roomName: 'Room123' }
-  });
+  assert.equal(confirmButton.disabled, false);
+  assert.equal(confirmCalls.length, 1);
+  assert.deepEqual(confirmCalls[0], { guestName: 'Guest', roomName: 'Room123' });
 });
 
-test('Invite screen emits cancel event', () => {
+test('Invite screen calls cancel handler', () => {
   const templates = { apply() {} };
   const toast = { error() {} };
-  const eventBus = {
-    emitted: [],
-    emit(event) {
-      this.emitted.push(event);
-    }
-  };
+  let cancelled = false;
   const { container, cancelButton } = createInviteMocks();
   const screen = new HomeCall_Web_Ui_Screen_Invite({
     HomeCall_Web_Core_TemplateLoader$: templates,
-    HomeCall_Web_Shared_EventBus$: eventBus,
     HomeCall_Web_Ui_Toast$: toast
   });
 
-  screen.show({ container });
+  screen.show({
+    container,
+    onCancel: () => {
+      cancelled = true;
+    }
+  });
   cancelButton.trigger('click');
-  assert.ok(eventBus.emitted.includes('invite:cancel'));
+  assert.ok(cancelled);
 });

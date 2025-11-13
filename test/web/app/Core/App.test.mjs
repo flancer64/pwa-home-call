@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createWebContainer } from '../../helper.mjs';
-import HomeCall_Web_Shared_EventBus from '../../../../web/app/Shared/EventBus.mjs';
 
 test('App wires screens and services through DI', async () => {
   const OriginalMediaStream = globalThis.MediaStream;
@@ -15,7 +14,6 @@ test('App wires screens and services through DI', async () => {
   }
   globalThis.MediaStream = FakeMediaStream;
   const container = await createWebContainer();
-  const eventBus = new HomeCall_Web_Shared_EventBus();
   const calls = {
     loadAll: 0,
     registerSW: 0,
@@ -275,7 +273,6 @@ test('App wires screens and services through DI', async () => {
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
   container.register('HomeCall_Web_Ui_Screen_Invite$', inviteScreen);
   container.register('HomeCall_Web_Ui_Toolbar$', toolbar);
-  container.register('HomeCall_Web_Shared_EventBus$', eventBus);
   container.register('HomeCall_Web_Ui_Toast$', toast);
   const storageEvents = [];
   const storage = {
@@ -323,7 +320,7 @@ test('App wires screens and services through DI', async () => {
     await toolbarHandlers[0]('share-link');
     assert.equal(inviteScreen.lastParams?.initialGuestName, 'alice');
     assert.equal(inviteScreen.lastParams?.initialRoomName, 'room1');
-    eventBus.emit('invite:confirm', { guestName: 'guest', roomName: 'room1' });
+    inviteScreen.lastParams?.onConfirm?.({ guestName: 'guest', roomName: 'room1' });
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(clipboardWrites[0], 'https://domozvon.app/?room=room1&name=guest');
     assert.ok(toastCalls.some((call) => call.type === 'info' && call.message === 'Ссылка скопирована в буфер обмена'));

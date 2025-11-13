@@ -6,7 +6,6 @@
 export default class HomeCall_Web_Net_SignalClient {
   constructor({
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_EventBus$: eventBus
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
@@ -15,7 +14,6 @@ export default class HomeCall_Web_Net_SignalClient {
     const windowRef = env.window;
     const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
     const normalizedUrl = normalizeUrl(buildDefaultUrl(windowRef));
-    const bus = eventBus;
     let socket = null;
     let room = null;
     let user = null;
@@ -33,10 +31,32 @@ export default class HomeCall_Web_Net_SignalClient {
           console.error('[SignalClient] Handler failed', error);
         }
       });
-      if (bus) {
-        const eventName = type === 'status' ? 'net:status' : `net:${type}`;
-        bus.emit(eventName, payload);
+    };
+
+    const ensureHandlerSet = (type) => {
+      if (!handlers.has(type)) {
+        handlers.set(type, new Set());
       }
+      return handlers.get(type);
+    };
+
+    const addHandler = (type, handler) => {
+      if (!type || typeof handler !== 'function') {
+        return;
+      }
+      ensureHandlerSet(type).add(handler);
+    };
+
+    const removeHandler = (type, handler) => {
+      if (!type || typeof handler !== 'function') {
+        return;
+      }
+      handlers.get(type)?.delete(handler);
+    };
+
+    const subscribe = (type, handler) => {
+      addHandler(type, handler);
+      return () => removeHandler(type, handler);
     };
 
     const flushPending = () => {
@@ -76,16 +96,15 @@ export default class HomeCall_Web_Net_SignalClient {
       }
     };
 
-    this.on = (type, handler) => {
-      if (!handlers.has(type)) {
-        handlers.set(type, new Set());
-      }
-      handlers.get(type).add(handler);
-    };
+    this.on = (type, handler) => addHandler(type, handler);
 
-    this.off = (type, handler) => {
-      handlers.get(type)?.delete(handler);
-    };
+    this.off = (type, handler) => removeHandler(type, handler);
+
+    this.onStatus = (handler) => subscribe('status', handler);
+    this.onOnline = (handler) => subscribe('online', handler);
+    this.onOffer = (handler) => subscribe('offer', handler);
+    this.onAnswer = (handler) => subscribe('answer', handler);
+    this.onCandidate = (handler) => subscribe('candidate', handler);
 
     this.connect = async () => {
       if (socket && (socket.readyState === WebSocketCtor.OPEN || socket.readyState === WebSocketCtor.CONNECTING)) {
