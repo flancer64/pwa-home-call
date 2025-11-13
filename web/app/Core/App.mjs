@@ -4,23 +4,23 @@
  */
 
 export default class HomeCall_Web_Core_App {
- /**
-  * @param {Object} deps
-  * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
-  * @param {HomeCall_Web_Core_ServiceWorkerManager} deps.HomeCall_Web_Core_ServiceWorkerManager$
-  * @param {HomeCall_Web_Core_VersionWatcher} deps.HomeCall_Web_Core_VersionWatcher$
-  * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
-  * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
-  * @param {HomeCall_Web_Rtc_Peer} deps.HomeCall_Web_Rtc_Peer$
-  * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
-  * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
-  * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
-  * @param {HomeCall_Web_Infra_Storage} deps.HomeCall_Web_Infra_Storage$
-  * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
-  * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
- * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
- * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
- */
+  /**
+   * @param {Object} deps
+   * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
+   * @param {HomeCall_Web_Core_ServiceWorkerManager} deps.HomeCall_Web_Core_ServiceWorkerManager$
+   * @param {HomeCall_Web_Core_VersionWatcher} deps.HomeCall_Web_Core_VersionWatcher$
+   * @param {HomeCall_Web_Media_Manager} deps.HomeCall_Web_Media_Manager$
+   * @param {HomeCall_Web_Net_SignalClient} deps.HomeCall_Web_Net_SignalClient$
+   * @param {HomeCall_Web_Rtc_Peer} deps.HomeCall_Web_Rtc_Peer$
+   * @param {HomeCall_Web_Core_UiController} deps.HomeCall_Web_Core_UiController$
+   * @param {HomeCall_Web_Shared_EventBus} deps.HomeCall_Web_Shared_EventBus$
+   * @param {HomeCall_Web_Shared_Logger} deps.HomeCall_Web_Shared_Logger$
+   * @param {HomeCall_Web_Infra_Storage} deps.HomeCall_Web_Infra_Storage$
+   * @param {HomeCall_Web_Pwa_CacheCleaner} deps.HomeCall_Web_Pwa_CacheCleaner$
+   * @param {HomeCall_Web_Ui_Toolbar} deps.HomeCall_Web_Ui_Toolbar$
+  * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
+  * @param {HomeCall_Web_Ui_Toast} deps.HomeCall_Web_Ui_Toast$
+  */
   constructor({
     HomeCall_Web_Core_TemplateLoader$: templates,
     HomeCall_Web_Core_ServiceWorkerManager$: sw,
@@ -77,7 +77,10 @@ export default class HomeCall_Web_Core_App {
     };
     let savedDataNotified = false;
 
-    const INVITE_URL_BASE = 'https://domozvon.app/';
+    const INVITE_URL_BASE =
+      (env.window && env.window.location && env.window.location.origin)
+        ? `${env.window.location.origin}/`
+        : 'https://domozvon.app/';
     let inviteSession = null;
 
     const updateToolbarContext = () => {
