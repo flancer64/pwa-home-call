@@ -1,39 +1,54 @@
 # Контур Rtc и WebRTC
 
-Этот документ описывает контур **Rtc**, являющийся частью браузерного приложения ДомоЗвон, определённого в `app.md`.
+Этот документ описывает контур **Rtc**, управляющий `RTCPeerConnection` и передачей аудио/видео между участниками.
 
 ## Назначение
 
-Rtc организует создание и сопровождение `RTCPeerConnection`, обменивается SDP/ICE через Net, получает медиапотоки от Media и сообщает о состоянии каналов другим контурам. Контур описывает жизненный цикл соединений, реакции на статус сигналинга и закрытие потоков.
+Rtc создаёт и сопровождает WebRTC-соединение, получая `localStream` от Media, `signal` от Net и сообщая `remoteStream`/состояние обратно через коллбэки. Все взаимодействия происходят через DI и прямые вызовы (`onIceCandidate`, `onConnectionStateChange`), без событийной шины.
+
+---
 
 ## Границы и интерфейсы
 
-- **Входные сигналы**: `net:signal` (получение SDP/ICE), `media:stream` (локальные дорожки), `core:state` (инициация/завершение сессии), `shared:shutdown`.
-- **Выходные события**: `rtc:connected`, `rtc:disconnected`, `rtc:error`, `rtc:track` через `Shared.EventBus`; вызовы коллбэков `onIceCandidate`, `onNegotiationNeeded` для Net; `media:sync` при необходимости переключить устройства.
-- **Протокол обмена**: Rtc делегирует передачу сигналов `net:signal` событиям Net, создаёт `offer/answer` и регистрирует полученные кандидаты через объекты `HomeCall_Web_Rtc_Peer$`.
+- **Входные данные**:
+  - `localStream` от Media;
+  - `signal` (offer/answer/candidate) от Net через `onSignal`;
+  - команды `startSession(room)`, `endSession()` от Core.
+- **Выходные коллбэки**:
+  - `onRemoteStream(remoteStream)` для UI;
+  - `onConnectionState(state)` для Core (сообщает `connecting`, `connected`, `disconnected` — далее `Core` решает, показывать `toast` или переключаться на `end`).
+  - `onIceCandidate(candidate)` для Net;
+
+Rtc не публикует `rtc:*` события; вся логика встроена в методы и callback-объекты, переданные через контейнер.
+
+---
 
 ## Типичные DI-зависимости
 
-- `HomeCall_Web_Rtc_Peer$`
 - `HomeCall_Web_Rtc_PeerFactory$`
-- `HomeCall_Web_Shared_EventBus$`
-- `HomeCall_Web_Shared_Logger$`
 - `HomeCall_Web_Media_DeviceManager$`
+- `HomeCall_Web_Shared_Logger$`
+- `HomeCall_Web_Shared_Util$`
 - `HomeCall_Web_Net_EventTranslator$`
+
+---
 
 ## Контейнер и взаимодействия
 
-Rtc разворачивается через `@teqfw/di`, и все объекты получают контексты через контейнер. Контур не импортирует Media или Net напрямую: `Media` предоставляет `media:stream`, `Net` — `net:signal`, а Rtc отвечает собственными коллбэками, зарегистрированными через DI-обёртки. Позднее связывание позволяет тестам подставлять фиктивные RTCPeerConnection через `HomeCall_Web_Rtc_PeerFactory$` и проверять реакции на `net:signal`.
+Rtc разворачивается через `@teqfw/di`. `Core` регистрирует коллбэки `onRemoteStream`, `onConnectionState`, `onIceCandidate`, а `Net` получает `onIceCandidate` и `sendSignal`. При поступлении сигналов Rtc вызывает `onConnectionState` напрямую, и Core обновляет `Ui` через `toast`.
+
+---
 
 ## Связи
 
-- `ctx/rules/web/app.md` — настройка WebRTC в сценарии `call`.
-- `ctx/rules/web/contours/media.md` — источник медиапотоков (`media:stream`, `media:state`).
-- `ctx/rules/web/contours/net.md` — сигналинг и события `net:signal`.
-- `ctx/rules/web/contours/core.md` — управление стартом/стопом вызовов.
-- `ctx/rules/web/contours/shared.md` — EventBus и логгер для уведомлений о состоянии соединений.
+- `ctx/rules/web/app.md` — сценарий `call` и жизненный цикл соединения.
+- `ctx/rules/web/contours/media.md` — источник `localStream`.
+- `ctx/rules/web/contours/net.md` — выходящие и входящие сигналы.
+- `ctx/rules/web/contours/core.md` — Core управляет началом/концом сессии.
+- `ctx/rules/web/contours/shared.md` — логгер фиксирует состояния соединения.
+
+---
 
 ## Итог
 
-Контур Rtc поддерживает соединения и треки, описанные в сценарии `call` из `app.md`, без привязки к конкретной реализации.  
-См. также `app.md` — обзорный документ браузерного приложения ДомоЗвон.
+Контур Rtc обслуживает WebRTC без EventBus: все сигналы проходят через DI-коллбэки, а Core решает, надо ли уведомлять пользователя `toast`, переключаться на `end` или сохранять имя.

@@ -26,9 +26,8 @@ web/
 ├── rtc/                  # Модули WebRTC-подключений
 │   └── peer.js
 ├── ui/                   # Компоненты интерфейса (фрагменты экранов)
-│   ├── lobby.html
+│   ├── home.html
 │   ├── call.html
-│   ├── enter.html
 │   └── end.html
 ├── assets/               # Иконки, стили, статические ресурсы
 │   ├── style.css

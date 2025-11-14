@@ -1,40 +1,55 @@
 # Контур Media и управление устройствами
 
-Этот документ описывает контур **Media**, являющийся частью браузерного приложения ДомоЗвон, определённого в `app.md`.
+Этот документ описывает контур **Media**, ответственный за доступ к камерам/микрофонам и передачу потоков другим контурам без событийной шины.
 
 ## Назначение
 
-Media отвечает за доступ к камерам, микрофонам, микширование потоков и передачу состояния устройств остальным контурам. Контур фиксирует, какие устройства доступны, когда их включать и как сообщать об ошибках, не раскрывая бизнес-логику.
+Media предоставляет API для инициализации устройств, переключения потоков и сообщениях об ошибках через напрямую переданные коллбэки (`onDevicesReady`, `onMediaError`, `onStream`) из контейнера DI.
+
+---
 
 ## Границы и интерфейсы
 
-- **Входные сигналы**: `env:ready` (`Env` подтверждает список разрешённых устройств), `core:state` (Core включает/выключает медиапотоки), `ui:permission-request` (Ui просит повторно запросить разрешения).
-- **Выходные события**: `media:state`, `media:ready`, `media:error`, `media:devicechange` через `Shared.EventBus`; `media:stream` (коллбэки) для Rtc; сигналы `media:mute`/`media:unmute` для Ui/Net.
-- **Коллбэки**: внутренние обработчики `onDeviceGranted`, `onDeviceRevoked` для синхронного контролирования устройств, без вызова EventBus.
+- **Входные вызовы**:
+  - `Core.startMedia()` / `Core.stopMedia()` — запуск и остановка потоков;
+  - `Env` — проверка доступности устройств и разрешений;
+  - `Ui` — команды-подтверждения (например, `confirmCameraAccess`).
+- **Выход**:
+  - `onStream(localStream)` передаёт `localStream` в `Rtc` и `Ui`;
+  - `onDevicesReady()` уведомляет `Core`, что можно обновить состояние;
+  - `onMediaError(error)` используется `Core`/`Ui` для показа `toast.error(...)`.
+
+Media не публикует `media:*` события — вместо этого он вызывается через методы, полученные из DI.
+
+---
 
 ## Типичные DI-зависимости
 
 - `HomeCall_Web_Media_DeviceManager$`
-- `HomeCall_Web_Media_SignalRouter$`
 - `HomeCall_Web_Media_Constraints$`
-- `HomeCall_Web_Rtc_PeerFactory$` (передача потоков)
+- `HomeCall_Web_Media_StreamFactory$`
+- `HomeCall_Web_Rtc_PeerFactory$`
 - `HomeCall_Web_Env_Provider$`
-- `HomeCall_Web_Shared_EventBus$`
 - `HomeCall_Web_Shared_Logger$`
+- `HomeCall_Web_Shared_Util$`
+
+---
 
 ## Контейнер и взаимодействия
 
-Media разворачивается через `@teqfw/di` и не инициализирует напрямую UI, Net или Core. Контейнер обеспечивает позднее связывание: браузерная сборка получает реальный `DeviceManager`, тесты подставляют `MockDeviceManager`, агенты подменяют `Env.Provider`. EventBus служит проводником сообщений `media:*`, а весь поток состояний контролируется через зарегистрированные в контейнере коллбэки `HomeCall_Web_Media_*`.
+Media разворачивается через `@teqfw/di`. Любые коллбэки (`onStream`, `onMediaError`) передаются в момент регистрации (`Media.registerCallbacks(...)`) и затем вызываются напрямую. Тесты подставляют `MockDeviceManager`, а браузерные сборки — реальные устройства. Нет EventBus — только DI и вызовы коллбэков.
+
+---
 
 ## Связи
 
-- `ctx/rules/web/app.md` — моменты запроса и освобождения устройств в сценариях приложения.
-- `ctx/rules/web/contours/env.md` — разрешения и специфика платформы.
-- `ctx/rules/web/contours/rtc.md` — передача треков и управление `RTCPeerConnection`.
-- `ctx/rules/web/contours/ui.md` — виджет уведомлений о состоянии устройств.
-- `ctx/rules/web/contours/shared.md` — EventBus и логгер.
+- `ctx/rules/web/app.md` — запуск и остановка устройств во время `home`, `call`, `end`.
+- `ctx/rules/web/contours/rtc.md` — `localStream` передаётся в RTCPeerConnection.
+- `ctx/rules/web/contours/core.md` — Core реагирует на `onDevicesReady`/`onMediaError` и вызывает `toast`.
+- `ctx/rules/web/contours/shared.md` — логгер фиксирует ошибки и события устройств.
+
+---
 
 ## Итог
 
-Контур Media обеспечивает управление устройствами в рамках сценариев `app.md`, информируя остальные контуры об изменениях.  
-См. также `app.md` — обзорный документ браузерного приложения ДомоЗвон.
+Контур Media управляет устройствами через DI-коллбэки, не прибегая к глобальной шине событий. Любая ошибка сразу передаётся в `Core`/`Ui` для отображения через `toast`, а `localStream` отдаются `Rtc` напрямую.

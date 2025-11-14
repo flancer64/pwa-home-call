@@ -1,41 +1,50 @@
 # Контур Net и сигналинг
 
-Этот документ описывает контур **Net**, являющийся частью браузерного приложения ДомоЗвон, определённого в `app.md`.
+Этот документ описывает контур **Net**, управляющий WebSocket-соединением сигналинга ДомоЗвон.
 
 ## Назначение
 
-Net обеспечивает событийный обмен с сервером сигналинга и распространяет состояния сети внутри фронтенда: он переводит WebSocket-сообщения в `Shared.EventBus` события и наоборот, сохраняя изоляцию от бизнес-логики и не работая напрямую с UI или Media.
+Net отвечает за надёжную передачу SDP и ICE между участниками. Он не использует события `net:*` на шине, а работает через методы `sendSignal(signal)` и коллбэки `onSignal(payload)`, которые передаются другим контурам через DI.
+
+---
 
 ## Границы и интерфейсы
 
-- **WebSocket-протокол**: единое соединение `wss://<host>/signal` через `HomeCall_Web_Net_SignalClient$`; сообщения (JSON) имеют типы: `offer`, `answer`, `candidate`, `online`, `join`, `leave`, `error`.
-- **Входные события**: `shared:ready`, `core:state` (для изменения комнаты), `media:error` (для переподключения), `env:change` (для обновления URL).
-- **Выходные события**: `net:signal` (SDP/ICE), `net:online` (список пользователей), `net:error`, `net:disconnect`, `net:ready` через `Shared.EventBus`; внутренние коллбэки `onmessage`, `onopen`, `onclose`.
-- **Событийная маршрутизация**: все `net:*` события публикуются на `Shared.EventBus`, и Core, Ui, Rtc подписываются без прямой связи с клиентом WebSocket.
+- **WebSocket-протокол**: одно устойчивое соединение `wss://<host>/signal` через `HomeCall_Web_Net_SignalClient$`; сообщения содержат типы: `offer`, `answer`, `candidate`, `error`.
+- **Входные события**: `Core` передаёт `room` и команды `sendOffer`/`sendAnswer`/`sendCandidate`; `Env` предоставляет URL `wss://`.
+- **Выходные коллбэки**: `onSignal(signal)` передаётся `Rtc`, чтобы применить входящие `offer/answer/candidate`.
+- **Переходы**: при отключении `Net` вызывает `onDisconnect()` у Core и запускает переподключение без промежуточных списков пользователей.
+
+Нет пересылки `online`, `join`, `leave` — сигналинг ориентирован на один UUID-комнату и двусторонний обмен. Все сообщения логируются через `HomeCall_Web_Shared_Logger$`.
+
+---
 
 ## Типичные DI-зависимости
 
 - `HomeCall_Web_Net_SignalClient$`
 - `HomeCall_Web_Net_EventTranslator$`
-- `HomeCall_Web_Net_NetworkState$`
-- `HomeCall_Web_Shared_EventBus$`
 - `HomeCall_Web_Shared_Logger$`
 - `HomeCall_Web_Env_Provider$`
+- `HomeCall_Web_Shared_Util$`
+
+---
 
 ## Контейнер и взаимодействия
 
-Net разворачивается через `@teqfw/di` и получает `Shared.EventBus`, `Env`, `Logger` из контейнера. Он публикует события `net:*` исключительно через зарегистрированные сервисы и не импортирует UI или Core. Позднее связывание даёт возможность тестам подставлять `MockSignalClient` и подменять URL, а Codex-агенты формируют окружение, регистрируя нужные зависимости в `@teqfw/di`.
+Net разворачивается через `@teqfw/di`. Он получает callback `onSignal` при регистрации и вызывает его при поступлении данных через WebSocket. Публикаций в `Shared.EventBus` нет — `Core` и `Rtc` обмениваются информацией напрямую через переданные методы.
+
+---
 
 ## Связи
 
-- `ctx/rules/web/app.md` — сигналы сети на этапе `call` и переходы между состояниями.
-- `ctx/rules/web/contours/core.md` — сигналы о готовности и команды на смену комнаты.
-- `ctx/rules/web/contours/rtc.md` — `net:signal` для обмена SDP/ICE.
-- `ctx/rules/web/contours/ui.md` — `net:online` для обновления списка собеседников.
-- `ctx/rules/web/contours/shared.md` — EventBus и логгер.
-- `ctx/rules/web/infra/ws.md` — подробное описание JSON-сообщений.
+- `ctx/rules/web/app.md` — `call`-состояние инициирует подключение и отключение.
+- `ctx/rules/web/contours/core.md` — `Net` вызывает `Core.onDisconnect()` и принимает `room` для `sendSignal`.
+- `ctx/rules/web/contours/rtc.md` — передаёт входящие `offer/answer/candidate`.
+- `ctx/rules/web/infra/ws.md` — описание JSON-сообщений.
+- `ctx/rules/web/contours/shared.md` — логгер и утилиты для обработки сообщений.
+
+---
 
 ## Итог
 
-Контур Net поддерживает сетевую часть сценариев `app.md`, переводя WebSocket-сообщения в события приложения.  
-См. также `app.md` — обзорный документ браузерного приложения ДомоЗвон.
+Контур Net обеспечивает прямой обмен сигналами без списков пользователей и без EventBus — всё строится на DI и обратных вызовах, что делает архитектуру Tequila Framework последовательной и предсказуемой.
