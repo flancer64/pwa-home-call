@@ -15,7 +15,7 @@ All labels, helper lines, and toast messages on these screens are Russian phrase
 ### Action zone
 - Hosts the interactive controls (`home` form, `invite` link actions, `call` controls, `end` return) in a vertically stacked column with 1.25–1.5rem gaps.
 - Buttons and inputs use the shared `ui-large` utility to guarantee a 56px+ tap target, a consistent border radius, and a strong accent color.
-- Primary actions (**«Сохранить и позвонить»**, **«Позвонить»**, **«Скопировать ссылку»**, **«Начать звонок»**, **«Завершить звонок»**) use the accent background; secondary actions (**«Изменить имя»**, **«Сбросить настройки»**, **«Повторить»**) stay light with a border, keeping the Cyrillic labels bold and legible.
+- Primary actions (**«Сохранить и позвонить»**, **«Позвонить»**, **«Скопировать ссылку»**, **«Начать звонок»**, **«Завершить звонок»**) use the accent background; secondary actions (**«Изменить имя»**, **«Очистить кэш»**, **«Повторить»**) stay light with a border, keeping the Cyrillic labels bold and legible.
 
 ### Hint zone
 - Provides helper text or reassurance: “Мы запоминаем имя и храним его локально”, “Нажмите на ссылку, чтобы выделить её и вставить в мессенджер”, “Нажмите снова, чтобы начать новый звонок”.

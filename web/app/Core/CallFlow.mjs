@@ -15,6 +15,7 @@ export default class HomeCall_Web_Core_CallFlow {
     HomeCall_Web_Net_SignalClient$: signal,
     HomeCall_Web_Infra_Storage$: storage,
     HomeCall_Web_Env_Provider$: env,
+    HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
     HomeCall_Web_Ui_Toast$: toast,
     HomeCall_Web_Shared_Logger$: logger
   } = {}) {
@@ -44,6 +45,9 @@ export default class HomeCall_Web_Core_CallFlow {
     }
     if (!env) {
       throw new Error('Environment provider is required for the call flow.');
+    }
+    if (!cacheCleaner) {
+      throw new Error('PWA cache cleaner is required for the call flow.');
     }
     if (!toast) {
       throw new Error('Toast module is required for the call flow.');
@@ -99,12 +103,10 @@ export default class HomeCall_Web_Core_CallFlow {
       showHome();
     };
 
-    const handleResetSettings = () => {
-      const resetResult = storage.resetMyData?.();
-      if (resetResult) {
-        toastNotifier.success('Настройки сброшены.');
-      } else {
-        toastNotifier.error('Не удалось сбросить настройки.');
+    const handleClearCache = async () => {
+      const storageCleared = storage.resetMyData?.();
+      if (!storageCleared) {
+        log.warn?.('[CallFlow] Unable to reset local storage before cache clear.');
       }
       context.myName = null;
       context.pendingRoom = null;
@@ -113,6 +115,13 @@ export default class HomeCall_Web_Core_CallFlow {
       context.connectionMessage = '';
       context.isCallInProgress = false;
       showHome();
+      toastNotifier.info('Очистка кэша и локального хранилища...');
+      try {
+        await cacheCleaner.clear();
+      } catch (error) {
+        log.error?.('[CallFlow] Cache cleaner failed', error);
+        toastNotifier.error('Не удалось очистить кэш. Обновите страницу вручную.');
+      }
     };
 
     const handleReturnHome = () => {
@@ -398,7 +407,7 @@ export default class HomeCall_Web_Core_CallFlow {
         incomingRoom: incomingRoomHint,
         onStartCall: handleStartCall,
         onChangeName: handleChangeName,
-        onResetSettings: handleResetSettings
+        onClearCache: handleClearCache
       });
     };
 
@@ -427,7 +436,8 @@ export default class HomeCall_Web_Core_CallFlow {
     this.renderHome = () => showHome();
     this.handleStartCall = handleStartCall;
     this.handleChangeName = handleChangeName;
-    this.handleResetSettings = handleResetSettings;
+    this.handleClearCache = handleClearCache;
+    this.handleResetSettings = handleClearCache;
     this.handleReturnHome = handleReturnHome;
     this.handleOffer = handleOffer;
     this.handleAnswer = handleAnswer;

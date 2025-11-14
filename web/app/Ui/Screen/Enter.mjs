@@ -10,7 +10,7 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     this.templates = templates;
   }
 
-  show({ container, savedName, incomingRoom, onStartCall, onChangeName, onResetSettings } = {}) {
+  show({ container, savedName, incomingRoom, onStartCall, onChangeName, onClearCache } = {}) {
     if (!container) {
       return;
     }
@@ -23,13 +23,12 @@ export default class HomeCall_Web_Ui_Screen_Enter {
     const savedBanner = container.querySelector('#saved-name-banner');
     const savedNameValue = container.querySelector('#saved-name-value');
     const changeButton = container.querySelector('#change-name');
-    const resetButton = container.querySelector('#reset-settings');
+    const clearCacheButton = container.querySelector('#clear-cache');
     const incomingMessage = container.querySelector('#incoming-room-message');
 
     const normalizedName = typeof savedName === 'string' && savedName.trim().length
       ? savedName.trim()
       : '';
-
     if (incomingMessage) {
       if (incomingRoom) {
         incomingMessage.textContent = `Вас пригласили в комнату ${incomingRoom}. Введите имя, чтобы присоединиться.`;
@@ -82,9 +81,9 @@ export default class HomeCall_Web_Ui_Screen_Enter {
       onChangeName?.();
     });
 
-    resetButton?.addEventListener('click', (event) => {
+    clearCacheButton?.addEventListener('click', (event) => {
       event.preventDefault();
-      onResetSettings?.();
+      onClearCache?.();
     });
   }
 }
