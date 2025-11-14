@@ -1,7 +1,7 @@
 {
   "name": "ДомоЗвон",
   "short_name": "ДомоЗвон",
-  "description": "One-to-one video calls with ДомоЗвон.",
+  "description": "Простые видеозвонки ДомоЗвон.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f5f5f5",

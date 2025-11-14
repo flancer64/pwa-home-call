@@ -1,19 +1,14 @@
 # End Screen
 
-**Путь:** ./ctx/rules/web/ui/screens/end.md
+**Path:** ./ctx/rules/web/ui/screens/end.md
 
-## Назначение
+## Purpose
+`end` delivers one unmistakable message: the call finished, and the user can return to the main screen to dial again.
 
-Экран `end` кратко сообщает о завершении вызова (успешно или из-за ошибки) и предлагает одним нажатием вернуться на главный экран. Он не содержит дополнительных действий и остаётся в рамках минималистичного UX.
+## Layout
+- Follows the three-zone pattern: a header with «Звонок завершён», an action zone with the **«Вернуться на главную»** button sized with the `ui-large` utility, and a hint explaining (on Russian text) that tapping again will start a fresh session.
+- There are no secondary controls or status icons; post-call diagnostics appear as `toast` messages before the screen appears.
 
-## Поведение
-
-1. `HomeCall_Web_Core_App.endCall` очищает `state.lastCallTarget`, останавливает локальные потоки, завершает Peer и передаёт текст `connectionMessage` в экран `end`.
-2. В центре экрана отображается нейтральный текст (`«Звонок завершён»`, `«Связь потеряна»`) и кнопка «Главный экран»; все подробные статусы и ошибки уже были показаны через `toast`, а `end` остаётся чистым и минимальным.
-3. При нажатии на кнопку выполняется callback `onReturn`, который переводит систему в состояние `home`: имя пользователя сохраняется, команда `share-link` сбрасывает ссылку, а пользователь может снова нажать «Позвонить».
-4. Если экран открывается из-за сбоя сети или медиа, соответствующее сообщение сопровождается `toast` из `notifications.md`, чтобы пояснить причину.
-
-## Связи
-
-- `screens.md` — путь `call → end → home`.
-- `notifications.md` — сообщения об ошибках соединения и медиатеках.
+## Behavior
+1. `HomeCall_Web_Core_App.endCall` stops all local streams, terminates the peer connection, stores the final message (`state.connectionMessage`), and renders `end`.
+2. The `onReturn` callback clears the active room, resets the view to `home`, and preserves the stored name so the next call starts with the saved value.

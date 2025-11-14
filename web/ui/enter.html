@@ -1,18 +1,30 @@
-<section data-screen="enter" class="screen-card screen-enter">
-  <div class="screen-copy">
-    <h1>ДомоЗвон</h1>
-    <p>Введите имя и код комнаты.</p>
+<section data-screen="home" class="screen-card screen-home">
+  <div class="screen-zone screen-zone--header">
+    <p class="screen-kicker">ДомоЗвон</p>
+    <h1>Один тап — и звонок готов.</h1>
+    <p class="screen-subtext">Мы запоминаем имя и сохраняем процесс простым каждый раз.</p>
+    <p id="incoming-room-message" class="screen-subtext screen-subtext--strong" hidden></p>
   </div>
-  <div id="media-status" class="alert" hidden></div>
-  <form id="enter-form">
-    <label>
-      Отображаемое имя
-      <input type="text" name="user" autocomplete="name" required minlength="2" />
-    </label>
-    <label>
-      Код комнаты
-      <input type="text" name="room" autocomplete="one-time-code" required minlength="3" />
-    </label>
-    <button class="primary cta-button" type="submit">Войти</button>
-  </form>
+  <div class="screen-zone screen-zone--action home-actions-grid">
+    <form id="home-form" class="home-form" autocomplete="off">
+      <label class="home-label screen-label">
+        Ваше имя
+        <input class="ui-large" type="text" name="user" autocomplete="name" minlength="2" required />
+      </label>
+      <button class="primary ui-large" type="submit">Сохранить и позвонить</button>
+    </form>
+    <div id="saved-name-banner" class="saved-name-banner" hidden>
+      <p class="saved-name-text">Используется имя: <strong id="saved-name-value"></strong></p>
+      <div class="saved-name-actions">
+        <button id="change-name" class="secondary ui-large" type="button">Изменить имя</button>
+        <button id="reset-settings" class="secondary ui-large" type="button">Сбросить настройки</button>
+      </div>
+    </div>
+    <div id="home-call-container" class="home-call" hidden>
+      <button id="home-call" class="primary ui-large" type="button">Позвонить</button>
+    </div>
+  </div>
+  <div class="screen-zone screen-zone--hint">
+    <p class="screen-note">Настройки хранятся локально. Сбросьте в любой момент, чтобы ввести имя заново.</p>
+  </div>
 </section>

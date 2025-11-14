@@ -4,11 +4,10 @@
  */
 
 const TEMPLATE_PATHS = new Map([
-  ['enter', 'ui/enter.html'],
-  ['lobby', 'ui/lobby.html'],
+  ['home', 'ui/enter.html'],
+  ['invite', 'ui/invite.html'],
   ['call', 'ui/call.html'],
-  ['end', 'ui/end.html'],
-  ['invite', 'ui/invite.html']
+  ['end', 'ui/end.html']
 ]);
 
 export default class HomeCall_Web_Core_TemplateLoader {

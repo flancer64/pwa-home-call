@@ -27,6 +27,7 @@ web/
 │   └── peer.js
 ├── ui/                   # Компоненты интерфейса (фрагменты экранов)
 │   ├── home.html
+│   ├── invite.html
 │   ├── call.html
 │   └── end.html
 ├── assets/               # Иконки, стили, статические ресурсы
@@ -34,6 +35,8 @@ web/
 │   └── icons/
 └── version.json          # Текущая версия сборки (для обновления PWA)
 ```
+
+> Note: `ui/lobby.html` stays in the repository for legacy reasons, but the active UI flow now goes through `home`, `invite`, `call`, and `end`; the lobby screen is excluded from the service worker cache list.
 
 ---
 

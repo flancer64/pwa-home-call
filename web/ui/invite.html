@@ -1,20 +1,24 @@
 <section data-screen="invite" class="screen-card screen-invite">
-  <div class="screen-copy">
-    <h1>Поделиться ссылкой</h1>
-    <p>Сгенерируйте приглашение и отправьте ссылку собеседнику.</p>
+  <div class="screen-zone screen-zone--header">
+    <p class="screen-kicker">ДомоЗвон — приглашение</p>
+    <h1>Ссылка готова. Отправьте её собеседнику.</h1>
+    <p id="invite-room-info" class="screen-subtext">Комната зарезервирована для этого звонка.</p>
   </div>
-  <form id="invite-form" class="invite-form">
-    <label>
-      Имя собеседника
-      <input type="text" name="guestName" autocomplete="name" required minlength="2" />
-    </label>
-    <label>
-      Комната назначения
-      <input type="text" name="roomName" autocomplete="off" required minlength="3" />
-    </label>
-    <div class="invite-actions">
-      <button data-invite-action="confirm" class="primary cta-button" type="submit" disabled>Отправить приглашение</button>
-      <button data-invite-action="cancel" class="ghost cta-button" type="button">Отмена</button>
+  <div class="screen-zone screen-zone--action">
+    <div class="screen-copy">
+      <p id="invite-intro" class="screen-subtext">Скопируйте ссылку или отправьте её напрямую.</p>
     </div>
-  </form>
+    <div class="invite-link-display" aria-live="polite">
+      <label class="screen-label" for="invite-link">Ссылка на звонок</label>
+      <div id="invite-link" class="invite-link ui-large" tabindex="0" role="textbox" aria-label="Ссылка на звонок"></div>
+    </div>
+    <div class="invite-actions">
+      <button id="copy-link" class="primary ui-large" type="button">Скопировать ссылку</button>
+      <button id="share-link" class="primary ui-large" type="button" hidden>Поделиться</button>
+    </div>
+    <button id="start-call" class="primary ui-large" type="button">Начать звонок</button>
+  </div>
+  <div class="screen-zone screen-zone--hint">
+    <p class="screen-note">Нажмите на ссылку, чтобы выделить её, а затем выберите подходящий мессенджер или приложение для звонка.</p>
+  </div>
 </section>

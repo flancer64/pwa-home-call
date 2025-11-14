@@ -10,6 +10,11 @@
 /** @typedef {import('./Core/UiController.mjs').default} HomeCall_Web_Core_UiController */
 /** @typedef {import('./Core/ServiceWorkerManager.mjs').default} HomeCall_Web_Core_ServiceWorkerManager */
 /** @typedef {import('./Core/VersionWatcher.mjs').default} HomeCall_Web_Core_VersionWatcher */
+/** @typedef {import('./Core/StateMachine.mjs').default} HomeCall_Web_Core_StateMachine */
+/** @typedef {import('./Core/RoomManager.mjs').default} HomeCall_Web_Core_RoomManager */
+/** @typedef {import('./Core/InviteService.mjs').default} HomeCall_Web_Core_InviteService */
+/** @typedef {import('./Core/SignalOrchestrator.mjs').default} HomeCall_Web_Core_SignalOrchestrator */
+/** @typedef {import('./Core/CallFlow.mjs').default} HomeCall_Web_Core_CallFlow */
 
 /* ---------- Env ---------- */
 /** @typedef {import('./Env/Provider.mjs').default} HomeCall_Web_Env_Provider */
@@ -32,7 +37,7 @@
 
 /* ---------- UI ---------- */
 /** @typedef {import('./Ui/Screen/Enter.mjs').default} HomeCall_Web_Ui_Screen_Enter */
-/** @typedef {import('./Ui/Screen/Lobby.mjs').default} HomeCall_Web_Ui_Screen_Lobby */
+/** @typedef {import('./Ui/Screen/Invite.mjs').default} HomeCall_Web_Ui_Screen_Invite */
 /** @typedef {import('./Ui/Screen/Call.mjs').default} HomeCall_Web_Ui_Screen_Call */
 /** @typedef {import('./Ui/Screen/End.mjs').default} HomeCall_Web_Ui_Screen_End */
 /** @typedef {import('./Ui/Toast.mjs').default} HomeCall_Web_Ui_Toast */

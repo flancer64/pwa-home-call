@@ -53,7 +53,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
       if (!users || users.length === 0) {
         const empty = createElement('p');
         if (empty) {
-          empty.textContent = 'Ожидаю других участников...';
+          empty.textContent = 'Ожидаем других участников...';
           list.appendChild(empty);
         }
       } else {
@@ -71,7 +71,7 @@ export default class HomeCall_Web_Ui_Screen_Lobby {
           }
           const button = createElement('button');
           if (button) {
-            button.className = 'primary cta-button';
+            button.className = 'primary ui-large';
             button.type = 'button';
             button.textContent = 'Позвонить';
             button.addEventListener('click', () => {

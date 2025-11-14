@@ -1,45 +1,24 @@
-# Экранный контур ДомоЗвона
+# Domozvon screen contour
 
-**Путь:** ./ctx/rules/web/ui/screens.md
+**Path:** ./ctx/rules/web/ui/screens.md
 
-Этот документ фиксирует единственный пользовательский поток `home → call → end` без промежуточных состояний и дополнительных навигационных панелей. Все переходы основаны на продуктовых сценариях (`ctx/product/scenarios/*`) и отражают концепцию однокнопочного вызова с автоматической ссылкой.
+The app now follows a consistent `home → invite → call → end` flow with only one highlighted action per screen. All transitions rely on the DI-controlled UI controller; there is no routing or toolbar.
 
-## Назначение
+## Purpose
+The contour ensures that every screen keeps the same typography, spacing, and focus on large CTA elements while also exposing the new invite step and richer media indicators.
 
-Экранный контур согласован с `ctx/product/overview.md`, `features.md` и сценариями `first-run`, `daily-use` и `primary-call`. Он гарантирует:
+## States
+1. **home** – collects or reuses the user name, shows the incoming-room message when necessary, and offers quick helpers to reset or change the name. When a name is stored, the action zone consists of the **«Позвонить»** button, a saved-name banner «Используется имя: <name>», **«Изменить имя»**, and **«Сбросить настройки»**. Without a name, the form stays visible with helper text centred and emphasises the need to enter a name before proceeding.
+2. **invite** – introduced after **«Позвонить»** is pressed. It displays the generated link, the **«Скопировать ссылку»** button, an optional **«Поделиться»** button (visible when the Share API exists), and the **«Начать звонок»** button. The screen keeps the three-zone layout so the user still sees the Russian headline, the action buttons, and a hint about sharing.
+3. **call** – shows the remote stream, a small local preview, the new camera/microphone status indicators, and the **«Завершить звонок»** CTA. A **«Повторить»** button appears inside the overlay whenever the camera permission is blocked, prompting the user to re-request access.
+4. **end** – repeats the headline «Звонок завершён», shows a concise summary message, and offers a wide **«Вернуться на главную»** button.
 
-- автоматическое создание комнаты и генерацию ссылки при едином нажатии;
-- отсутствие ручного выбора собеседников, ручного ввода комнаты или дополнительных состояний;
-- быстрый путь получателя: по ссылке — прямое подключение.
+## Transitions
+- `home → invite`: triggered by **«Позвонить»** once the user has a saved name; the URL bar is cleared and the new invite screen appears with the shareable link.
+- `invite → call`: triggered by **«Начать звонок»**, which begins media preparation and WebRTC setup.
+- `call → end`: triggered by any call termination (manual via **«Завершить звонок»** or network failure); all media streams stop and the overlay disappears.
+- `end → home`: automatically done after clicking **«Вернуться на главную»**; the saved name persists so the flow can restart immediately.
 
-## Состояния
-
-1. **home**
-   - Содержит форму ввода имени (только если оно не сохранено) и одну большую кнопку «Позвонить».
-   - После генерации ссылки активируется `share-link.md` с описанием Web Share API и fallback; любые статусные сообщения приходят только как `toast` (см. `notifications.md`).
-2. **call**
-   - Показывает поток собеседника на фоне и миниатюру локального видео; встроенные сообщения о статусе подключения отсутствуют, чтобы оставить экран простым.
-   - Единственное действие — кнопка «Завершить».
-   - Все статусы и ошибки отображаются через `toast`, экран не содержит дополнительных надписей или индикаторов.
-3. **end**
-   - Сообщает о результате звонка, предлагает вернуться на `home`.
-   - После простого объяснения кнопка «Главный экран» возвращает к началу.
-
-## Переходы
-
-- `home → call`: нажата кнопка «Позвонить», система создала UUID-комнату, ссылка готова и инициатор ждёт подключения собеседника; при этом appliation state переходит к `call`.
-- `call → end`: завершение вызова со стороны любого участника, сетевой сбой или нажатие «Завершить» очищают медиаресурсы и переводят в `end`.
-- `end → home`: пользователь подтверждает завершение и возвращается на главный экран; состояние готовности восстанавливается с учётом сохранённого имени и очищенной ссылки.
-
-При переподключении UI остаётся в состоянии `call`; все статусы передаются через `toast`, без переходов на другие экраны.
-
-## Дополнения
-
-- `share-link.md` описывает самоформируемую ссылку (`https://<домен>/?room=<uuid>`), Web Share API и fallback на копирование + toast «Ссылка готова / Ссылка скопирована».
-- `notifications.md` уточняет нужные уведомления: готовность ссылки, ошибки медиа/связи, другие `toast`-статусы без дополнительных визуальных сигналов.
-
-## Связи
-
-- `ctx/product/overview.md`, `features.md` и `features/invite.md` — описывают ценность однокнопочного вызова, автоматическую генерацию комнаты и линк-ориентированность.
-- `ctx/product/scenarios/first-run.md`, `daily-use.md`, `primary-call.md` — детали сохранения имени, ежедневного использования и основного потока.
-- `home.md`, `share-link.md`, `screens/call.md`, `screens/end.md` — конкретные описания структур экранов.
+## Feedback
+- Errors about media, signaling, or sharing appear as toast notifications; the screens remain clean with only the relevant CTA.
+- The `call` overlay reflects the `MediaManager` status so the user sees whether the camera or microphone is **Готово**, **Приостановлено**, **Заблокировано** или **Не поддерживается**.

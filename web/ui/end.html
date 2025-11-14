@@ -1,7 +1,12 @@
 <section data-screen="end" class="screen-card screen-end">
-  <div class="screen-copy">
+  <div class="screen-zone screen-zone--header">
     <h2>Звонок завершён</h2>
-    <p id="end-message">Сессия завершена. Вы можете вернуться в лобби.</p>
+    <p id="end-message" class="screen-subtext">Сеанс завершён.</p>
   </div>
-  <button id="return-lobby" class="primary cta-button" type="button">Вернуться</button>
+  <div class="screen-zone screen-zone--action end-action">
+    <button id="return-home" class="primary ui-large" type="button">Вернуться на главную</button>
+  </div>
+  <div class="screen-zone screen-zone--hint">
+    <p class="screen-note">Нажмите снова, когда потребуется новый звонок.</p>
+  </div>
 </section>

@@ -22,16 +22,16 @@ export default class HomeCall_Web_Ui_Screen_End {
    * @param {string} params.message
    * @param {() => void} [params.onReturn]
    */
-  show({ container, message, onReturn } = {}) {
+  show({ container, connectionMessage, onReturn } = {}) {
     if (!container) {
       return;
     }
     this.templates.apply('end', container);
     const messageBox = container.querySelector('#end-message');
     if (messageBox) {
-      messageBox.textContent = message || 'Сессия завершена. Вы можете вернуться в лобби.';
+      messageBox.textContent = connectionMessage || 'Звонок завершён.';
     }
-    const returnButton = container.querySelector('#return-lobby');
+    const returnButton = container.querySelector('#return-home');
     returnButton?.addEventListener('click', (event) => {
       event.preventDefault();
       onReturn?.();

@@ -5,7 +5,7 @@ const STATIC_ASSETS = [
   'manifest.json',
   'assets/style.css',
   'ui/enter.html',
-  'ui/lobby.html',
+  'ui/invite.html',
   'ui/call.html',
   'ui/end.html',
   'assets/icons/icon-192.svg',
@@ -25,7 +25,7 @@ const MODULE_ASSETS = [
   'app/Ui/Screen/Call.mjs',
   'app/Ui/Screen/End.mjs',
   'app/Ui/Screen/Enter.mjs',
-  'app/Ui/Screen/Lobby.mjs'
+  'app/Ui/Screen/Invite.mjs'
 ];
 const CORE_ASSETS = [...STATIC_ASSETS, ...MODULE_ASSETS];
 const CORE_ASSET_SET = new Set(CORE_ASSETS);

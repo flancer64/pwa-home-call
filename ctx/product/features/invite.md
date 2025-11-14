@@ -1,25 +1,21 @@
 # Feature: Invite
 
-**Путь:** ./ctx/product/features/invite.md
+**Path:** ./ctx/product/features/invite.md
 
-## Назначение
+## Purpose
+The invite feature explains how one tap turns into a shareable URL so that the other participant can join without choosing rooms or typing IDs.
 
-Функция «Приглашение» описывает, как инициатор превращает один клик в готовую ссылку для собеседника без ввода комнат.
+## Participants
+- **Initiator** — taps **Call**, sees the invite screen, and shares the link.
+- **Recipient** — opens the link, Domozvon reads the `room` parameter, and the call begins automatically.
 
-## Участники
+## Flow
+1. The initiator hits the **Call** button on the home screen. The app generates a UUID room, removes the query parameter from the address bar, and renders the invite screen with the link displayed in plain text.
+2. The invite screen always exposes a **Copy link** button; a **Share** button is also rendered when the Share API is available, but the visible link ensures the user can still copy it manually if the platform lacks a sharing sheet.
+3. The card highlights the reserved room number and includes a **Start call** button; only after this button is pressed does the call screen appear and the WebRTC session begin.
+4. The recipient opens the shared URL (`https://<domain>/?room=<uuid>`), Domozvon reads the room and saved name, and the call starts automatically; if the name is missing, the home screen clearly explains that the user needs to enter a name to join.
 
-- **Инициатор** — нажимает кнопку вызова, получает ссылку и отправляет её.
-- **Получатель** — открывает ссылку и автоматически подключается.
-
-## Поток
-
-1. Инициатор нажимает «Позвонить» (или аналогичную крупную клавишу). Приложение генерирует UUID-комнату и связывает её с именем, сохранённым в `localStorage`.
-2. Система формирует ссылку по шаблону `https://<домен>/?room=<uuid>` и предлагает отправить её: сначала вызывает Web Share API, а если он недоступен — копирует ссылку в буфер обмена под подтверждением-подсказкой.
-3. Инициатор выбирает канал связи по привычке и отправляет ссылку собеседнику.
-4. Получатель открывает ссылку, приложение считывает UUID и подключает его к комнате автоматически; имя берётся из хранилища или запрашивается только при первом запуске.
-
-## Связи
-
-- **features.md** — отражает бизнес-ценность функции «однокнопочный вызов» и минимальное хранение данных.
-- **scenarios/primary-call.md** — описывает основной поток инициатора и альтернативный путь без Web Share API.
-- **scenarios/daily-use.md** — показывает, как приглашение вписывается в ежедневный сценарий «открыть и ждать подключения».
+## Benefits
+- Seniors see the link before the call starts, so they can choose how to share it based on their familiarity.
+- Share failures fall back gracefully to the copy button and visible link.
+- The new invite screen keeps the action area large, uncluttered, and consistent with the `home → invite → call` path.

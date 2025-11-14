@@ -43,38 +43,42 @@ function safeSerialize(entry) {
   }
 }
 
+function createUuid() {
+  if (typeof globalThis !== 'undefined') {
+    const cryptoApi = globalThis.crypto ?? globalThis.msCrypto;
+    if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+      return cryptoApi.randomUUID();
+    }
+  }
+
+  const randomSegment = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  return `${randomSegment()}${randomSegment()}-${randomSegment()}-${randomSegment()}-${randomSegment()}-${randomSegment()}${randomSegment()}${randomSegment()}`;
+}
+
 export default class HomeCall_Web_Infra_Storage {
   constructor() {
-
-    this.getUserData = function getUserData() {
+    const readRawEntry = () => {
       const storage = resolveStorage();
       if (!storage) {
         return null;
       }
-
       const raw = storage.getItem(STORAGE_KEY);
-      const payload = safeDeserialize(raw);
-      if (!payload) {
-        return null;
-      }
-
-      const { userName = null, roomName = null, timestamp = null } = payload;
-      return { userName, roomName, timestamp };
+      return safeDeserialize(raw);
     };
 
-    this.setUserData = function setUserData(data = {}) {
+    const writeNormalizedEntry = (entry) => {
       const storage = resolveStorage();
       if (!storage) {
         return false;
       }
 
-      const entry = {
-        userName: typeof data.userName === 'string' ? data.userName : null,
-        roomName: typeof data.roomName === 'string' ? data.roomName : null,
-        timestamp: Date.now(),
+      const payload = {
+        myName: typeof entry?.myName === 'string' ? entry.myName : null,
+        myRoomId: typeof entry?.myRoomId === 'string' ? entry.myRoomId : null,
+        lastUpdated: typeof entry?.lastUpdated === 'number' ? entry.lastUpdated : Date.now()
       };
 
-      const serialized = safeSerialize(entry);
+      const serialized = safeSerialize(payload);
       if (!serialized) {
         return false;
       }
@@ -83,24 +87,127 @@ export default class HomeCall_Web_Infra_Storage {
         storage.setItem(STORAGE_KEY, serialized);
         return true;
       } catch (error) {
-        // swallow storage write errors to preserve flow
         return false;
       }
     };
 
-    this.clearUserData = function clearUserData() {
+    const normalizeEntry = (entry) => ({
+      myName: typeof entry?.myName === 'string' ? entry.myName : null,
+      myRoomId: typeof entry?.myRoomId === 'string' ? entry.myRoomId : null,
+      lastUpdated: typeof entry?.lastUpdated === 'number' ? entry.lastUpdated : Date.now()
+    });
+
+    const convertLegacyEntry = (rawEntry) => {
+      if (!rawEntry || typeof rawEntry !== 'object') {
+        return null;
+      }
+      const legacyUserName = typeof rawEntry.userName === 'string' ? rawEntry.userName : null;
+      const legacyRoomName = typeof rawEntry.roomName === 'string' ? rawEntry.roomName : null;
+
+      if (legacyUserName === null && legacyRoomName === null) {
+        return normalizeEntry(rawEntry);
+      }
+
+      const migratedRoomId = legacyRoomName || createUuid();
+      return {
+        myName: legacyUserName,
+        myRoomId: migratedRoomId,
+        lastUpdated: Date.now()
+      };
+    };
+
+    const getStoredEntry = () => {
+      const raw = readRawEntry();
+      if (!raw) {
+        return null;
+      }
+
+      const normalized = convertLegacyEntry(raw);
+      if (!normalized) {
+        return null;
+      }
+
+      const isLegacy = typeof raw.userName === 'string' || typeof raw.roomName === 'string';
+      if (isLegacy) {
+        writeNormalizedEntry(normalized);
+      }
+
+      return normalized;
+    };
+
+    this.getMyData = function getMyData() {
+      const entry = getStoredEntry();
+      if (!entry) {
+        return { myName: null, myRoomId: null };
+      }
+      return {
+        myName: entry.myName,
+        myRoomId: entry.myRoomId
+      };
+    };
+
+    this.setMyName = function setMyName(name) {
+      const entry = getStoredEntry() ?? { myName: null, myRoomId: null, lastUpdated: Date.now() };
+      const payload = {
+        myName: typeof name === 'string' ? name : null,
+        myRoomId: entry.myRoomId,
+        lastUpdated: Date.now()
+      };
+      return writeNormalizedEntry(payload);
+    };
+
+    this.ensureMyRoomId = function ensureMyRoomId() {
+      const entry = getStoredEntry() ?? { myName: null, myRoomId: null, lastUpdated: Date.now() };
+      if (typeof entry.myRoomId === 'string' && entry.myRoomId.length > 0) {
+        return entry.myRoomId;
+      }
+      const newRoomId = createUuid();
+      const payload = {
+        myName: entry.myName,
+        myRoomId: newRoomId,
+        lastUpdated: Date.now()
+      };
+      writeNormalizedEntry(payload);
+      return newRoomId;
+    };
+
+    this.resetMyData = function resetMyData() {
       const storage = resolveStorage();
       if (!storage) {
         return false;
       }
-
       try {
         storage.removeItem(STORAGE_KEY);
         return true;
       } catch (error) {
-        // ignore removal failures
         return false;
       }
+    };
+
+    this.getUserData = function getUserData() {
+      const entry = getStoredEntry();
+      if (!entry) {
+        return null;
+      }
+      return {
+        userName: entry.myName,
+        roomName: entry.myRoomId,
+        timestamp: entry.lastUpdated || null
+      };
+    };
+
+    this.setUserData = function setUserData(data = {}) {
+      const entry = getStoredEntry() ?? { myName: null, myRoomId: null, lastUpdated: Date.now() };
+      const payload = {
+        myName: typeof data.userName === 'string' ? data.userName : entry.myName,
+        myRoomId: typeof data.roomName === 'string' ? data.roomName : entry.myRoomId,
+        lastUpdated: Date.now()
+      };
+      return writeNormalizedEntry(payload);
+    };
+
+    this.clearUserData = function clearUserData() {
+      return this.resetMyData();
     };
 
     Object.freeze(this);

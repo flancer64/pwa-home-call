@@ -34,11 +34,11 @@ const waitForOpen = (socket, timeoutMs = 2000) => new Promise((resolve, reject) 
     socket.once('error', onError);
 });
 
-const waitForMessage = (socket, predicate, timeoutMs = 2000) => new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-        cleanup();
-        reject(new Error('Timed out while waiting for WebSocket message.'));
-    }, timeoutMs);
+    const waitForMessage = (socket, predicate, timeoutMs = 2000) => new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            cleanup();
+            reject(new Error('Timed out while waiting for WebSocket message.'));
+        }, timeoutMs);
     const cleanup = () => {
         clearTimeout(timer);
         socket.off('message', onMessage);
@@ -82,7 +82,9 @@ const closeSocket = (socket, timeoutMs = 2000) => new Promise((resolve) => {
 describe('HomeCall_Back_Service_Signal_Server', () => {
     it('routes signaling messages between participants', async () => {
         const originalPort = process.env.WS_PORT;
+        const originalHost = process.env.WS_HOST;
         process.env.WS_PORT = '0';
+        process.env.WS_HOST = '127.0.0.1';
 
         const container = await createTestContainer();
         container.enableTestMode();
@@ -108,46 +110,31 @@ describe('HomeCall_Back_Service_Signal_Server', () => {
             alice = new WebSocket(url);
             await waitForOpen(alice);
 
-            const aliceOnlineInitial = waitForMessage(alice, (msg) => msg.type === 'online');
-            alice.send(JSON.stringify({ type: 'join', room: 'family', user: 'alice' }));
-            const onlineAlice = await aliceOnlineInitial;
-            assert.deepEqual(onlineAlice, { type: 'online', room: 'family', users: ['alice'] });
-
             bob = new WebSocket(url);
             await waitForOpen(bob);
-            const aliceOnlineAfterBob = waitForMessage(alice, (msg) => msg.type === 'online' && msg.users.length === 2);
-            const bobOnline = waitForMessage(bob, (msg) => msg.type === 'online');
+
+            alice.send(JSON.stringify({ type: 'join', room: 'family', user: 'alice' }));
             bob.send(JSON.stringify({ type: 'join', room: 'family', user: 'bob' }));
-            const onlineBob = await bobOnline;
-            assert.deepEqual(onlineBob, { type: 'online', room: 'family', users: ['alice', 'bob'] });
-            const onlineAlice2 = await aliceOnlineAfterBob;
-            assert.deepEqual(onlineAlice2, { type: 'online', room: 'family', users: ['alice', 'bob'] });
 
             const offerToBob = waitForMessage(bob, (msg) => msg.type === 'offer');
-            alice.send(JSON.stringify({ type: 'offer', room: 'family', to: 'bob', sdp: 'offer-sdp' }));
+            alice.send(JSON.stringify({ type: 'offer', room: 'family', to: 'peer', sdp: 'offer-sdp' }));
             const offer = await offerToBob;
-            assert.deepEqual(offer, { type: 'offer', room: 'family', from: 'alice', to: 'bob', sdp: 'offer-sdp' });
+            assert.deepEqual(offer, { type: 'offer', room: 'family', from: 'alice', sdp: 'offer-sdp' });
 
             const answerToAlice = waitForMessage(alice, (msg) => msg.type === 'answer');
             bob.send(JSON.stringify({ type: 'answer', room: 'family', to: 'alice', sdp: 'answer-sdp' }));
             const answer = await answerToAlice;
-            assert.deepEqual(answer, { type: 'answer', room: 'family', from: 'bob', to: 'alice', sdp: 'answer-sdp' });
+            assert.deepEqual(answer, { type: 'answer', room: 'family', from: 'bob', sdp: 'answer-sdp' });
 
             const candidateToBob = waitForMessage(bob, (msg) => msg.type === 'candidate');
-            alice.send(JSON.stringify({ type: 'candidate', room: 'family', to: 'bob', candidate: { candidate: 'ice' } }));
+            alice.send(JSON.stringify({ type: 'candidate', room: 'family', to: 'peer', candidate: { candidate: 'ice' } }));
             const candidate = await candidateToBob;
             assert.deepEqual(candidate, {
                 type: 'candidate',
                 room: 'family',
                 from: 'alice',
-                to: 'bob',
                 candidate: { candidate: 'ice' },
             });
-
-            const aliceAfterLeave = waitForMessage(alice, (msg) => msg.type === 'online' && msg.users.length === 1);
-            bob.send(JSON.stringify({ type: 'leave', room: 'family', user: 'bob' }));
-            const onlineAfterLeave = await aliceAfterLeave;
-            assert.deepEqual(onlineAfterLeave, { type: 'online', room: 'family', users: ['alice'] });
         } finally {
             if (bob) {
                 await closeSocket(bob).catch(() => {});
@@ -161,6 +148,11 @@ describe('HomeCall_Back_Service_Signal_Server', () => {
                 delete process.env.WS_PORT;
             } else {
                 process.env.WS_PORT = originalPort;
+            }
+            if (originalHost === undefined) {
+                delete process.env.WS_HOST;
+            } else {
+                process.env.WS_HOST = originalHost;
             }
         }
     });

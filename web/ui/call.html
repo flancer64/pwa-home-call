@@ -1,12 +1,36 @@
 <section data-screen="call" class="screen-card screen-call">
-  <div class="call-stage">
+  <div class="screen-zone screen-zone--header">
+    <p class="screen-kicker">ДомоЗвон</p>
+    <h2>Звонок идёт</h2>
+    <p id="call-status-message" class="screen-subtext">Трансляция собеседника активна.</p>
+  </div>
+  <div class="screen-zone screen-zone--action call-stage">
     <video id="remote-video" playsinline autoplay></video>
-    <video id="local-video" playsinline autoplay muted></video>
-    <p id="no-media" hidden>Локальные устройства недоступны.</p>
-    <button id="retry-media" class="primary" type="button" hidden>Повторить запрос доступа</button>
+    <div class="call-overlay">
+      <div class="media-indicators">
+        <div class="media-indicator" data-device="camera">
+          <span class="media-icon" aria-hidden="true">📷</span>
+          <span class="media-label">Камера</span>
+          <span class="media-state" id="camera-state">Ожидание</span>
+        </div>
+        <div class="media-indicator" data-device="microphone">
+          <span class="media-icon" aria-hidden="true">🎤</span>
+          <span class="media-label">Микрофон</span>
+          <span class="media-state" id="microphone-state">Ожидание</span>
+        </div>
+      </div>
+      <p id="media-detail" class="screen-subtext screen-subtext--strong">Камера и микрофон готовятся.</p>
+      <button id="retry-media" class="secondary ui-large" type="button" hidden>Повторить</button>
+    </div>
+    <div class="local-miniature" aria-label="Ваше видео">
+      <video id="local-video" playsinline autoplay muted></video>
+      <p id="no-media" hidden>Локальное видео недоступно</p>
+    </div>
     <div class="call-controls">
-      <button class="primary fab" id="end-call" type="button">Завершить звонок</button>
+      <button id="end-call" class="primary ui-large" type="button">Завершить звонок</button>
     </div>
   </div>
-  <p id="call-connection-status" class="call-status" hidden></p>
+  <div class="screen-zone screen-zone--hint">
+    <p class="screen-note">Иконки камеры и микрофона показывают текущее состояние. Следуйте подсказкам или повторите попытку при необходимости.</p>
+  </div>
 </section>

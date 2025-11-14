@@ -24,8 +24,8 @@ export default class HomeCall_Back_Service_Signal_Server {
         let server = null;
         /** @type {WeakMap<import('ws').WebSocket, { room: string, user: string }>} */
         const session = new WeakMap();
-
         const SIGNAL_PATH = '/signal';
+        const pendingSignals = new Map();
 
         const parsePort = () => {
             const raw = process.env.WS_PORT;
@@ -36,58 +36,85 @@ export default class HomeCall_Back_Service_Signal_Server {
             return port;
         };
 
+        const parseHost = () => {
+            const raw = typeof process.env.WS_HOST === 'string' ? process.env.WS_HOST.trim() : '';
+            return raw.length > 0 ? raw : '0.0.0.0';
+        };
+
+        const normalizeString = (value, label) => {
+            if (typeof value !== 'string' || value.trim() === '') {
+                throw new TypeError(`${label} must be a non-empty string.`);
+            }
+            return value.trim();
+        };
+
         const toJson = (payload) => JSON.stringify(payload);
 
-        const safeSend = (socket, payload) => {
-            if (!socket || typeof socket.send !== 'function') return;
-            if (socket.readyState !== WebSocket.OPEN) return;
-            socket.send(toJson(payload));
-        };
-
-        const broadcastOnline = (room) => {
-            try {
-                const users = rooms.list(room);
-                const payload = { type: 'online', room, users };
-                for (const user of users) {
-                    const target = rooms.getSocket(room, user);
-                    if (target) {
-                        safeSend(target, payload);
-                    }
-                }
-            } catch (err) {
-                logger.error(namespace, 'Failed to broadcast online list.', err);
+        const safeSend = (targetSocket, payload) => {
+            if (!targetSocket || typeof targetSocket.send !== 'function') {
+                return;
             }
+            if (targetSocket.readyState !== WebSocket.OPEN) {
+                return;
+            }
+            targetSocket.send(toJson(payload));
         };
 
-        const sendError = (socket, message) => {
-            safeSend(socket, { type: 'error', message });
+        const enqueuePendingSignal = (room, payload) => {
+            const existing = pendingSignals.get(room) ?? [];
+            existing.push(payload);
+            pendingSignals.set(room, existing);
+            logger.info(namespace, `Queued ${payload.type} for room ${room}. Waiting for peer.`);
+        };
+
+        const deliverPendingSignals = (room, socket, user) => {
+            const entries = pendingSignals.get(room);
+            if (!entries || entries.length === 0) {
+                pendingSignals.delete(room);
+                return;
+            }
+            const remaining = [];
+            for (const payload of entries) {
+                if (payload.from === user) {
+                    remaining.push(payload);
+                    continue;
+                }
+                safeSend(socket, payload);
+                logger.info(namespace, `Delivered queued ${payload.type} to ${user} in room ${room}.`);
+            }
+            if (remaining.length > 0) {
+                pendingSignals.set(room, remaining);
+            } else {
+                pendingSignals.delete(room);
+            }
         };
 
         const cleanupSocket = (socket) => {
             const meta = session.get(socket);
-            if (!meta) return;
+            if (!meta) {
+                return;
+            }
             session.delete(socket);
             try {
                 rooms.leave(meta.room, meta.user);
-                broadcastOnline(meta.room);
                 logger.info(namespace, `User ${meta.user} left room ${meta.room}.`);
             } catch (err) {
                 logger.error(namespace, 'Failed to cleanup socket.', err);
             }
         };
 
+        const registerSession = (socket, room, user) => {
+            const roomKey = normalizeString(room, 'room');
+            const userKey = normalizeString(user, 'user');
+            rooms.join(roomKey, userKey, socket);
+            session.set(socket, { room: roomKey, user: userKey });
+            logger.info(namespace, `User ${userKey} joined room ${roomKey}.`);
+            deliverPendingSignals(roomKey, socket, userKey);
+        };
+
         const handleJoin = (socket, message) => {
-            const room = typeof message.room === 'string' ? message.room.trim() : '';
-            const user = typeof message.user === 'string' ? message.user.trim() : '';
-            if (!room || !user) {
-                sendError(socket, 'join message requires room and user.');
-                return;
-            }
             try {
-                rooms.join(room, user, socket);
-                session.set(socket, { room, user });
-                logger.info(namespace, `User ${user} joined room ${room}.`);
-                broadcastOnline(room);
+                registerSession(socket, message.room, message.user);
             } catch (err) {
                 logger.error(namespace, 'Failed to process join message.', err);
                 sendError(socket, 'Unable to join the room.');
@@ -96,19 +123,18 @@ export default class HomeCall_Back_Service_Signal_Server {
 
         const handleLeave = (socket, message) => {
             const meta = session.get(socket);
-            const room = typeof message.room === 'string' && message.room.trim() !== '' ? message.room.trim() : meta?.room;
-            const user = typeof message.user === 'string' && message.user.trim() !== '' ? message.user.trim() : meta?.user;
-            if (!room || !user) {
+            const roomKey = typeof message.room === 'string' && message.room.trim() !== '' ? message.room.trim() : meta?.room;
+            const userKey = typeof message.user === 'string' && message.user.trim() !== '' ? message.user.trim() : meta?.user;
+            if (!roomKey || !userKey) {
                 sendError(socket, 'leave message requires room and user.');
                 return;
             }
             try {
-                rooms.leave(room, user);
+                rooms.leave(roomKey, userKey);
                 if (meta) {
                     session.delete(socket);
                 }
-                logger.info(namespace, `User ${user} left room ${room}.`);
-                broadcastOnline(room);
+                logger.info(namespace, `User ${userKey} left room ${roomKey}.`);
             } catch (err) {
                 logger.error(namespace, 'Failed to process leave message.', err);
                 sendError(socket, 'Unable to leave the room.');
@@ -121,25 +147,29 @@ export default class HomeCall_Back_Service_Signal_Server {
                 sendError(socket, 'Join a room before sending signaling messages.');
                 return;
             }
-            const room = typeof message.room === 'string' && message.room.trim() !== '' ? message.room.trim() : meta.room;
-            const to = typeof message.to === 'string' ? message.to.trim() : '';
-            if (!to) {
-                sendError(socket, `${type} message requires destination user.`);
+            let roomKey = typeof message.room === 'string' && message.room.trim() !== '' ? message.room.trim() : meta.room;
+            let fromKey = typeof message.from === 'string' && message.from.trim() !== '' ? message.from.trim() : meta.user;
+            if (!roomKey || !fromKey) {
+                sendError(socket, `${type} message requires room and from.`);
                 return;
             }
-            const target = rooms.getSocket(room, to);
-            if (!target) {
-                sendError(socket, `User ${to} is not available in room ${room}.`);
-                return;
-            }
-            const payload = { type, room, from: meta.user, to };
+            const payload = { type, room: roomKey, from: fromKey };
             if (type === 'offer' || type === 'answer') {
                 payload.sdp = message.sdp;
-            }
-            if (type === 'candidate') {
+            } else if (type === 'candidate') {
                 payload.candidate = message.candidate;
             }
-            safeSend(target, payload);
+            const targetSocket = rooms.getPeerSocket(roomKey, fromKey);
+            if (!targetSocket) {
+                enqueuePendingSignal(roomKey, payload);
+                return;
+            }
+            safeSend(targetSocket, payload);
+            logger.info(namespace, `Forwarded ${type} from ${fromKey} to peer in room ${roomKey}.`);
+        };
+
+        const sendError = (socket, message) => {
+            safeSend(socket, { type: 'error', message });
         };
 
         const handleMessage = (socket, data) => {
@@ -181,7 +211,8 @@ export default class HomeCall_Back_Service_Signal_Server {
 
         const setupServer = () => {
             const port = parsePort();
-            const wss = new WebSocketServer({ port, host: '0.0.0.0', path: SIGNAL_PATH });
+            const host = parseHost();
+            const wss = new WebSocketServer({ port, host, path: SIGNAL_PATH });
             wss.on('connection', (socket) => {
                 logger.info(namespace, 'Incoming WebSocket connection.');
                 socket.on('message', (data) => handleMessage(socket, data));

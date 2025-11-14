@@ -3,24 +3,41 @@
  * @description WebSocket client for signaling server.
  */
 
+const buildSignalLogger = (logger, env) => {
+  if (logger && typeof logger.info === 'function') {
+    return logger;
+  }
+  const consoleRef = env?.console ?? (typeof globalThis !== 'undefined' ? globalThis.console : null);
+  if (!consoleRef) {
+    const noop = () => {};
+    return { debug: noop, info: noop, warn: noop, error: noop };
+  }
+  const bindLevel = (level) => {
+    const fn = typeof consoleRef[level] === 'function' ? consoleRef[level] : consoleRef.log;
+    return typeof fn === 'function' ? fn.bind(consoleRef) : () => {};
+  };
+  return {
+    debug: bindLevel('debug'),
+    info: bindLevel('info'),
+    warn: bindLevel('warn'),
+    error: bindLevel('error')
+  };
+};
+
 export default class HomeCall_Web_Net_SignalClient {
-  constructor({
-    HomeCall_Web_Env_Provider$: env,
-  } = {}) {
+  constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Shared_Logger$: logger } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
     }
+    const signalLog = buildSignalLogger(logger, env);
     const WebSocketCtor = env.WebSocket;
     const windowRef = env.window;
-    const scheduleTimeout = typeof windowRef?.setTimeout === 'function' ? windowRef.setTimeout.bind(windowRef) : null;
     const normalizedUrl = normalizeUrl(buildDefaultUrl(windowRef));
-    let socket = null;
-    let room = null;
-    let user = null;
-    let shouldReconnect = true;
     const pending = [];
     const handlers = new Map();
+    let socket = null;
     let connectPromise = null;
+    let senderName = '';
 
     const emit = (type, payload) => {
       const list = handlers.get(type);
@@ -54,14 +71,12 @@ export default class HomeCall_Web_Net_SignalClient {
       handlers.get(type)?.delete(handler);
     };
 
-    const subscribe = (type, handler) => {
-      addHandler(type, handler);
-      return () => removeHandler(type, handler);
-    };
-
     const flushPending = () => {
       if (!socket || socket.readyState !== WebSocketCtor.OPEN) {
         return;
+      }
+      if (pending.length > 0) {
+        signalLog.debug('Flushing pending signaling messages.', { pending: pending.length });
       }
       while (pending.length > 0) {
         socket.send(pending.shift());
@@ -69,26 +84,18 @@ export default class HomeCall_Web_Net_SignalClient {
     };
 
     const routeMessage = (data) => {
-      if (!data || !data.type) {
+      if (!data?.type) {
         return;
       }
-      switch (data.type) {
-        case 'online':
-          emit('online', data.users || []);
-          break;
-        case 'offer':
-        case 'answer':
-        case 'candidate':
-        case 'error':
-          emit(data.type, data);
-          break;
-        default:
-          console.warn('[SignalClient] Unknown message type', data.type);
+      signalLog.debug('Received signaling message.', data);
+      if (['offer', 'answer', 'candidate', 'error'].includes(data.type)) {
+        emit(data.type, data);
       }
     };
 
-    const send = (type, payload) => {
-      const message = JSON.stringify({ type, ...payload });
+    const send = (payload) => {
+      signalLog.debug('Sending signaling payload.', payload);
+      const message = JSON.stringify(payload);
       if (socket && socket.readyState === WebSocketCtor.OPEN) {
         socket.send(message);
       } else {
@@ -96,62 +103,55 @@ export default class HomeCall_Web_Net_SignalClient {
       }
     };
 
+    const openSocket = () => {
+      if (!WebSocketCtor) {
+        throw new Error('WebSocket constructor is not available.');
+      }
+      signalLog.info('Connecting to signaling endpoint.', { endpoint: normalizedUrl });
+      const ws = new WebSocketCtor(normalizedUrl);
+      socket = ws;
+      ws.addEventListener('open', () => {
+        flushPending();
+        signalLog.info('Signaling WebSocket connected.');
+        emit('status', { state: 'connected' });
+      });
+      ws.addEventListener('message', (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          routeMessage(data);
+        } catch (error) {
+          signalLog.error('Failed to parse signaling message.', error);
+        }
+      });
+      ws.addEventListener('close', () => {
+        signalLog.warn('Signaling WebSocket closed.');
+        emit('status', { state: 'closed' });
+        socket = null;
+      });
+      ws.addEventListener('error', (event) => {
+        signalLog.error('Signaling WebSocket error.', event);
+        emit('error', { message: 'WebSocket error', event });
+      });
+      return ws;
+    };
+
     this.on = (type, handler) => addHandler(type, handler);
 
     this.off = (type, handler) => removeHandler(type, handler);
-
-    this.onStatus = (handler) => subscribe('status', handler);
-    this.onOnline = (handler) => subscribe('online', handler);
-    this.onOffer = (handler) => subscribe('offer', handler);
-    this.onAnswer = (handler) => subscribe('answer', handler);
-    this.onCandidate = (handler) => subscribe('candidate', handler);
 
     this.connect = async () => {
       if (socket && (socket.readyState === WebSocketCtor.OPEN || socket.readyState === WebSocketCtor.CONNECTING)) {
         return connectPromise ?? Promise.resolve();
       }
-      if (typeof WebSocketCtor !== 'function') {
-        throw new Error('WebSocket constructor is not available.');
-      }
-      shouldReconnect = true;
       connectPromise = new Promise((resolve, reject) => {
-        const ws = new WebSocketCtor(normalizedUrl);
-        socket = ws;
-        ws.addEventListener('open', () => {
-          emit('status', { state: 'connected' });
-          flushPending();
-          if (room && user) {
-            send('join', { room, user });
-          }
+        try {
+          signalLog.info('Signaling client initiating connection.');
+          openSocket();
           resolve();
-        });
-        ws.addEventListener('message', (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            routeMessage(data);
-          } catch (error) {
-            console.error('[SignalClient] Failed to parse message', error);
-          }
-        });
-        ws.addEventListener('close', () => {
-          emit('status', { state: 'closed' });
-          if (shouldReconnect) {
-            const reconnect = () => {
-              this.connect().catch((error) => {
-                console.error('[SignalClient] Reconnect failed', error);
-              });
-            };
-            if (scheduleTimeout) {
-              scheduleTimeout(reconnect, 1000);
-            } else {
-              reconnect();
-            }
-          }
-        });
-        ws.addEventListener('error', (event) => {
-          emit('error', { message: 'WebSocket error', event });
-          reject(event);
-        });
+        } catch (error) {
+          signalLog.error('Failed to open signaling socket.', error);
+          reject(error);
+        }
       });
       try {
         await connectPromise;
@@ -161,34 +161,27 @@ export default class HomeCall_Web_Net_SignalClient {
     };
 
     this.disconnect = () => {
-      shouldReconnect = false;
+      signalLog.info('Signaling client disconnect requested.');
       socket?.close();
+      socket = null;
+      connectPromise = null;
     };
 
-    this.join = (roomName, userName) => {
-      room = roomName;
-      user = userName;
-      send('join', { room, user });
-    };
-
-    this.leave = () => {
-      if (room && user) {
-        send('leave', { room, user });
+    const envelope = (type, payload = {}) => {
+      const message = { type, ...payload };
+      if (senderName && !message.from) {
+        message.from = senderName;
       }
-      room = null;
-      user = null;
+      send(message);
     };
 
-    this.sendOffer = (to, sdp) => {
-      send('offer', { from: user, to, sdp });
-    };
-
-    this.sendAnswer = (to, sdp) => {
-      send('answer', { from: user, to, sdp });
-    };
-
-    this.sendCandidate = (to, candidate) => {
-      send('candidate', { from: user, to, candidate });
+    this.sendOffer = (payload) => envelope('offer', payload);
+    this.sendAnswer = (payload) => envelope('answer', payload);
+    this.sendCandidate = (payload) => envelope('candidate', payload);
+    this.joinRoom = (payload) => envelope('join', payload);
+    this.leaveRoom = (payload) => envelope('leave', payload);
+    this.setSenderName = (name) => {
+      senderName = typeof name === 'string' ? name : '';
     };
   }
 }

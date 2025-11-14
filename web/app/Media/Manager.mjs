@@ -181,14 +181,14 @@ export default class HomeCall_Web_Media_Manager {
         const blockedCamera = await isPermissionPermanentlyDenied('camera');
         const blockedMicrophone = await isPermissionPermanentlyDenied('microphone');
         if (blockedCamera || blockedMicrophone) {
-          return {
-            status: 'blocked',
-            message: 'Доступ к камере или микрофону блокирован. Разрешите его через настройки браузера ниже.'
-          };
+        return {
+          status: 'blocked',
+          message: 'Доступ к камере или микрофону заблокирован. Разрешите его в настройках браузера.'
+        };
         }
         return {
           status: 'denied',
-          message: 'Доступ к камере или микрофону был запрещён. Разрешите его, чтобы продолжить.'
+          message: 'Доступ к камере или микрофону был отклонён. Разрешите его, чтобы продолжить.'
         };
       }
       if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
@@ -205,7 +205,7 @@ export default class HomeCall_Web_Media_Manager {
       }
       return {
         status: 'error',
-        message: 'Не удалось получить доступ к медиа-устройствам.'
+        message: 'Не удалось получить доступ к медиаустройствам.'
       };
     };
 
@@ -269,10 +269,10 @@ export default class HomeCall_Web_Media_Manager {
       if (!navigatorRef?.mediaDevices || typeof navigatorRef.mediaDevices.enumerateDevices !== 'function') {
         this.stopLocalStream();
         setLocalStreamInternal(null);
-        setStatus('warning', 'Медиа-устройства не поддерживаются в этом браузере.');
+        setStatus('warning', 'Этот браузер не поддерживает медиаустройства.');
         warningActive = true;
         setAllUnsupported();
-        return { status: 'unsupported', message: 'Медиа-устройства не поддерживаются в этом браузере.' };
+        return { status: 'unsupported', message: 'Этот браузер не поддерживает медиаустройства.' };
       }
 
       monitor?.register(() => {
@@ -313,7 +313,7 @@ export default class HomeCall_Web_Media_Manager {
         } else if (!constraints.audio && constraints.video) {
           successMessage = 'Камера готова. Микрофон не найден.';
         } else if (!constraints.audio && !constraints.video) {
-          successMessage = 'Доступ к медиа разрешён.';
+          successMessage = 'Доступ к медиа подтверждён.';
         }
         setStatus('success', successMessage);
         if (warningActive && typeof toastNotifier.success === 'function') {

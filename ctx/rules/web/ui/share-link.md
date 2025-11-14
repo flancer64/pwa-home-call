@@ -1,41 +1,26 @@
 # Share Link Mechanism
 
-**Путь:** ./ctx/rules/web/ui/share-link.md
+**Path:** ./ctx/rules/web/ui/share-link.md
 
-## Назначение
+## Purpose
+This document describes how Domozvon turns one tap into a shareable URL and how the UI stays clear even when sharing APIs are missing.
 
-Этот документ описывает, как ДомоЗвон превращает одно нажатие «Позвонить» в одноразовую ссылку, понятную пожилым пользователям, и как поддерживается обратная связь без лишних навигационных областей.
+## URL template
+- Links always follow `https://<domain>/?room=<uuid>`.
+- UUIDs are generated inside the app (either when the user taps **Call** or when the system prepares to share an incoming room).
+- The link never includes the name; the recipient’s name comes from `localStorage`.
 
-## URL-шаблон
+## Invite screen flow
+1. After the home screen creates a room, Domozvon renders the invite screen. The header now says “Ссылка готова. Отправьте её собеседнику.”, and the action zone shows the link text, the **«Скопировать ссылку»** button, the **«Поделиться»** button (only shown when `navigator.share` exists) and the **«Начать звонок»** button.
+2. The link text (`#invite-link`) is selectable so that even if nothing is copied automatically, the user can tap it, copy it manually, and paste it into a messenger.
+3. When Share is available, the button opens the native share sheet and falls back to the clipboard if the user cancels or the API throws → the invite screen keeps the link visible so the same URL is always reachable.
+4. **«Скопировать ссылку»** always tries to write the URL to the clipboard and shows a friendly toast when it succeeds (`toast.success('Ссылка скопирована в буфер обмена.')`) or a warning (`toast.warn('Не удалось скопировать автоматически. Выделите ссылку вручную.')`) when manual copying is needed.
 
-- Ссылка всегда формируется по шаблону: `https://<домен>/?room=<uuid>`.
-- UUID создаётся автоматически при нажатии «Позвонить» и действителен только в рамках текущей сессии.
-- `room` берётся из URL, имя (`name`) — из `localStorage`; имя никогда не включается в URL.
-- Получатель открывает ту же ссылку, `home` считывает `room`, подставляет сохранённое имя и подключает пользователя к комнате.
+## Recipient flow
+- When the recipient opens a shared link, Domozvon reads the `room` parameter and checks for the stored name.
+- If a name exists, the app initiates the call immediately (no extra buttons) and jumps to the call screen.
+- If no name exists, the home screen stays visible with the incoming-room message and the name form so the recipient understands what to do.
 
-## Расшаривание
-
-1. Инициатор нажимает «Позвонить» и получает `toast` «Ссылка готова» (см. `notifications.md`).
-2. Система сначала вызывает Web Share API, если он доступен, и предлагает хранилище (например, SMS или мессенджер), не раскрывая технических подробностей пользователю.
-3. Если API недоступен, применяется fallback:
-   - ссылка копируется в буфер обмена;
-   - отображается `toast` «Ссылка скопирована», а пользователю предлагается использовать привычный канал связи.
-4. В интерфейсе не появляется отдельный экран invite, все действия происходят в `home`/`share-link`.
-
-## Приём ссылки
-
-- Получатель открывает ссылку — `home` считывает `room` из URL и имя (если сохранено) из `localStorage`.
-- Автоматическое подключение начинается без дополнительных кликов; если имя не найдено, появляется форма ввода (как при первом запуске) и после сохранения соединение продолжается.
-- Сценарий совпадает с `ctx/product/scenarios/primary-call.md` и `daily-use.md`: единственный поток без ручного выбора комнат.
-
-## Статусы и feedback
-
-- `toast`-уведомления сообщают о готовности ссылки, копировании, ошибках Web Share и сбоях сети.
-- Нет дополнительных событий интерфейса вроде `ui:action:share-link`; генерация ссылки происходит внутри `home` и управляется состоянием компонента.
-- Не используются дополнительные управляющие панели, индикаторы WS/RTC или ручные настройки — только короткие сообщения для объяснения текущего шага.
-
-## Связи
-
-- `ctx/product/features/invite.md` — бизнес-ценность автоматического приглашения.
-- `screens.md` и `home.md` — путь, в котором формируется ссылка и происходит переход к `call`.
-- `notifications.md` — текстовые статусы «Ссылка готова», «Ссылка скопирована», ошибки меди/связи.
+## Status feedback
+- Any issues with sharing (Share API failure, clipboard rejection) show toasts that say “Ссылка отправлена.”, “Ссылка скопирована в буфер обмена.”, or “Не удалось скопировать автоматически. Выделите ссылку вручную.”, keeping the UI consistent.
+- The invite screen itself never shows warnings; it only contains the link and big buttons.

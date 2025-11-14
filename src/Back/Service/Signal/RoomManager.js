@@ -45,18 +45,24 @@ export default class HomeCall_Back_Service_Signal_RoomManager {
             }
         };
 
-        this.list = (room) => {
-            const roomKey = normalizeKey(room, 'room');
-            const users = rooms.get(roomKey);
-            if (!users) return [];
-            return Array.from(users.keys()).sort();
-        };
-
         this.getSocket = (room, user) => {
             const roomKey = normalizeKey(room, 'room');
             const userKey = normalizeKey(user, 'user');
             const users = rooms.get(roomKey);
             return users ? users.get(userKey) : undefined;
+        };
+
+        this.getPeerSocket = (room, excludeUser) => {
+            const roomKey = normalizeKey(room, 'room');
+            const users = rooms.get(roomKey);
+            if (!users) return undefined;
+            const excludedKey = typeof excludeUser === 'string' ? excludeUser.trim() : '';
+            for (const [name, socket] of users.entries()) {
+                if (name !== excludedKey) {
+                    return socket;
+                }
+            }
+            return undefined;
         };
     }
 }
