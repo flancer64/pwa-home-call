@@ -1,23 +1,23 @@
-# Scenario: Outgoing call (initiator)
+# Сценарий: Исходящий вызов (инициатор)
 
-## Purpose
-Explains how the initiator creates a session, shares the invite link, and launches the call with a single tap.
+## Цель
+Объяснить, как инициатор создаёт сеанс, рассылает ссылку и запускает звонок одним тапом.
 
-## Participants
-- The initiator (the person starting the call).
+## Участники
+- Инициатор — человек, который начинает звонок.
 
-## Preconditions
-- A name is stored locally.
+## Предусловия
+- ДомоЗвон открыт, камера и микрофон разрешены, интернет работает.
 
-## Main flow
-1. The initiator taps the large **Позвонить** button on the home screen. The saved name stays visible and helper buttons for changing the name or resetting the settings remain reachable.
-2. Domozvon generates a fresh UUID-сеанса, clears the URL from query parameters, and displays the invite screen. The link `https://<домен>/?session=<uuid>` is shown in plain text; the **Скопировать ссылку** button writes it to the clipboard, and the **Поделиться** button (if supported) opens the native share sheet.
-3. The invite screen also states which подготовленный сеанс (prepared session) ожидает, keeps the controls large enough for senior hands, and shows a **Начать звонок** button; when the initiator is ready, tapping it enters the call screen.
-4. The call screen shows the remote video, a mini local preview, and newly added camera/microphone indicators plus a **Повторить** button in case a permission was blocked.
+## Основной поток
+1. Инициатор нажимает большую кнопку **Позвонить** на домашнем экране. ДомоЗвон генерирует свежий UUID-сеанс, очищает URL от параметров и сразу показывает экран приглашения со ссылкой `https://<домен>/?session=<uuid>`.
+2. Экран приглашения сохраняет крупные элементы управления, отображает **Скопировать ссылку** и **Поделиться**, подтверждая, что ссылка готова к отправке.
+3. Инициатор отправляет ссылку удобным каналом, ждёт потока ответного вызова и, когда собеседник готов, нажимает **Начать звонок**.
+4. После нажатия **Начать звонок** появляется экран медиа-сессии с превью локального видео и индикаторами камеры и микрофона.
 
-## Alternative flows
-- A1. The Share API is missing; the invite screen still exposes the link so the initiator can paste it into their favorite communication channel.
+## Альтернативные потоки
+- А1. API общего доступа отсутствует — ссылка остаётся видимой, и инициатор копирует её вручную до нажатия **Начать звонок**.
 
-## Postconditions
-- The invite link is live and can be shared however the user prefers.
-- The actual WebRTC session starts only after the **Начать звонок** button is pressed, so the user always sees the sharing controls first for clarity.
+## Постусловия
+- Ссылка приглашения активна и готова к передаче другим каналам.
+- Реальная WebRTC-сессия стартует после нажатия **Начать звонок**, чтобы пользователь всегда видел, какую ссылку он отправил.
