@@ -75,6 +75,10 @@ export default class HomeCall_Web_Rtc_Peer {
 
     const ensureConnection = () => {
       if (connection) {
+        trace('debug', 'Reusing existing RTCPeerConnection', {
+          target,
+          state: connection.connectionState ?? null
+        });
         return connection;
       }
       if (typeof RTCPeerConnectionCtor !== 'function') {
@@ -146,6 +150,12 @@ export default class HomeCall_Web_Rtc_Peer {
         });
         if (iceCandidate && typeof handlers.sendCandidate === 'function') {
           handlers.sendCandidate(iceCandidate);
+          trace('debug', 'ICE candidate emitted to signaling layer', {
+            target,
+            candidate: iceCandidate?.candidate ?? null,
+            sdpMid: iceCandidate?.sdpMid ?? null,
+            sdpMLineIndex: iceCandidate?.sdpMLineIndex ?? null
+          });
         }
       });
       pc.addEventListener('iceconnectionstatechange', () => {
@@ -184,6 +194,10 @@ export default class HomeCall_Web_Rtc_Peer {
         return;
       }
       const tracks = localStream.getTracks();
+      trace('debug', 'Syncing local stream with RTCPeerConnection', {
+        target,
+        trackCount: tracks.length
+      });
       senders.forEach((sender) => {
         if (sender.track && !tracks.includes(sender.track)) {
           connection.removeTrack(sender);

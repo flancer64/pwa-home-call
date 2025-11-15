@@ -68,6 +68,7 @@ export default class HomeCall_Web_Ui_Flow {
       if (!context.activeSession) {
         return;
       }
+      log.info('[CallFlow] Joining signal session.', { sessionId: context.activeSession });
       signal.joinSession?.({ sessionId: context.activeSession });
     };
 
@@ -75,6 +76,7 @@ export default class HomeCall_Web_Ui_Flow {
       if (!context.activeSession) {
         return;
       }
+      log.info('[CallFlow] Leaving signal session.', { sessionId: context.activeSession });
       signal.leaveSession?.({ sessionId: context.activeSession });
     };
 
@@ -110,8 +112,14 @@ export default class HomeCall_Web_Ui_Flow {
     };
 
     const prepareLocalMedia = async () => {
+      log.info('[CallFlow] Preparing local media.');
       await media.prepare();
       const stream = media.getLocalStream();
+      const trackCount = typeof stream?.getTracks === 'function' ? stream.getTracks().length : 0;
+      log.info('[CallFlow] Local media stream ready.', {
+        sessionId: context.activeSession,
+        tracks: trackCount
+      });
       peer.setLocalStream(stream);
     };
 
@@ -124,6 +132,7 @@ export default class HomeCall_Web_Ui_Flow {
       if (context.isCallInProgress) {
         return;
       }
+      log.info('[CallFlow] Initiating call session.', { sessionId, role });
       context.isCallInProgress = true;
       context.activeSession = sessionId;
       context.inviteUrl = sessionManager.buildInviteUrl(sessionId);
@@ -203,6 +212,7 @@ export default class HomeCall_Web_Ui_Flow {
       if (!data?.sessionId) {
         return;
       }
+      log.info('[CallFlow] Received offer.', { sessionId: data.sessionId });
       if (!context.isCallInProgress) {
         await startIncomingCall(data.sessionId);
       }
@@ -218,6 +228,7 @@ export default class HomeCall_Web_Ui_Flow {
       if (!data) {
         return;
       }
+      log.info('[CallFlow] Received answer.', { sessionId: context.activeSession });
       try {
         await peer.handleAnswer({ sdp: data.sdp });
       } catch (error) {
@@ -229,6 +240,11 @@ export default class HomeCall_Web_Ui_Flow {
       if (!data) {
         return;
       }
+      log.info('[CallFlow] Received ICE candidate.', {
+        sessionId: data?.sessionId ?? context.activeSession,
+        sdpMid: data?.candidate?.sdpMid ?? null,
+        sdpMLineIndex: data?.candidate?.sdpMLineIndex ?? null
+      });
       try {
         await peer.addCandidate({ candidate: data.candidate });
       } catch (error) {
@@ -270,6 +286,11 @@ export default class HomeCall_Web_Ui_Flow {
             sdpMid: candidate.sdpMid ?? null,
             sdpMLineIndex: candidate.sdpMLineIndex ?? null
           };
+          log.info('[CallFlow] Sending ICE candidate.', {
+            sessionId: context.activeSession,
+            sdpMid: normalizedCandidate.sdpMid,
+            sdpMLineIndex: normalizedCandidate.sdpMLineIndex
+          });
           signal.sendCandidate({
             sessionId: context.activeSession,
             candidate: normalizedCandidate
