@@ -5,6 +5,7 @@
 
 const TEMPLATE_PATHS = new Map([
   ['home', 'ui/home.html'],
+  ['settings', 'ui/settings.html'],
   ['invite', 'ui/invite.html'],
   ['call', 'ui/call.html'],
   ['end', 'ui/end.html']

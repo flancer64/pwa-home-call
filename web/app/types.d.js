@@ -40,6 +40,7 @@
 /** @typedef {import('./Ui/Toast.mjs').default} HomeCall_Web_Ui_Toast */
 /** @typedef {import('./Ui/Router/Dev.mjs').default} HomeCall_Web_Ui_Router_Dev */
 /** @typedef {import('./Ui/Screen/Home.mjs').default} HomeCall_Web_Ui_Screen_Home */
+/** @typedef {import('./Ui/Screen/Settings.mjs').default} HomeCall_Web_Ui_Screen_Settings */
 /** @typedef {import('./Ui/Screen/Invite.mjs').default} HomeCall_Web_Ui_Screen_Invite */
 /** @typedef {import('./Ui/Screen/Call.mjs').default} HomeCall_Web_Ui_Screen_Call */
 /** @typedef {import('./Ui/Screen/End.mjs').default} HomeCall_Web_Ui_Screen_End */

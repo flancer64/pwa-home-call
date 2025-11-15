@@ -1,40 +1,50 @@
-# Kolobok: Layout and large UI rhythm
+# Колобок: компоновка и крупный ритм интерфейса
 
-## Purpose
-This document captures the new high-contrast, senior-friendly layout that runs through every screen of Kolobok (`home`, `invite`, `call`, `end`). The goal is to keep the interface readable, the actions obvious, and the spacing generous so the user can focus on a single CTA at a time.
+## Назначение
 
-## Structure
-Each screen now follows the same three-zone rhythm: **header** (brand, status or guidance), **action** (large input/buttons), and **hint** (extra reassurance or instructions). This keeps the layout consistent whether we render the home screen, the invite page with a copyable link, the call player with status badges, or the final summary card.
+Этот документ фиксирует обновлённую компоновку с высокими контрастами и понятным ритмом для всех экранов Колобка (`home`, `invite`, `call`, `end`). Цель — обеспечить читаемость, очевидность действий и щедрое пространство, чтобы пользователь мог сосредоточиться на одной крупной кнопке.
 
-All labels, helper lines, and toast messages on these screens are Russian phrases, while logging stays in English so developers can parse the trace output without translating the UI copy.
+## Структура
 
-### Header zone
-- Contains the screen title, a short description, and contextual status text (for example «Ссылка создаётся автоматически» on `home`, «Ссылка готова. Отправьте её собеседнику.» on `invite`, «Связь готова» on `call`).
-- Text is bold, left-to-center-aligned, and sized at least `2rem` so elder eyes can read it without squinting.
+Каждый экран выстроен по трёхзонной схеме: **шапка** (бренд, статус или пояснение), **действие** (крупные кнопки/контролы) и **подсказка** (дополнительное пояснение). Это сохраняет единый визуальный ритм при смене экранов — будь то главный экран, приглашение, звонок или итоги.
 
-### Action zone
-- Hosts the interactive controls (`home` call button, `invite` link actions, `call` controls, `end` return) in a vertically stacked column with 1.25–1.5rem gaps.
-- Buttons use the shared `ui-large` utility to guarantee a 56px+ tap target, a consistent border radius, and a strong accent color; there are no text inputs on `home`.
-- Primary actions now include **«Позвонить»**, **«Скопировать ссылку»**, **«Поделиться»**, **«Начать звонок»**, **«Завершить звонок»**, **«Вернуться на главную»**; secondary actions (**«Повторить»**, контекстные подсказки) остаются светлыми с рамкой, сохраняя крупные кириллические метки.
+Все подписи, вспомогательные строки и тосты написаны по-русски, тогда как логи остаются на английском, чтобы разработчики могли считывать их без перевода.
 
-### Hint zone
-- Provides helper text or reassurance: “Ссылка создаётся автоматически и готова к отправке”, “Поделитесь ею через чат или мессенджер”, “Возвращайтесь на главную, чтобы начать новый сеанс”.
-- Hints have muted color and a smaller font, but remain visible thanks to the generous spacing above them.
+### Зона шапки
 
-## `ui-large` utility
-- Applies to every button, input, and interactive display that needs emphasis.
-- Sets font-size to 1.25rem+, padding of at least 1rem, and a 1rem border radius.
-- Keeps interactions consistent across screens so seniors always know where to tap.
+- Содержит название экрана, короткое пояснение и контекстный статус (например «Ссылка создаётся автоматически» на `home`, «Ссылка готова. Отправьте её собеседнику.» на `invite`, «Связь готова» на `call`).
+- Текст смещён по центру или левому центру и имеет размер минимум `2rem`, чтобы пожилые глаза могли спокойно читать без напряжения.
+- На `home` внутри шапки сохраняется бренд по центру, а справа добавляется FAB-иконка шестерёнки, которая открывает карточку настроек; остальные экраны держат шапку минималистичной, чтобы действие настроек оставалось уникальным для входной точки.
 
--## Call overlay and status badges
-- The `call` screen now shows what the `MediaManager` reports: two large indicators for camera and microphone, a textual status line with Russian labels (Готово, Приостановлено, Заблокировано и т.п.), and a **«Повторить»** button when permissions were blocked.
-- These indicators draw from the new `mediaState` tracking and change border colors (`green` for ready, `orange` for paused, `pink` for blocked) so that the user sees the health of each device without needing to read a toast.
+### Зона действий
 
--## Invite screen note
-- The invite screen repeats the same three-zone layout but focuses the action zone on the link display, **«Скопировать ссылку»**, **«Поделиться»**, and **«Начать звонок»**.
-- Even if the Share API is absent, the large link block and the copy button keep the interaction predictable.
+- Хостит интерактивные элементы (`home` — кнопка звонка, `invite` — действия со ссылкой, `call` — медиа-контролы, `end` — возврат) в вертикальной колонке с расстоянием 1.25–1.5rem между элементами.
+- Кнопки используют утилиту `ui-large`, обеспечивающую 56px+ по высоте, одинаковый радиус скругления и заметный акцентный цвет; на `home` нет текстовых полей.
+- Основные команды содержат **«Позвонить»**, **«Скопировать ссылку»**, **«Поделиться»**, **«Начать звонок»**, **«Завершить звонок»**, **«Вернуться на главную»**; второстепенные действия (например **«Повторить»**) остаются светлыми с рамкой, но с крупными кириллическими ярлыками.
 
-## Spacing and contrast
-- All screens apply a minimum 2rem of padding and 1.5rem between high-level regions.
-- Backgrounds stay light with dark text; `primary` buttons use a deep blue accent with white text, while hints and secondary buttons stay soft to avoid overwhelming the user.
-- The layout stays centered, with the card never exceeding 640px so the text never stretches too wide.
+### Зона подсказки
+
+- Поддерживает пользователя с пояснением («Ссылка создаётся автоматически и готова к отправке», «Поделитесь ею через чат или мессенджер», «Возвращайтесь на главную, чтобы начать новый сеанс» и т. п.).
+- Подсказки окрашены приглушённым цветом и имеют чуть меньший шрифт, но остаются хорошо читаемыми благодаря просторному отступу сверху.
+
+## Утилита `ui-large`
+
+- Применяется ко всем важным кнопкам, полям и отображениям, которым необходимо внимание.
+- Задаёт размер шрифта от 1.25rem, внутренний отступ минимум 1rem и радиус скругления 1rem.
+- Гарантирует согласованный интерфейс, чтобы пользователи знали, куда тапать независимо от экрана.
+
+## Перекрытие звонка и индикаторы
+
+- На `call` отображается состояние `MediaManager`: две крупные метки для камеры и микрофона, статусная строка с русскими подписью (`Готово`, `Приостановлено`, `Заблокировано` и т. п.) и кнопка **«Повторить»**, когда разрешения заблокированы.
+- Индикаторы берут цвета из `mediaState` и меняют рамку (`green` — готово, `orange` — пауза, `pink` — блокировка), чтобы пользователь видел состояние оборудования без необходимости читать тост.
+
+## Примечание к invite
+
+- Экран приглашения сохраняет ту же трёхзонную схему, но сосредотачивает зону действий на показе ссылки, кнопках **«Скопировать ссылку»**, **«Поделиться»** и **«Начать звонок»**.
+- Даже при отсутствии Share API крупная карточка ссылки и кнопка копирования делают шаги предсказуемыми.
+
+## Отступы и контраст
+
+- Все экраны используют минимум 2rem внутренних отступов и 1.5rem между основными зонами.
+- Фон остаётся светлым, текст — тёмным; основные кнопки получают глубокий синий акцент с белым текстом, подсказки и второстепенные кнопки — мягкие, чтобы не отвлекать пользователя.
+- Карточка всегда центрирована и не превышает 640px ширины, чтобы текст не растягивался слишком широко.

@@ -191,6 +191,81 @@ body {
   max-width: 320px;
 }
 
+.screen-settings {
+  gap: clamp(1.35rem, 4vw, 2.75rem);
+}
+
+.settings-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  min-height: 3rem;
+}
+
+.settings-header h1 {
+  margin: 0 auto;
+  font-size: clamp(2.1rem, 5vw, 2.9rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.settings-close {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--icon-settings);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  position: absolute;
+  top: 0.15rem;
+  right: 0;
+}
+
+.settings-close:focus-visible,
+.settings-close:hover {
+  border-color: var(--accent-primary);
+  background: rgba(15, 175, 143, 0.25);
+}
+
+.settings-close-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.settings-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.settings-reinstall-button {
+  width: min(520px, 100%);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.settings-reinstall-symbol {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+}
+
+.settings-reinstall-symbol svg {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
 .screen-kicker {
   letter-spacing: 0.4em;
   text-transform: uppercase;

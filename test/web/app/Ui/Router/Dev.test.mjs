@@ -9,6 +9,7 @@ test('DevRouter dispatches screens based on window hash', async () => {
     showHome(params) { record.push({ screen: 'home', params }); },
     showInvite(params) { record.push({ screen: 'invite', params }); },
     showCall(params) { record.push({ screen: 'call', params }); },
+    showSettings(params) { record.push({ screen: 'settings', params }); },
     showEnd(params) { record.push({ screen: 'end', params }); }
   };
   const listeners = {};
@@ -48,4 +49,10 @@ test('DevRouter dispatches screens based on window hash', async () => {
   assert.strictEqual(record.length, 2, 'Hash change should trigger new screen');
   assert.strictEqual(record[1].screen, 'call');
   assert.deepStrictEqual(record[1].params, {});
+
+  windowStub.location.hash = '#settings';
+  listeners.hashchange?.();
+
+  assert.strictEqual(record.length, 3, 'Settings hash should render new screen');
+  assert.strictEqual(record[2].screen, 'settings');
 });

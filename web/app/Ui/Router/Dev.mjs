@@ -30,6 +30,9 @@ export default class HomeCall_Web_Ui_Router_Dev {
                 case 'end':
                     flow.showEnd?.({ connectionMessage: 'Debug end' });
                     break;
+                case 'settings':
+                    flow.showSettings?.();
+                    break;
             }
             log.info(`[DevRouter] Force screen: ${hash}`);
         };

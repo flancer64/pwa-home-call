@@ -12,11 +12,13 @@ test('UiController exposes home, invite, call, and end screens', async () => {
   };
   const endScreen = { show(params) { recorded.end = params; } };
   const inviteScreen = { show(params) { recorded.invite = params; } };
+  const settingsScreen = { show(params) { recorded.settings = params; } };
 
   container.register('HomeCall_Web_Ui_Screen_Home$', homeScreen);
   container.register('HomeCall_Web_Ui_Screen_Invite$', inviteScreen);
   container.register('HomeCall_Web_Ui_Screen_Call$', callScreen);
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
+  container.register('HomeCall_Web_Ui_Screen_Settings$', settingsScreen);
 
   const controller = await container.get('HomeCall_Web_Ui_Controller$');
   controller.showHome({ container: 'root', onStartCall: () => {} });
@@ -24,6 +26,7 @@ test('UiController exposes home, invite, call, and end screens', async () => {
   controller.showCall({ container: 'call-root', remoteStream: 'stream', onEnd: () => {} });
   controller.showEnd({ container: 'end-root', connectionMessage: 'ok', onReturn: () => {} });
   controller.updateRemoteStream('stream2');
+  controller.showSettings({ container: 'settings-root', onClose: () => {} });
 
   assert.strictEqual(recorded.home?.container, 'root');
   assert.strictEqual(typeof recorded.home?.onStartCall, 'function');
@@ -32,4 +35,5 @@ test('UiController exposes home, invite, call, and end screens', async () => {
   assert.strictEqual(recorded.call?.remoteStream, 'stream');
   assert.strictEqual(recorded.end?.connectionMessage, 'ok');
   assert.strictEqual(recorded.stream, 'stream2');
+  assert.strictEqual(recorded.settings?.container, 'settings-root');
 });

@@ -99,7 +99,7 @@ export default class HomeCall_Web_Ui_Flow {
       context.inviteUrl = sessionManager.buildInviteUrl(sessionId);
       context.pendingSession = null;
       sessionManager.clearSessionFromUrl();
-      showInviteScreen(sessionId);
+      showInviteScreen({ sessionId });
     };
 
     const handleStartCall = () => {
@@ -286,17 +286,20 @@ export default class HomeCall_Web_Ui_Flow {
     let showCall;
     let showEnd;
     let showHome;
+    let showSettings;
 
-    showInviteScreen = (sessionId) => {
+    showInviteScreen = ({ sessionId, inviteUrl } = {}) => {
       ensureRoot();
       stateMachine.goInvite();
+      const resolvedSessionId = sessionId ?? context.activeSession;
+      const resolvedInviteUrl = inviteUrl ?? context.inviteUrl;
       uiController.showInvite({
         container: context.root,
-        sessionId,
-        inviteUrl: context.inviteUrl,
+        sessionId: resolvedSessionId,
+        inviteUrl: resolvedInviteUrl,
         canShare: inviteService.canShare(),
-        onCopyLink: () => inviteService.copySessionLink(sessionId),
-        onShareLink: () => inviteService.shareSessionLink(sessionId),
+        onCopyLink: () => inviteService.copySessionLink(resolvedSessionId),
+        onShareLink: () => inviteService.shareSessionLink(resolvedSessionId),
         onStartCall: () => startOutgoingCall()
       });
     };
@@ -326,9 +329,25 @@ export default class HomeCall_Web_Ui_Flow {
       stateMachine.goHome();
       uiController.showHome({
         container: context.root,
-        onStartCall: handleStartCall
+        onStartCall: handleStartCall,
+        onOpenSettings: () => showSettings?.()
       });
     };
+
+    showSettings = () => {
+      ensureRoot();
+      stateMachine.goSettings();
+      uiController.showSettings({
+        container: context.root,
+        onClose: () => showHome()
+      });
+    };
+
+    this.showInvite = (params = {}) => showInviteScreen(params);
+    this.showCall = showCall;
+    this.showEnd = showEnd;
+    this.showHome = showHome;
+    this.showSettings = showSettings;
 
     const bootstrap = async () => {
       ensureRoot();

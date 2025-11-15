@@ -28,6 +28,7 @@ export default class HomeCall_Web_State_Machine {
 
     this.goHome = () => this.setState('home');
     this.goInvite = () => this.setState('invite');
+    this.goSettings = () => this.setState('settings');
     this.goCall = () => this.setState('call');
     this.goEnd = () => this.setState('end');
   }
