@@ -18,34 +18,34 @@ export default class HomeCall_Web_App {
     HomeCall_Web_Ui_Flow$: callFlow
   } = {}) {
     if (!templates) {
-      throw new Error('Template loader is required for HomeCall core.');
+      throw new Error('Template loader is required for Kolobok core.');
     }
     if (!sw) {
-      throw new Error('Service worker module is required for HomeCall core.');
+      throw new Error('Service worker module is required for Kolobok core.');
     }
     if (!version) {
-      throw new Error('Version watcher is required for HomeCall core.');
+      throw new Error('Version watcher is required for Kolobok core.');
     }
     if (!media) {
-      throw new Error('Media manager is required for HomeCall core.');
+      throw new Error('Media manager is required for Kolobok core.');
     }
     if (!signal) {
-      throw new Error('Signal client is required for HomeCall core.');
+      throw new Error('Signal client is required for Kolobok core.');
     }
     if (!peer) {
-      throw new Error('RTC peer is required for HomeCall core.');
+      throw new Error('RTC peer is required for Kolobok core.');
     }
     if (!env) {
-      throw new Error('Environment provider is required for HomeCall core.');
+      throw new Error('Environment provider is required for Kolobok core.');
     }
     if (!toast) {
-      throw new Error('Toast module is required for HomeCall core.');
+      throw new Error('Toast module is required for Kolobok core.');
     }
     if (!signalOrchestrator) {
-      throw new Error('Signal orchestrator is required for HomeCall core.');
+      throw new Error('Signal orchestrator is required for Kolobok core.');
     }
     if (!callFlow) {
-      throw new Error('Call flow controller is required for HomeCall core.');
+      throw new Error('Call flow controller is required for Kolobok core.');
     }
 
     const documentRef = env.document ?? null;
@@ -69,7 +69,7 @@ export default class HomeCall_Web_App {
 
     const run = async () => {
       if (!documentRef) {
-        throw new Error('Document is not available for HomeCall application.');
+        throw new Error('Document is not available for Kolobok application.');
       }
       const root = documentRef.getElementById('app');
       if (!root) {

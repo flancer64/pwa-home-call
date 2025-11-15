@@ -1,4 +1,4 @@
-# WebSocket signaling in ДомоЗвон (`ctx/rules/arch/back/signal.md`)
+# WebSocket signaling in Колобок (`ctx/rules/arch/back/signal.md`)
 
 ## Purpose
 

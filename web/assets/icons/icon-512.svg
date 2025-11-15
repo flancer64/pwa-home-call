@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title>ДомоЗвон — большая иконка</title>
+  <title>Колобок — большая иконка</title>
   <rect width="512" height="512" rx="64" fill="#0078d7" />
   <path d="M256 120 120 224v200h72v-96h128v96h72V224L256 120z" fill="#ffffff" />
   <circle cx="376" cy="296" r="56" fill="#ffffff" opacity="0.3" />

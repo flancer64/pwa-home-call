@@ -50,7 +50,7 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   };
   const logger = { info() {}, warn() {}, error() {} };
   const rootElement = { classList: { toggle() {} } };
-  const location = new URL('https://domozvon.app/');
+  const location = new URL('https://kolobok.app/');
   const history = { replaceState() {}, state: null };
   const windowStub = { location, history };
   const navigatorStub = { clipboard: { async writeText() {} } };

@@ -1,4 +1,4 @@
-# Domozvon screen contour
+# Kolobok screen contour
 
 **Path:** ./ctx/rules/web/ui/screens.md
 

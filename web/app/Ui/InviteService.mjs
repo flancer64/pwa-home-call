@@ -40,7 +40,7 @@ export default class HomeCall_Web_Ui_InviteService {
       if (navigatorRef && typeof navigatorRef.share === 'function') {
         try {
           await navigatorRef.share({
-            title: 'ДомоЗвон',
+            title: 'Колобок',
             text: 'Присоединяйтесь к звонку.',
             url: link
           });

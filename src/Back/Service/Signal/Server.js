@@ -1,6 +1,6 @@
 /**
  * @module HomeCall_Back_Service_Signal_Server
- * @description WebSocket signaling server for HomeCall.
+ * @description WebSocket signaling server for Kolobok.
  */
 
 import { WebSocketServer, WebSocket } from 'ws';

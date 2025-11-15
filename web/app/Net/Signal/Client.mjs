@@ -27,7 +27,7 @@ const buildSignalLogger = (logger, env) => {
 export default class HomeCall_Web_Net_Signal_Client {
   constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Logger$: logger } = {}) {
     if (!env) {
-      throw new Error('HomeCall environment provider is required.');
+      throw new Error('Kolobok environment provider is required.');
     }
     const signalLog = buildSignalLogger(logger, env);
     const WebSocketCtor = env.WebSocket;

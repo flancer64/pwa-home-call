@@ -8,7 +8,7 @@ export default class HomeCall_Web_Net_Session_Manager {
       throw new Error('Environment provider is required for the session manager.');
     }
     const envRef = env;
-    const originValue = (envRef.window?.location?.origin ?? 'https://domozvon.app').replace(/\/$/, '');
+    const originValue = (envRef.window?.location?.origin ?? 'https://kolobok.app').replace(/\/$/, '');
 
     const createFallbackId = () => {
       const randomSegment = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);

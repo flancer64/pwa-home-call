@@ -6,7 +6,7 @@
 export default class HomeCall_Web_Media_Monitor {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     if (!env) {
-      throw new Error('HomeCall environment provider is required.');
+      throw new Error('Kolobok environment provider is required.');
     }
     const navigatorRef = env.navigator;
     let listener = null;

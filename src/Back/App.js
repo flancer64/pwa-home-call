@@ -1,6 +1,6 @@
 /**
  * @module HomeCall_Back_App
- * @description Minimal backend application entry point for HomeCall.
+ * @description Minimal backend application entry point for Kolobok.
  */
 
 export default class HomeCall_Back_App {
@@ -23,9 +23,9 @@ export default class HomeCall_Back_App {
          * @returns {Promise<void>}
          */
         this.run = async () => {
-            logger.info(namespace, 'HomeCall backend starting.');
+            logger.info(namespace, 'Kolobok backend starting.');
             await signal.start();
-            logger.info(namespace, 'HomeCall backend started.');
+            logger.info(namespace, 'Kolobok backend started.');
         };
 
         /**
@@ -33,9 +33,9 @@ export default class HomeCall_Back_App {
          * @returns {Promise<void>}
          */
         this.stop = async () => {
-            logger.info(namespace, 'HomeCall backend stopping.');
+            logger.info(namespace, 'Kolobok backend stopping.');
             await signal.stop();
-            logger.info(namespace, 'HomeCall backend stopped.');
+            logger.info(namespace, 'Kolobok backend stopped.');
         };
     }
 }

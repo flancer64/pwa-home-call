@@ -6,7 +6,7 @@
 export default class HomeCall_Web_Pwa_ServiceWorker {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     if (!env) {
-      throw new Error('HomeCall environment provider is required.');
+      throw new Error('Kolobok environment provider is required.');
     }
     const navigatorRef = env.navigator;
     const windowRef = env.window;

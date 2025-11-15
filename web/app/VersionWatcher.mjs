@@ -10,7 +10,7 @@ export default class HomeCall_Web_VersionWatcher {
     HomeCall_Web_Logger$: logger
   } = {}) {
     if (!env) {
-      throw new Error('HomeCall environment provider is required.');
+      throw new Error('Kolobok environment provider is required.');
     }
     const fetchRef = env.fetch;
     const setIntervalRef = env.setInterval;

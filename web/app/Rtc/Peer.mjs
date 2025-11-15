@@ -1,6 +1,6 @@
 /**
  * @module HomeCall_Web_Rtc_Peer
- * @description Wraps RTCPeerConnection logic for HomeCall.
+ * @description Wraps RTCPeerConnection logic for Kolobok.
  */
 
 const buildPeerLogger = (logger, env) => {
@@ -30,7 +30,7 @@ export default class HomeCall_Web_Rtc_Peer {
     HomeCall_Web_Logger$: logger,
   } = {}) {
     if (!env) {
-      throw new Error('HomeCall environment provider is required.');
+      throw new Error('Kolobok environment provider is required.');
     }
     const RTCPeerConnectionCtor = env.RTCPeerConnection;
     const RTCSessionDescriptionCtor = env.RTCSessionDescription;

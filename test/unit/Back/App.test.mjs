@@ -40,10 +40,10 @@ describe('HomeCall_Back_App', () => {
 
         assert.deepEqual(signalCalls, ['start', 'stop']);
         assert.deepEqual(calls, [
-            { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend starting.' },
-            { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend started.' },
-            { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend stopping.' },
-            { method: 'info', namespace: 'HomeCall_Back_App', message: 'HomeCall backend stopped.' },
+            { method: 'info', namespace: 'HomeCall_Back_App', message: 'Kolobok backend starting.' },
+            { method: 'info', namespace: 'HomeCall_Back_App', message: 'Kolobok backend started.' },
+            { method: 'info', namespace: 'HomeCall_Back_App', message: 'Kolobok backend stopping.' },
+            { method: 'info', namespace: 'HomeCall_Back_App', message: 'Kolobok backend stopped.' },
         ]);
     });
 });

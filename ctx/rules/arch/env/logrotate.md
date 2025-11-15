@@ -1,18 +1,18 @@
-# Конфигурация logrotate для Node.js-приложения ДомоЗвон (`ctx/rules/arch/env/logrotate.md`)
+# Конфигурация logrotate для Node.js-приложения Колобок (`ctx/rules/arch/env/logrotate.md`)
 
 ## Назначение
 
-Определяет правила ротации логов backend-приложения ДомоЗвон, запускаемого через systemd.  
+Определяет правила ротации логов backend-приложения Колобок, запускаемого через systemd.  
 Документ фиксирует стандартную схему логирования с автоматическим архивированием и очисткой старых файлов.
 
 ---
 
 ## Пример конфигурации logrotate
 
-Файл `/etc/logrotate.d/homecall` содержит:
+Файл `/etc/logrotate.d/kolobok` содержит:
 
 ```conf
-/home/{user}/store/app/homecall/log/out.log {
+/home/{user}/store/app/kolobok/log/out.log {
     daily
     rotate 14
     compress
@@ -27,8 +27,8 @@
 
 ## Правила настройки
 
-1. Конфигурационный файл сохраняется под именем `/etc/logrotate.d/homecall`.
-2. Путь `/home/{user}/store/app/homecall/log/out.log` должен совпадать с настройкой в `systemd`-сервисе.
+1. Конфигурационный файл сохраняется под именем `/etc/logrotate.d/kolobok`.
+2. Путь `/home/{user}/store/app/kolobok/log/out.log` должен совпадать с настройкой в `systemd`-сервисе.
 3. Права на каталог логов должны позволять пользователю `{user}` запись и чтение.
 4. Ротация выполняется ежедневно:
 
@@ -40,7 +40,7 @@
 5. Для ручного запуска ротации:
 
 ```bash
-sudo logrotate -f /etc/logrotate.d/homecall
+sudo logrotate -f /etc/logrotate.d/kolobok
 ```
 
 ---
@@ -55,5 +55,5 @@ sudo logrotate -f /etc/logrotate.d/homecall
 
 ## Итог
 
-Документ фиксирует правила ротации логов ДомоЗвон.
+Документ фиксирует правила ротации логов Колобок.
 Конфигурация logrotate обеспечивает ежедневное сжатие, хранение последних 14 архивов и безопасное обновление активного файла без остановки сервиса.

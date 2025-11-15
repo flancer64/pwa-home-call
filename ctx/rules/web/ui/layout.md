@@ -1,7 +1,7 @@
-# Domozvon: Layout and large UI rhythm
+# Kolobok: Layout and large UI rhythm
 
 ## Purpose
-This document captures the new high-contrast, senior-friendly layout that runs through every screen of Domozvon (`home`, `invite`, `call`, `end`). The goal is to keep the interface readable, the actions obvious, and the spacing generous so the user can focus on a single CTA at a time.
+This document captures the new high-contrast, senior-friendly layout that runs through every screen of Kolobok (`home`, `invite`, `call`, `end`). The goal is to keep the interface readable, the actions obvious, and the spacing generous so the user can focus on a single CTA at a time.
 
 ## Structure
 Each screen now follows the same three-zone rhythm: **header** (brand, status or guidance), **action** (large input/buttons), and **hint** (extra reassurance or instructions). This keeps the layout consistent whether we render the home screen, the invite page with a copyable link, the call player with status badges, or the final summary card.

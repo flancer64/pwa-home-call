@@ -39,7 +39,7 @@ const MODULE_ASSETS = [
 const CORE_ASSETS = [...STATIC_ASSETS, ...MODULE_ASSETS];
 const CORE_ASSET_SET = new Set(CORE_ASSETS);
 let CURRENT_VERSION = '0';
-let CURRENT_CACHE_NAME = 'homecall-v0';
+let CURRENT_CACHE_NAME = 'kolobok-v0';
 
 async function resolveVersionInfo() {
   try {
@@ -90,7 +90,7 @@ self.addEventListener('install', (event) => {
     (async () => {
       const version = await resolveVersionInfo();
       CURRENT_VERSION = version;
-      CURRENT_CACHE_NAME = `homecall-v${version}`;
+      CURRENT_CACHE_NAME = `kolobok-v${version}`;
       const cache = await caches.open(CURRENT_CACHE_NAME);
       await cache.addAll(CORE_ASSETS);
       self.skipWaiting();
@@ -147,7 +147,7 @@ self.addEventListener('message', (event) => {
       }
 
       try {
-        const newCache = `homecall-v${version}`;
+        const newCache = `kolobok-v${version}`;
         const keys = await caches.keys();
         await Promise.all(keys.map((key) => caches.delete(key)));
         const cache = await caches.open(newCache);

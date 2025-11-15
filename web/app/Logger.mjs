@@ -7,7 +7,7 @@ export default class HomeCall_Web_Logger {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     const consoleRef = env?.console ?? globalThis.console ?? null;
     this.console = consoleRef;
-    this.context = 'HomeCall';
+    this.context = 'Kolobok';
   }
 
   _notify(level, message, details) {
