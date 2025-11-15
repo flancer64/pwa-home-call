@@ -1,12 +1,21 @@
 <section data-screen="end" class="screen-card screen-end">
   <div class="screen-zone screen-zone--header">
-    <h2>Звонок завершён</h2>
-    <p id="end-message" class="screen-subtext">Сеанс завершён.</p>
+    <p class="screen-kicker">ДомоЗвон</p>
+    <h2>Звонок завершён.</h2>
+    <p id="end-message" class="screen-subtext">Можно вернуться на главный экран и начать новый вызов.</p>
   </div>
   <div class="screen-zone screen-zone--action end-action">
-    <button id="return-home" class="primary ui-large" type="button">Вернуться на главную</button>
+    <button id="return-home" class="primary ui-large" type="button">
+      <span class="ui-glyph" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+          <path d="M3 12L12 4l9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M5 11v9h5v-5h4v5h5v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </span>
+      <span class="ui-label">Вернуться на главную</span>
+    </button>
   </div>
   <div class="screen-zone screen-zone--hint">
-    <p class="screen-note">Нажмите снова, когда потребуется новый звонок.</p>
+    <p class="screen-note">Сохранённое имя ждёт вас. Просто нажмите кнопку звонка, когда потребуется новая связь.</p>
   </div>
 </section>
