@@ -1,5 +1,3 @@
-const priv = new WeakMap();
-
 /**
  * @module HomeCall_Web_Ui_Flow
  * @description Orchestrates the home → invite → call → end cycle using sessionIds.
@@ -54,8 +52,6 @@ export default class HomeCall_Web_Ui_Flow {
       connectionMessage: '',
       isCallInProgress: false
     };
-    priv.set(this, context);
-
     const log = logger ?? console;
     const toastNotifier = toast;
     const ensureRoot = () => {

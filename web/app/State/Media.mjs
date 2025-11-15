@@ -5,23 +5,19 @@
  * of video and audio media devices. Private data is hidden in module closure.
  */
 
-const priv = new WeakMap();
-
 /**
  * @private
  * Handles controlled transition for the given medium and notifies listeners.
- * @param {HomeCall_Web_State_Media} instance
+ * @param {object} context
  * @param {'video'|'audio'} type
  * @param {string} next
  * @param {any} [params]
  */
-function transition(instance, type, next, params) {
-    const data = priv.get(instance);
-    if (!data) throw new Error('Invalid media state instance');
-    const current = data.state[type];
+function transition(context, type, next, params) {
+    const current = context.state[type];
     if (current === next) return;
-    data.state[type] = next;
-    const listeners = data.listeners[type][next];
+    context.state[type] = next;
+    const listeners = context.listeners[type][next];
     for (const fn of listeners) {
         try {
             fn(params, current, next);
@@ -31,12 +27,28 @@ function transition(instance, type, next, params) {
     }
 }
 
+/**
+ * @private
+ * Adds a listener for a given type/state pair.
+ * @param {object} context
+ * @param {'video'|'audio'} type
+ * @param {string} state
+ * @param {(params?: any, from: string, to: string) => void} fn
+ * @returns {() => void} unsubscribe function
+ */
+function subscribe(context, type, state, fn) {
+    if (typeof fn !== 'function') return () => { };
+    const list = context.listeners[type][state];
+    list.add(fn);
+    return () => list.delete(fn);
+}
+
 export default class HomeCall_Web_State_Media {
     /**
      * @param {object} deps - Dependencies injected by DI container (not used).
      */
     constructor(deps = {}) {
-        const props = {
+        const context = {
             state: {
                 video: 'off',
                 audio: 'off'
@@ -60,75 +72,43 @@ export default class HomeCall_Web_State_Media {
                 }
             }
         };
-        priv.set(this, props);
+
+        const createSetter = (type, state) => (params) => transition(context, type, state, params);
+        const createListener = (type, state) => (fn) => subscribe(context, type, state, fn);
+
+        this.initState = (video = 'off', audio = 'off') => {
+            context.state.video = video;
+            context.state.audio = audio;
+        };
+
+        this.get = () => ({ ...context.state });
+
+        this.setVideoOff = createSetter('video', 'off');
+        this.setVideoInitializing = createSetter('video', 'initializing');
+        this.setVideoReady = createSetter('video', 'ready');
+        this.setVideoPaused = createSetter('video', 'paused');
+        this.setVideoBlocked = createSetter('video', 'blocked');
+        this.setVideoUnsupported = createSetter('video', 'unsupported');
+
+        this.setAudioOff = createSetter('audio', 'off');
+        this.setAudioInitializing = createSetter('audio', 'initializing');
+        this.setAudioReady = createSetter('audio', 'ready');
+        this.setAudioPaused = createSetter('audio', 'paused');
+        this.setAudioBlocked = createSetter('audio', 'blocked');
+        this.setAudioUnsupported = createSetter('audio', 'unsupported');
+
+        this.onVideoOff = createListener('video', 'off');
+        this.onVideoInitializing = createListener('video', 'initializing');
+        this.onVideoReady = createListener('video', 'ready');
+        this.onVideoPaused = createListener('video', 'paused');
+        this.onVideoBlocked = createListener('video', 'blocked');
+        this.onVideoUnsupported = createListener('video', 'unsupported');
+
+        this.onAudioOff = createListener('audio', 'off');
+        this.onAudioInitializing = createListener('audio', 'initializing');
+        this.onAudioReady = createListener('audio', 'ready');
+        this.onAudioPaused = createListener('audio', 'paused');
+        this.onAudioBlocked = createListener('audio', 'blocked');
+        this.onAudioUnsupported = createListener('audio', 'unsupported');
     }
-
-    /**
-     * Initializes both sub-states.
-     * @param {string} [video='off']
-     * @param {string} [audio='off']
-     */
-    initState(video = 'off', audio = 'off') {
-        const data = priv.get(this);
-        data.state.video = video;
-        data.state.audio = audio;
-    }
-
-    /**
-     * Returns current snapshot of both sub-states.
-     * @returns {{video: string, audio: string}}
-     */
-    get() {
-        const data = priv.get(this);
-        return { ...data.state };
-    }
-
-    /* ---------- VIDEO setters ---------- */
-    setVideoOff(params) { transition(this, 'video', 'off', params); }
-    setVideoInitializing(params) { transition(this, 'video', 'initializing', params); }
-    setVideoReady(params) { transition(this, 'video', 'ready', params); }
-    setVideoPaused(params) { transition(this, 'video', 'paused', params); }
-    setVideoBlocked(params) { transition(this, 'video', 'blocked', params); }
-    setVideoUnsupported(params) { transition(this, 'video', 'unsupported', params); }
-
-    /* ---------- AUDIO setters ---------- */
-    setAudioOff(params) { transition(this, 'audio', 'off', params); }
-    setAudioInitializing(params) { transition(this, 'audio', 'initializing', params); }
-    setAudioReady(params) { transition(this, 'audio', 'ready', params); }
-    setAudioPaused(params) { transition(this, 'audio', 'paused', params); }
-    setAudioBlocked(params) { transition(this, 'audio', 'blocked', params); }
-    setAudioUnsupported(params) { transition(this, 'audio', 'unsupported', params); }
-
-    /* ---------- VIDEO listeners ---------- */
-    onVideoOff(fn) { return subscribe(this, 'video', 'off', fn); }
-    onVideoInitializing(fn) { return subscribe(this, 'video', 'initializing', fn); }
-    onVideoReady(fn) { return subscribe(this, 'video', 'ready', fn); }
-    onVideoPaused(fn) { return subscribe(this, 'video', 'paused', fn); }
-    onVideoBlocked(fn) { return subscribe(this, 'video', 'blocked', fn); }
-    onVideoUnsupported(fn) { return subscribe(this, 'video', 'unsupported', fn); }
-
-    /* ---------- AUDIO listeners ---------- */
-    onAudioOff(fn) { return subscribe(this, 'audio', 'off', fn); }
-    onAudioInitializing(fn) { return subscribe(this, 'audio', 'initializing', fn); }
-    onAudioReady(fn) { return subscribe(this, 'audio', 'ready', fn); }
-    onAudioPaused(fn) { return subscribe(this, 'audio', 'paused', fn); }
-    onAudioBlocked(fn) { return subscribe(this, 'audio', 'blocked', fn); }
-    onAudioUnsupported(fn) { return subscribe(this, 'audio', 'unsupported', fn); }
-}
-
-/**
- * @private
- * Adds a listener for a given type/state pair.
- * @param {HomeCall_Web_State_Media} instance
- * @param {'video'|'audio'} type
- * @param {string} state
- * @param {(params?: any, from: string, to: string) => void} fn
- * @returns {() => void} unsubscribe function
- */
-function subscribe(instance, type, state, fn) {
-    if (typeof fn !== 'function') return () => { };
-    const data = priv.get(instance);
-    const list = data.listeners[type][state];
-    list.add(fn);
-    return () => list.delete(fn);
 }
