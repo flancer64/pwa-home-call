@@ -565,156 +565,109 @@ button.ui-large {
 }
 
 .screen-call {
-  padding-top: clamp(1rem, 3vw, 2rem);
-}
-
-.call-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  flex: 1;
-}
-
-.call-stage {
+  padding: 0;
+  gap: 0;
+  min-height: 100vh;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   position: relative;
-  width: 100%;
-  min-height: clamp(420px, 70vh, 80vh);
-  border-radius: 2rem;
   overflow: hidden;
-  background: #000;
 }
 
-.call-stage video {
+@media (min-width: 960px) {
+  .screen-call {
+    max-width: 100%;
+    margin: 0;
+  }
+}
+
+body.state-call {
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.screen-call .call-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #010d0a 0%, #021c17 60%, rgba(1, 29, 22, 0.95) 100%);
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: hidden;
+}
+
+.call-stage video#remote-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.call-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+  background: #000;
+  z-index: 1;
   pointer-events: none;
 }
 
-.media-indicators {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem;
-}
-
-.media-indicator {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0.9rem 1rem;
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  pointer-events: auto;
-  box-shadow: var(--shadow-soft);
-}
-
-.media-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--icon-accent);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.media-icon svg {
-  width: 2rem;
-  height: 2rem;
-  stroke: currentColor;
-}
-
-.media-labels {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.media-label {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.media-state {
-  font-size: 0.95rem;
-  text-transform: capitalize;
-  color: var(--text-muted);
-}
-
-.media-indicator[data-state='ready'] {
-  border-color: #6ECFC0;
-}
-
-.media-indicator[data-state='blocked'] {
-  border-color: #D95C4A;
-}
-
-.media-indicator[data-state='unsupported'] {
-  border-color: #E9A944;
-}
-
-.media-indicator[data-state='paused'] {
-  border-color: #6ECFC0;
-}
-
-#media-detail {
-  color: var(--icon-accent);
-  font-weight: 600;
-}
-
-#retry-media {
-  pointer-events: auto;
-  justify-content: center;
-}
-
-.local-miniature {
+.call-local {
   position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 150px;
-  height: 190px;
+  bottom: max(
+    env(safe-area-inset-bottom, 1.25rem) + calc(var(--call-close-height, 3.5rem) * 2),
+    clamp(3rem, 5vw, 4.5rem)
+  );
+  right: clamp(1.25rem, 3vw, 1.75rem);
+  width: clamp(130px, 20vw, 180px);
+  height: clamp(160px, 28vw, 220px);
   border-radius: 1.5rem;
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.65);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.45);
+  z-index: 2;
 }
 
-.local-miniature video {
+.call-local video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.local-miniature p {
-  margin: 0;
-  padding: 0.5rem;
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+.call-settings {
+  position: absolute;
+  top: clamp(1rem, 3vw, 1.5rem);
+  right: clamp(1rem, 3vw, 1.5rem);
+  z-index: 3;
+  pointer-events: auto;
 }
 
-.call-controls {
-  width: 100%;
-  display: flex;
+.call-close {
+  position: absolute;
+  left: 50%;
+  bottom: max(
+    env(safe-area-inset-bottom, 1.75rem),
+    clamp(2rem, 4vw, 3rem)
+  );
+  --call-close-height: clamp(3rem, 7vw, 4rem);
+  min-height: var(--call-close-height);
+  transform: translateX(-50%);
+  width: min(320px, 85%);
+  border-radius: 999px;
   justify-content: center;
+  z-index: 3;
+  transition: none;
 }
 
-.call-controls button {
-  width: min(480px, 100%);
+.call-close:focus-visible,
+.call-close:hover {
+  transform: translateX(-50%);
+}
+
+.call-close .ui-glyph {
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .screen-end .screen-zone--action {

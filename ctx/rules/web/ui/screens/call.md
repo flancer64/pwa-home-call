@@ -1,21 +1,69 @@
-# Call Screen
+# Экран «Звонок»
 
-**Path:** ./ctx/rules/web/ui/screens/call.md
+**Path:** `./ctx/rules/web/ui/screens/call.md`
 
-## Purpose
-The `call` screen shows the live video from the other participant and provides clear feedback about the local camera and microphone. It keeps the entire viewport for the remote stream while layering the new status overlay on top.
+## Назначение
 
-## Layout
-- The screen still consists of the three zones, but the action zone is now primarily the `call-stage` area.
-- `call-stage` contains the remote `<video>` plus an overlay with two `media-indicator` cards (camera and microphone), a central status message, and the **«Повторить»** button that becomes visible when hardware access is blocked.
-- The bottom action area holds the wide **«Завершить звонок»** button and the floating local-miniature preview.
+Экран отображает видеопоток собеседника и предоставляет минимальный набор действий во время разговора. Всё пространство экрана должно быть занято удалённым видео, чтобы обеспечить максимальную читаемость и удобство для пожилого пользователя.
 
-## Behavior
-1. When the call starts, `call-stage` renders the remote stream; the media overlay immediately reports the latest state provided by `HomeCall_Web_Media_Manager` (using `HomeCall_Web_State_Media` to know if the camera/mic are ready, paused, blocked, etc.).
-2. Each indicator displays an icon, the device name, and the current state text (`Готово`, `Приостановлено`, `Заблокировано`, `Не поддерживается`, `Ожидание`). Colors change via `data-state` so the user can read the health of each device at a glance.
-3. If the manager reports a blocked camera permission, the overlay reveals the **«Повторить»** button (which calls `media.prepare()` again to prompt the browser permission dialog). The status text updates with the latest message returned by `MediaManager` (all Russian), so the overlay and toasts stay in sync.
-4. The single **«Завершить звонок»** button terminates the call and transitions to the `end` screen. Any network errors still show toast messages (например, «Связь потеряна» или «Не удалось установить соединение»).
+## Структура экрана
 
-## Accessibility
-- The remote stream fills the card, but the overlay uses high contrast backgrounds (semi-transparent black) so the indicators and text remain legible.
-- The overlay never blocks the CTA: the `call-controls` container stays at the bottom with left-right centering, guaranteeing at least one large button per screen.
+Экран состоит из трёх минимальных зон:
+
+### 1. Верхняя зона
+
+- Справа вверху расположена FAB-кнопка **настроек** (иконка шестерёнки).
+  Поведение и внешний вид полностью совпадают с экраном «Настройки» и домашним экраном.
+- Никаких заголовков, текстов и статусов не отображается.
+
+### 2. Основная зона
+
+- Весь экран занимает **видеопоток собеседника** (remote video) — строго на весь доступный viewport.
+- Видео растягивается по центру, сохраняя пропорции. Фон — тёмный, если видео не полностью заполняет область.
+- **Миниатюра локальной камеры** (local video) располагается:
+
+  - справа внизу,
+  - с небольшим отступом от нижнего и правого края,
+  - в виде небольшого плавающего окна со скруглёнными углами.
+
+- Никаких индикаторов камеры/микрофона, текстов готовности, статусов блокировки или сообщений поверх видео — экран должен быть полностью чистым.
+
+### 3. Нижняя зона
+
+- В центре по горизонтали, у нижнего края, располагается **крупная плавающая кнопка «Закрыть»** (иконка крестика).
+- Это единственная кнопка управления звонком.
+- Нажатие завершает текущий звонок и возвращает пользователя в сценарий завершения или на домашний экран согласно текущей логике приложения.
+
+## Требования к взаимодействию
+
+- **Кнопка «Закрыть»**:
+
+  - завершает звонок,
+  - корректно останавливает передачу/приём мультимедиа,
+  - переводит пользователя на соответствующий экран после завершения.
+
+- **FAB-кнопка настроек**:
+
+  - открывает экран «Настройки» как поверхностную карточку,
+  - возвращение происходит через FAB-кнопку закрытия на самом экране настроек.
+
+- Переходы между экранами должны быть согласованы с существующей навигацией приложения.
+
+## Требования к UI
+
+- Максимальное использование доступной площади — удалённое видео обязательно на весь экран.
+- Минимум визуальных элементов.
+- Чёткие, крупные, контрастные кнопки.
+- Темная тема, единый стиль градиента, как на остальных экранах.
+- Миниатюра локального видео должна быть читабельной, но не отвлекать от основного содержания.
+
+## Ограничения
+
+- Запрещено показывать любые текстовые статусы, подсказки, индикаторы, карточки устройств, сообщения о готовности камеры или микрофона.
+- Запрещено выводить кнопки кроме:
+
+  - FAB «Настройки»,
+  - плавающей кнопки **«Закрыть»**.
+
+- Не использовать нижние панели, карточки, overlay-индикаторы, вспомогательные тексты.
+- Экран должен работать автономно и не содержать лишних визуальных слоёв.

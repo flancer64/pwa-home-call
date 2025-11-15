@@ -311,7 +311,8 @@ export default class HomeCall_Web_Ui_Flow {
       uiController.showCall({
         container: context.root,
         remoteStream: context.remoteStream,
-        onEnd: () => endCall('Вы завершили звонок.')
+        onEnd: () => endCall('Вы завершили звонок.'),
+        onOpenSettings: () => showSettings?.({ onClose: showCall })
       });
     };
 
@@ -331,16 +332,16 @@ export default class HomeCall_Web_Ui_Flow {
       uiController.showHome({
         container: context.root,
         onStartCall: handleStartCall,
-        onOpenSettings: () => showSettings?.()
+        onOpenSettings: () => showSettings?.({ onClose: showHome })
       });
     };
 
-    showSettings = () => {
+    showSettings = ({ onClose } = {}) => {
       ensureRoot();
       stateMachine.goSettings();
       uiController.showSettings({
         container: context.root,
-        onClose: () => showHome()
+        onClose: typeof onClose === 'function' ? onClose : showHome
       });
     };
 
