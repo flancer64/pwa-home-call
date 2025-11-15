@@ -10,13 +10,13 @@
 
 ## Границы и интерфейсы
 
-- **Вход**: глобальные объекты (`navigator`, `window`, `location`), `.env`, параметры из контейнера (`host`, `wsPort`, `room`), Codex-подмены в тестах.
+- **Вход**: глобальные объекты (`navigator`, `window`, `location`), `.env`, параметры из контейнера (`host`, `wsPort`), Codex-подмены в тестах. `Env` также читает `?session=<uuid>` из адресной строки и сохраняет его как контекстный `session`.
 - **Выход**:
-  - `getContext()` возвращает настройки (`host`, `room`, `version`, `platform`, `permissions`);
-  - `onChange(callback)` позволяет Core и Ui подписаться на обновления (например, при переходе из локальной разработки в прод);
+  - `getContext()` возвращает настройки (`host`, `session`, `version`, `platform`, `permissions`, `sessionHint`);
+  - `onChange(callback)` позволяет Core и Ui подписаться на обновления окружения (например, при переключении веток разработки или предпочтениях платформы);
   - `buildSignalUrl()` формирует `wss://`-строку для `Net`.
 
-Env не генерирует событий `env:change` через EventBus — вместо этого он вызывает зарегистрированные коллбэки прямо из контейнера.
+Env не генерирует событий `env:change` через EventBus — он просто вызывает зарегистрированные коллбэки напрямую из контейнера.
 
 ---
 
@@ -40,7 +40,7 @@ Env регистрируется в `@teqfw/di` как `HomeCall_Web_Env_Provide
 ## Связи
 
 - `ctx/rules/web/app.md` — правильное отображение состояний `home` и `call` зависит от окружения.
-- `ctx/rules/web/contours/core.md` — Core спрашивает `room` из Env перед генерацией комнаты.
+- `ctx/rules/web/contours/core.md` — Core получает `session` из Env при автозапуске звонка.
 - `ctx/rules/web/contours/net.md` — строит URL для WebSocket.
 - `ctx/rules/web/contours/media.md` — проверяет разрешения (`permissions`) и платформенные ограничения.
 - `ctx/rules/web/contours/shared.md` — логгер фиксирует изменения окружения.

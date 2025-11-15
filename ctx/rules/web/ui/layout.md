@@ -9,16 +9,16 @@ Each screen now follows the same three-zone rhythm: **header** (brand, status or
 All labels, helper lines, and toast messages on these screens are Russian phrases, while logging stays in English so developers can parse the trace output without translating the UI copy.
 
 ### Header zone
-- Contains the screen title, a short description, and any contextual message (for example the incoming-room text “Вас пригласили в комнату…” on `home` or “Ссылка готова. Отправьте её собеседнику.” on `invite`).
+- Contains the screen title, a short description, and contextual status text (for example «Ссылка создаётся автоматически» on `home`, «Ссылка готова. Отправьте её собеседнику.» on `invite`, «Связь готова» on `call`).
 - Text is bold, left-to-center-aligned, and sized at least `2rem` so elder eyes can read it without squinting.
 
 ### Action zone
-- Hosts the interactive controls (`home` form, `invite` link actions, `call` controls, `end` return) in a vertically stacked column with 1.25–1.5rem gaps.
-- Buttons and inputs use the shared `ui-large` utility to guarantee a 56px+ tap target, a consistent border radius, and a strong accent color.
-- Primary actions (**«Сохранить и позвонить»**, **«Позвонить»**, **«Скопировать ссылку»**, **«Начать звонок»**, **«Завершить звонок»**) use the accent background; secondary actions (**«Изменить имя»**, **«Очистить кэш»**, **«Повторить»**) stay light with a border, keeping the Cyrillic labels bold and legible.
+- Hosts the interactive controls (`home` call button, `invite` link actions, `call` controls, `end` return) in a vertically stacked column with 1.25–1.5rem gaps.
+- Buttons use the shared `ui-large` utility to guarantee a 56px+ tap target, a consistent border radius, and a strong accent color; there are no text inputs on `home`.
+- Primary actions now include **«Позвонить»**, **«Скопировать ссылку»**, **«Поделиться»**, **«Начать звонок»**, **«Завершить звонок»**, **«Вернуться на главную»**; secondary actions (**«Повторить»**, контекстные подсказки) остаются светлыми с рамкой, сохраняя крупные кириллические метки.
 
 ### Hint zone
-- Provides helper text or reassurance: “Мы запоминаем имя и храним его локально”, “Нажмите на ссылку, чтобы выделить её и вставить в мессенджер”, “Нажмите снова, чтобы начать новый звонок”.
+- Provides helper text or reassurance: “Ссылка создаётся автоматически и готова к отправке”, “Поделитесь ею через чат или мессенджер”, “Возвращайтесь на главную, чтобы начать новый сеанс”.
 - Hints have muted color and a smaller font, but remain visible thanks to the generous spacing above them.
 
 ## `ui-large` utility

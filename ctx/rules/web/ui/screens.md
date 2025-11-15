@@ -8,16 +8,17 @@ The app now follows a consistent `home → invite → call → end` flow with on
 The contour ensures that every screen keeps the same typography, spacing, and focus on large CTA elements while also exposing the new invite step and richer media indicators.
 
 ## States
-1. **home** – collects or reuses the user name, shows the incoming-room message when necessary, and offers quick helpers to reset or change the name. When a name is stored, the action zone consists of the **«Позвонить»** button, a saved-name banner «Используется имя: <name>», **«Изменить имя»**, and **«Очистить кэш»** (which flushes local storage, clears CacheStorage via `HomeCall_Web_Pwa_CacheCleaner$`, and reloads the page). Without a name, the form stays visible with helper text centred and emphasises the need to enter a name before proceeding.
-2. **invite** – introduced after **«Позвонить»** is pressed. It displays the generated link, the **«Скопировать ссылку»** button, an optional **«Поделиться»** button (visible when the Share API exists), and the **«Начать звонок»** button. The screen keeps the three-zone layout so the user still sees the Russian headline, the action buttons, and a hint about sharing.
-3. **call** – shows the remote stream, a small local preview, the new camera/microphone status indicators, and the **«Завершить звонок»** CTA. A **«Повторить»** button appears inside the overlay whenever the camera permission is blocked, prompting the user to re-request access.
-4. **end** – repeats the headline «Звонок завершён», shows a concise summary message, and offers a wide **«Вернуться на главную»** button.
+1. **home** – единственный интерфейс для запуска нового звонка с кнопкой **«Позвонить»** и подсказкой «Ссылка создаётся автоматически». Экран не хранит имена и не запрашивает данные. Если сессия уже передана через `?session=<uuid>`, `Core` вскоре переключается на `call`, а `home` показывает короткий статус «Подключение к сеансу…».
+2. **invite** – появляется после генерации `sessionId`. Зона действий отображает ссылку, **«Скопировать ссылку»**, **«Поделиться»** (если `navigator.share` доступен) и **«Начать звонок»**, сохраняя привычную трёхзонную компоновку.
+3. **call** – отводит экран под видео собеседника, показывает нижнюю панель с **«Завершить звонок»** и локальную миниатюру, а верхний оверлей выводит индикаторы состояния камеры/микрофона и кнопку **«Повторить»**, если разрешения заблокированы.
+4. **end** – сообщает «Звонок завершён», подсказывает, что можно начать новый сеанс, и предлагает широкую кнопку **«Вернуться на главную»**, очищая `sessionId`.
 
 ## Transitions
-- `home → invite`: triggered by **«Позвонить»** once the user has a saved name; the URL bar is cleared and the new invite screen appears with the shareable link.
-- `invite → call`: triggered by **«Начать звонок»**, which begins media preparation and WebRTC setup.
-- `call → end`: triggered by any call termination (manual via **«Завершить звонок»** or network failure); all media streams stop and the overlay disappears.
-- `end → home`: automatically done after clicking **«Вернуться на главную»**; the saved name persists so the flow can restart immediately.
+- `home → invite`: triggered by **«Позвонить»**; Core генерирует `sessionId`, показывает ссылку и делает `invite` активным без дополнительных форм.
+- `home → call`: если `Env` передал `session=<uuid>`, `Core` автоматически запускает подготовку и сразу показывает `call` после готовности медиа.
+- `invite → call`: **«Начать звонок»** запускает `Media.prepare()`, `Net.startSignal(sessionId)`, `Rtc.startOutgoingSession(sessionId)` и отображает `call`.
+- `call → end`: любое завершение соединения (ручное через **«Завершить звонок»** или сбой сети) останавливает медиа, закрывает сигналинг и показывает `end`.
+- `end → home`: нажатие **«Вернуться на главную»** очищает `sessionId` и возвращает пользователя к одному CTA.
 
 ## Feedback
 - Errors about media, signaling, or sharing appear as toast notifications; the screens remain clean with only the relevant CTA.

@@ -13,7 +13,7 @@ Rtc создаёт и сопровождает WebRTC-соединение, по
 - **Входные данные**:
   - `localStream` от Media;
   - `signal` (offer/answer/candidate) от Net через `onSignal`;
-  - команды `startSession(room)`, `endSession()` от Core.
+  - команды `startOutgoingSession(sessionId)`, `startIncomingSession(sessionId)`, `endSession()` от Core;
 - **Выходные коллбэки**:
   - `onRemoteStream(remoteStream)` для UI;
   - `onConnectionState(state)` для Core (сообщает `connecting`, `connected`, `disconnected` — далее `Core` решает, показывать `toast` или переключаться на `end`).
@@ -35,7 +35,7 @@ Rtc не публикует `rtc:*` события; вся логика встр
 
 ## Контейнер и взаимодействия
 
-Rtc разворачивается через `@teqfw/di`. `Core` регистрирует коллбэки `onRemoteStream`, `onConnectionState`, `onIceCandidate`, а `Net` получает `onIceCandidate` и `sendSignal`. При поступлении сигналов Rtc вызывает `onConnectionState` напрямую, и Core обновляет `Ui` через `toast`.
+Rtc разворачивается через `@teqfw/di`. `Core` регистрирует коллбэки `onRemoteStream`, `onConnectionState`, `onIceCandidate`, `startOutgoingSession` и `startIncomingSession`, а `Net` получает `onIceCandidate` и `sendSignal`. При поступлении сигналов Rtc вызывает `onConnectionState` напрямую, и Core обновляет `Ui` через `toast`.
 
 ---
 
@@ -51,4 +51,4 @@ Rtc разворачивается через `@teqfw/di`. `Core` регистр
 
 ## Итог
 
-Контур Rtc обслуживает WebRTC без EventBus: все сигналы проходят через DI-коллбэки, а Core решает, надо ли уведомлять пользователя `toast`, переключаться на `end` или сохранять имя.
+Контур Rtc обслуживает WebRTC без EventBus: все сигналы проходят через DI-коллбэки, а Core решает, надо ли уведомлять пользователя `toast`, переключаться на `end` и обновлять `sessionId`.

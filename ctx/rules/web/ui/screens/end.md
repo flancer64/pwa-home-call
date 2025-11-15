@@ -11,4 +11,4 @@
 
 ## Behavior
 1. `HomeCall_Web_Core_App.endCall` stops all local streams, terminates the peer connection, stores the final message (`state.connectionMessage`), and renders `end`.
-2. The `onReturn` callback clears the active room, resets the view to `home`, and preserves the stored name so the next call starts with the saved value.
+2. The `onReturn` callback clears the active `sessionId`, resets the view to `home`, and leaves the experience ready for a new tap without persisting any personal data.
