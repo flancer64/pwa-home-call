@@ -256,7 +256,7 @@ body {
 
 .ui-large {
   width: 100%;
-  min-height: 64px;
+  min-height: auto;
   border-radius: var(--control-radius);
   border: none;
   padding: 1rem 1.5rem;
@@ -267,6 +267,9 @@ body {
   justify-content: center;
   gap: 1rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ui-large span {
+  align-self: center;
 }
 
 input.ui-large {
