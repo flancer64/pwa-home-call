@@ -1,12 +1,12 @@
 /**
  * @module HomeCall_Web_Core_InviteService
- * @description Handles sharing and copying invite links with user feedback.
+ * @description Handles sharing and copying invite links with minimal UI feedback.
  */
 export default class HomeCall_Web_Core_InviteService {
   constructor({
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast,
-    HomeCall_Web_Core_RoomManager$: roomManager
+    HomeCall_Web_Core_SessionManager$: sessionManager
   } = {}) {
     if (!env) {
       throw new Error('Environment provider is required for the invite service.');
@@ -14,11 +14,11 @@ export default class HomeCall_Web_Core_InviteService {
     if (!toast) {
       throw new Error('Toast module is required for the invite service.');
     }
-    if (!roomManager) {
-      throw new Error('Room manager is required for the invite service.');
+    if (!sessionManager) {
+      throw new Error('Session manager is required for the invite service.');
     }
     const envRef = env;
-    const linkBuilder = roomManager;
+    const linkBuilder = sessionManager;
     const toastNotifier = toast;
     const log = console;
 
@@ -29,12 +29,12 @@ export default class HomeCall_Web_Core_InviteService {
 
     this.canShare = () => typeof envRef.navigator?.share === 'function';
 
-    this.shareRoomLink = async (roomId) => {
-      if (!roomId) {
+    this.shareSessionLink = async (sessionId) => {
+      if (!sessionId) {
         notifyShareError();
         return;
       }
-      const link = linkBuilder.buildInviteUrl(roomId);
+      const link = linkBuilder.buildInviteUrl(sessionId);
       const navigatorRef = envRef.navigator;
       let handled = false;
       if (navigatorRef && typeof navigatorRef.share === 'function') {
@@ -67,12 +67,12 @@ export default class HomeCall_Web_Core_InviteService {
       }
     };
 
-    this.copyRoomLink = async (roomId) => {
-      if (!roomId) {
+    this.copySessionLink = async (sessionId) => {
+      if (!sessionId) {
         toastNotifier.warn('Не удалось скопировать автоматически. Выделите ссылку вручную.');
         return;
       }
-      const link = linkBuilder.buildInviteUrl(roomId);
+      const link = linkBuilder.buildInviteUrl(sessionId);
       const clipboard = envRef.navigator?.clipboard;
       if (clipboard && typeof clipboard.writeText === 'function') {
         try {

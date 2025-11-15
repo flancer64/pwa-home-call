@@ -22,21 +22,16 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     stopLocalStream() {}
   };
   let connectCalls = 0;
-  let senderName = '';
   let sendOfferArgs = null;
-  let joinRoomArgs = null;
-  const signalHandlers = new Map();
+  let joinSessionArgs = null;
   const signalClient = {
-    on(type, handler) {
-      signalHandlers.set(type, handler);
-    },
+    on() {},
     async connect() { connectCalls += 1; },
     sendOffer(payload) { sendOfferArgs = payload; },
     sendAnswer() {},
     sendCandidate() {},
-    joinRoom(payload) { joinRoomArgs = payload; },
-    leaveRoom() {},
-    setSenderName(name) { senderName = name; }
+    joinSession(payload) { joinSessionArgs = payload; },
+    leaveSession() {}
   };
   let configuredHandlers = null;
   let peerStartCalls = 0;
@@ -52,10 +47,6 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     async handleOffer() {},
     async handleAnswer() {},
     async addCandidate() {}
-  };
-  const storage = {
-    getMyData() { return { myName: 'Alice', myRoomId: 'stored-room' }; },
-    setMyName() { return true; }
   };
   const logger = { info() {}, warn() {}, error() {} };
   const rootElement = { classList: { toggle() {} } };
@@ -106,7 +97,6 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   container.register('HomeCall_Web_Rtc_Peer$', peer);
   container.register('HomeCall_Web_Core_UiController$', uiController);
   container.register('HomeCall_Web_Shared_Logger$', logger);
-  container.register('HomeCall_Web_Infra_Storage$', storage);
   container.register('HomeCall_Web_Env_Provider$', env);
   container.register('HomeCall_Web_Ui_Toast$', toast);
 
@@ -124,6 +114,8 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   await uiCalls.home.onStartCall?.();
 
   assert.ok(uiCalls.invite, 'invite screen should render after home call');
+  assert.ok(uiCalls.invite?.inviteUrl?.includes('?session='), 'invite URL includes session parameter');
+  assert.ok(uiCalls.invite?.sessionId, 'invite screen receives session id');
   assert.equal(mediaPrepareCalls, 0, 'media should not prepare before the invite is confirmed');
 
   await uiCalls.invite?.onStartCall?.();
@@ -131,12 +123,9 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   assert.equal(mediaPrepareCalls, 1, 'media should prepare for outgoing call');
   assert.equal(peerStartCalls, 1, 'peer start should be invoked once');
   assert.ok(uiCalls.call, 'call screen should render when the call starts');
-  assert.equal(senderName, 'Alice', 'signal should capture saved name');
+  assert.ok(joinSessionArgs, 'signal should join session before exchanging offers');
+  assert.equal(joinSessionArgs?.sessionId, uiCalls.invite?.sessionId, 'join payload reuses the invite session');
   assert.ok(sendOfferArgs, 'signal should send offer payload');
-  assert.ok(sendOfferArgs?.room?.length > 0, 'offer payload includes room id');
-  assert.equal(sendOfferArgs?.from, 'Alice', 'offer payload includes sender name');
-  assert.ok(joinRoomArgs, 'signal should join room before exchanging offers');
-  assert.equal(joinRoomArgs?.user, 'Alice', 'join payload includes sender name');
-  assert.equal(joinRoomArgs?.room, uiCalls.invite?.roomId, 'join payload uses invite room id');
-  assert.equal(sendOfferArgs?.to, undefined, 'offer payload no longer specifies explicit target');
+  assert.ok(sendOfferArgs?.sessionId?.length > 0, 'offer payload includes session id');
+  assert.equal(sendOfferArgs?.sessionId, uiCalls.invite?.sessionId, 'offer payload uses the same session id');
 });

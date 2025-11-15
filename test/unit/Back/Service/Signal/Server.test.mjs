@@ -34,11 +34,11 @@ const waitForOpen = (socket, timeoutMs = 2000) => new Promise((resolve, reject) 
     socket.once('error', onError);
 });
 
-    const waitForMessage = (socket, predicate, timeoutMs = 2000) => new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
-            cleanup();
-            reject(new Error('Timed out while waiting for WebSocket message.'));
-        }, timeoutMs);
+const waitForMessage = (socket, predicate, timeoutMs = 2000) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Timed out while waiting for WebSocket message.'));
+    }, timeoutMs);
     const cleanup = () => {
         clearTimeout(timer);
         socket.off('message', onMessage);
@@ -113,26 +113,25 @@ describe('HomeCall_Back_Service_Signal_Server', () => {
             bob = new WebSocket(url);
             await waitForOpen(bob);
 
-            alice.send(JSON.stringify({ type: 'join', room: 'family', user: 'alice' }));
-            bob.send(JSON.stringify({ type: 'join', room: 'family', user: 'bob' }));
+            alice.send(JSON.stringify({ type: 'join', sessionId: 'family' }));
+            bob.send(JSON.stringify({ type: 'join', sessionId: 'family' }));
 
             const offerToBob = waitForMessage(bob, (msg) => msg.type === 'offer');
-            alice.send(JSON.stringify({ type: 'offer', room: 'family', to: 'peer', sdp: 'offer-sdp' }));
+            alice.send(JSON.stringify({ type: 'offer', sessionId: 'family', sdp: 'offer-sdp' }));
             const offer = await offerToBob;
-            assert.deepEqual(offer, { type: 'offer', room: 'family', from: 'alice', sdp: 'offer-sdp' });
+            assert.deepEqual(offer, { type: 'offer', sessionId: 'family', sdp: 'offer-sdp' });
 
             const answerToAlice = waitForMessage(alice, (msg) => msg.type === 'answer');
-            bob.send(JSON.stringify({ type: 'answer', room: 'family', to: 'alice', sdp: 'answer-sdp' }));
+            bob.send(JSON.stringify({ type: 'answer', sessionId: 'family', sdp: 'answer-sdp' }));
             const answer = await answerToAlice;
-            assert.deepEqual(answer, { type: 'answer', room: 'family', from: 'bob', sdp: 'answer-sdp' });
+            assert.deepEqual(answer, { type: 'answer', sessionId: 'family', sdp: 'answer-sdp' });
 
             const candidateToBob = waitForMessage(bob, (msg) => msg.type === 'candidate');
-            alice.send(JSON.stringify({ type: 'candidate', room: 'family', to: 'peer', candidate: { candidate: 'ice' } }));
+            alice.send(JSON.stringify({ type: 'candidate', sessionId: 'family', candidate: { candidate: 'ice' } }));
             const candidate = await candidateToBob;
             assert.deepEqual(candidate, {
                 type: 'candidate',
-                room: 'family',
-                from: 'alice',
+                sessionId: 'family',
                 candidate: { candidate: 'ice' },
             });
         } finally {

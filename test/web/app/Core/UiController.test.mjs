@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createWebContainer } from '../../helper.mjs';
 
-test('UiController exposes home, call, and end screens', async () => {
+test('UiController exposes home, invite, call, and end screens', async () => {
   const container = await createWebContainer();
   const recorded = {};
   const enterScreen = { show(params) { recorded.home = params; } };
@@ -19,16 +19,16 @@ test('UiController exposes home, call, and end screens', async () => {
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
 
   const controller = await container.get('HomeCall_Web_Core_UiController$');
-  controller.showHome({ container: 'root', savedName: 'Jane', onStartCall: () => {} });
-  controller.showInvite({ container: 'invite-root', roomId: 'room42', inviteUrl: 'https://domozvon.app/?room=room42' });
+  controller.showHome({ container: 'root', onStartCall: () => {} });
+  controller.showInvite({ container: 'invite-root', sessionId: 'session42', inviteUrl: 'https://domozvon.app/?session=session42' });
   controller.showCall({ container: 'call-root', remoteStream: 'stream', onEnd: () => {} });
   controller.showEnd({ container: 'end-root', connectionMessage: 'ok', onReturn: () => {} });
   controller.updateRemoteStream('stream2');
 
   assert.strictEqual(recorded.home?.container, 'root');
-  assert.strictEqual(recorded.home?.savedName, 'Jane');
-  assert.strictEqual(recorded.invite?.roomId, 'room42');
-  assert.ok(recorded.invite?.inviteUrl?.includes('room=room42'));
+  assert.strictEqual(typeof recorded.home?.onStartCall, 'function');
+  assert.strictEqual(recorded.invite?.sessionId, 'session42');
+  assert.ok(recorded.invite?.inviteUrl?.includes('session=session42'));
   assert.strictEqual(recorded.call?.remoteStream, 'stream');
   assert.strictEqual(recorded.end?.connectionMessage, 'ok');
   assert.strictEqual(recorded.stream, 'stream2');

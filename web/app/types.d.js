@@ -11,7 +11,7 @@
 /** @typedef {import('./Core/ServiceWorkerManager.mjs').default} HomeCall_Web_Core_ServiceWorkerManager */
 /** @typedef {import('./Core/VersionWatcher.mjs').default} HomeCall_Web_Core_VersionWatcher */
 /** @typedef {import('./Core/StateMachine.mjs').default} HomeCall_Web_Core_StateMachine */
-/** @typedef {import('./Core/RoomManager.mjs').default} HomeCall_Web_Core_RoomManager */
+/** @typedef {import('./Core/SessionManager.mjs').default} HomeCall_Web_Core_SessionManager */
 /** @typedef {import('./Core/InviteService.mjs').default} HomeCall_Web_Core_InviteService */
 /** @typedef {import('./Core/SignalOrchestrator.mjs').default} HomeCall_Web_Core_SignalOrchestrator */
 /** @typedef {import('./Core/CallFlow.mjs').default} HomeCall_Web_Core_CallFlow */
@@ -25,9 +25,6 @@
 
 /* ---------- Net ---------- */
 /** @typedef {import('./Net/SignalClient.mjs').default} HomeCall_Web_Net_SignalClient */
-
-/* ---------- Infra ---------- */
-/** @typedef {import('./Infra/Storage.mjs').default} HomeCall_Web_Infra_Storage */
 
 /* ---------- RTC ---------- */
 /** @typedef {import('./Rtc/Peer.mjs').default} HomeCall_Web_Rtc_Peer */

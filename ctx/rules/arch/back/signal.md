@@ -1,83 +1,64 @@
-# Сигналинг WebSocket в ДомоЗвон (`ctx/rules/arch/back/signal.md`)
+# WebSocket signaling in ДомоЗвон (`ctx/rules/arch/back/signal.md`)
 
-## Назначение
+## Purpose
 
-Документ описывает реализацию серверной части сигналинга **ДомоЗвон**, обеспечивающей обмен SDP и ICE-сообщениями между клиентами PWA при установлении WebRTC-соединения.  
-Компонент встроен в backend-приложение и не требует отдельного контракта или внешних зависимостей.
+The document complements `ctx/rules/arch/back.md` by explaining how the embedded WebSocket channel `/signal` orchestrates SDP/ICE exchange between PWA peers. The implementation abandons rooms in favor of single-use `sessionId` values that keep the signaling path deterministic and stateless.
 
----
+## 1. Role in the architecture
 
-## 1. Роль в архитектуре
+The signaling endpoint remains part of `HomeCall_Back_App`. It handles `/signal`, accepts JSON over WebSocket, and routes messages between participants who share the same `sessionId`. The server does not persist any user identities; all routing decisions rely on the current session registry.
 
-Сигналинг — часть модуля `HomeCall_Back_App`, который управляет его запуском и остановкой.  
-Компонент обслуживает путь `/signal`, принимает WebSocket-соединения и маршрутизирует JSON-сообщения между пользователями комнаты, определённой кодовым словом.
-Передача медиаданных не осуществляется.
+## 2. Core responsibilities
 
----
+| Task                   | Description                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| Accept connections     | Register every socket via `HomeCall_Back_Service_Signal_SessionManager$` and remember the active `sessionId`. |
+| Route signaling        | Deliver `offer`, `answer`, and `candidate` messages to all peers registered for the same session, buffering events until a counterpart arrives. |
+| Session cleanup       | Remove sockets on `leave` or disconnect and drop empty sessions from the registry.                         |
+| Error handling         | Respond with `{type:"error",message:"..."}` when the client violates the expected schema.              |
 
-## 2. Основные функции
+## 3. Message formats
 
-| Задача                 | Описание                                                                                        |
-| ---------------------- | ----------------------------------------------------------------------------------------------- |
-| Подключение клиентов   | Принимает соединения и регистрирует пользователей по `room` и `user`, сохраняя метаданные сокета.                           |
-| Маршрутизация сигналов | Пересылает `offer`, `answer`, `candidate` адресатам внутри комнаты, буферизуя сигналы до появления собеседника и логируя каждую попытку ретрансляции.                             |
-| Завершение сеансов     | Удаляет пользователя при `leave` или обрыве соединения.                                         |
-| Обработка ошибок       | Возвращает `{type:"error",message:"Invalid message"}` при некорректных данных.                  |
+| Type         | Direction                 | Fields                                                 | Purpose                                       |
+| ------------ | ------------------------- | ------------------------------------------------------ | --------------------------------------------- |
+| `join`       | client → server           | `sessionId`                                            | Register socket inside a new or existing session. |
+| `leave`      | client → server           | `sessionId`                                            | Explicitly leave a session before closing the socket. |
+| `offer`      | client → server → peers   | `sessionId`, `sdp`                                     | Send SDP offer to every peer in the session.  |
+| `answer`     | client → server → peers   | `sessionId`, `sdp`                                     | Send SDP answer to every peer in the session. |
+| `candidate`  | client ↔ server ↔ peers   | `sessionId`, `candidate`                               | Share ICE candidates inside the session scope. |
+| `error`      | server → client            | `message`                                              | Communicate validation or routing problems.   |
 
----
+When a peer sends an `offer`/`candidate` before anybody else has joined, the server queues the message and delivers it to the first socket that registers for the same `sessionId`. The queue preserves the type and session metadata but never stores names or user IDs.
 
-## 3. Форматы сообщений
-
-| Тип         | Направление                  | Поля                      | Назначение                 |
-| ----------- | ---------------------------- | ------------------------- | -------------------------- |
-| `join`      | клиент → сервер              | `room`, `user`            | вход в комнату             |
-| `leave`     | клиент → сервер              | `room`, `user`            | выход из комнаты           |
-| `offer`     | клиент → сервер → получатель | `room`, `from`, `sdp`       | SDP-предложение            |
-| `answer`    | клиент → сервер → получатель | `room`, `from`, `sdp`       | SDP-ответ                  |
-| `candidate` | клиент ↔ сервер ↔ получатель | `room`, `from`, `candidate` | ICE-кандидат               |
-
-Когда собеседник ещё не подключился, соответствующие `offer`/`candidate` сохраняются в простой очередь на стороне сервера и доставляются сразу после регистрации нового сокета; все такие события логируются через `HomeCall_Back_Logger`.
-| `error`     | сервер → клиент              | `message`                 | сообщение об ошибке        |
-
----
-
-## 4. Структура модулей
+## 4. Module structure
 
 ```text
 src/Back/
 ├── Service/
 │   └── Signal/
-│       ├── Server.js        # WebSocket-сервер: запуск и маршрутизация
-│       └── RoomManager.js   # учёт пользователей и комнат
-└── App.js                   # точка инициализации и жизненного цикла приложения
+│       ├── Server.js        # WebSocket server: start/stop lifecycle and JSON routing
+│       └── SessionManager.js # Tracks sockets per `sessionId`, exposes peers, and manages registrations
+└── App.js                   # Application entry point dialing up the signaling server
 ```
 
-- `HomeCall_Back_Service_Signal_Server` — основной модуль сигналинга;
-- `HomeCall_Back_Service_Signal_RoomManager` — вспомогательный менеджер подключений.
+- `HomeCall_Back_Service_Signal_Server` wires the server into Node.js, validates payloads, invokes the session registry, and manages the pending queue.
+- `HomeCall_Back_Service_Signal_SessionManager` keeps a map of active `sessionId`s and the connected sockets for each session, exposing helpers such as `register`, `deregister`, `getPeers`, and `getSessionId`.
 
----
+## 5. Integration and deployment
 
-## 5. Интеграция и развёртывание
+- `HomeCall_Back_App.run()` instantiates the session manager, passes it to the signal server, and starts the WebSocket endpoint at `/signal`.
+- Clients connect via `wss://<host>/signal`, send `join` with `sessionId`, and remain until the call ends or the socket closes.
+- Pending messages survive only for the life of the process; once delivered, the server discards them and only re-queues if another peer disconnects and later reconnects to the same session.
+- Sessions stay active while at least one socket claims the `sessionId`; they disappear automatically when every participant disconnects.
+- The `WS_PORT`/`WS_HOST` environment variables continue to configure the listening address documented in `ctx/rules/arch/back.md`.
 
-- `HomeCall_Back_App.run()` создаёт экземпляр `Signal_Server` и вызывает `start()`.
-- `App.stop()` завершает работу через `signal.stop()`.
-- Apache проксирует `wss://<host>/signal` на `ws://127.0.0.1:$WS_PORT/signal`.
-- Порт и параметры передаются через `.env` (`WS_PORT`). Конфигурация параметров, включая порт `WS_PORT`, задаётся в `.env` и документирована в `../env/config.md`.
-- Все события логируются через `HomeCall_Back_Logger`.
+## 6. Security considerations
 
----
+- The signaling channel relies on `wss://`; the backend never exposes plain-text learnings about participants.
+- Routing occurs solely by `sessionId` — no user names or room codes travel over the wire.
+- The server does not persist state between restarts, so sessions expire immediately when the process shuts down.
+- Messages use JSON/UTF-8 and are validated before forwarding; malformed payloads receive `{type:"error"}` responses and do not crash the process.
 
-## 6. Безопасность
+## Summary
 
-- Используется только `wss://`.
-- Доступ в комнату ограничивается кодовым словом.
-- Сервер не сохраняет историю сообщений.
-- Все данные передаются в формате JSON (UTF-8).
-- Не используется хранение состояния за пределами процесса.
-
----
-
-## Итог
-
-Сигналинг ДомоЗвон — минимальный встроенный WebSocket-сервер, обрабатывающий обмен SDP/ICE-сообщениями между браузерами.
-Он создаётся и управляется модулем `HomeCall_Back_App`, использует `RoomManager` для учёта подключений и логгер для диагностики, оставаясь простым и автономным элементом backend-архитектуры.
+Signaling stays a minimal part of the backend: `HomeCall_Back_Service_Signal_Server` wires the WebSocket handler and routes offers/answers/candidates based on `sessionId`, and `HomeCall_Back_Service_Signal_SessionManager` keeps track of who belongs to which session. No new entities such as rooms or usernames are introduced, so the entire flow is compatible with the updated single-use session model.

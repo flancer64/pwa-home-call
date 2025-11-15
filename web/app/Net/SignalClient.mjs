@@ -37,7 +37,6 @@ export default class HomeCall_Web_Net_SignalClient {
     const handlers = new Map();
     let socket = null;
     let connectPromise = null;
-    let senderName = '';
 
     const emit = (type, payload) => {
       const list = handlers.get(type);
@@ -169,20 +168,14 @@ export default class HomeCall_Web_Net_SignalClient {
 
     const envelope = (type, payload = {}) => {
       const message = { type, ...payload };
-      if (senderName && !message.from) {
-        message.from = senderName;
-      }
       send(message);
     };
 
     this.sendOffer = (payload) => envelope('offer', payload);
     this.sendAnswer = (payload) => envelope('answer', payload);
     this.sendCandidate = (payload) => envelope('candidate', payload);
-    this.joinRoom = (payload) => envelope('join', payload);
-    this.leaveRoom = (payload) => envelope('leave', payload);
-    this.setSenderName = (name) => {
-      senderName = typeof name === 'string' ? name : '';
-    };
+    this.joinSession = (payload) => envelope('join', payload);
+    this.leaveSession = (payload) => envelope('leave', payload);
   }
 }
 

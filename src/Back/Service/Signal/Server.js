@@ -9,23 +9,20 @@ export default class HomeCall_Back_Service_Signal_Server {
     /**
      * @param {Object} deps - Dependencies injected by @teqfw/di.
      * @param {HomeCall_Back_Contract_Logger} deps.HomeCall_Back_Contract_Logger$ - Logger instance.
-     * @param {HomeCall_Back_Service_Signal_RoomManager} deps.HomeCall_Back_Service_Signal_RoomManager$ - Room manager.
+     * @param {HomeCall_Back_Service_Signal_SessionManager} deps.HomeCall_Back_Service_Signal_SessionManager$ - Session manager.
      */
-    constructor({ HomeCall_Back_Contract_Logger$: logger, HomeCall_Back_Service_Signal_RoomManager$: rooms } = {}) {
+    constructor({ HomeCall_Back_Contract_Logger$: logger, HomeCall_Back_Service_Signal_SessionManager$: sessions } = {}) {
         if (!logger || typeof logger.info !== 'function') {
             throw new TypeError('HomeCall_Back_Service_Signal_Server requires a logger with info() method.');
         }
-        if (!rooms || typeof rooms.join !== 'function') {
-            throw new TypeError('HomeCall_Back_Service_Signal_Server requires a room manager.');
+        if (!sessions || typeof sessions.register !== 'function') {
+            throw new TypeError('HomeCall_Back_Service_Signal_Server requires a session manager.');
         }
 
         const namespace = 'HomeCall_Back_Service_Signal_Server';
-        /** @type {WebSocketServer | null} */
         let server = null;
-        /** @type {WeakMap<import('ws').WebSocket, { room: string, user: string }>} */
-        const session = new WeakMap();
-        const SIGNAL_PATH = '/signal';
         const pendingSignals = new Map();
+        const SIGNAL_PATH = '/signal';
 
         const parsePort = () => {
             const raw = process.env.WS_PORT;
@@ -41,7 +38,7 @@ export default class HomeCall_Back_Service_Signal_Server {
             return raw.length > 0 ? raw : '0.0.0.0';
         };
 
-        const normalizeString = (value, label) => {
+        const normalizeSessionId = (value, label) => {
             if (typeof value !== 'string' || value.trim() === '') {
                 throw new TypeError(`${label} must be a non-empty string.`);
             }
@@ -60,112 +57,101 @@ export default class HomeCall_Back_Service_Signal_Server {
             targetSocket.send(toJson(payload));
         };
 
-        const enqueuePendingSignal = (room, payload) => {
-            const existing = pendingSignals.get(room) ?? [];
-            existing.push(payload);
-            pendingSignals.set(room, existing);
-            logger.info(namespace, `Queued ${payload.type} for room ${room}. Waiting for peer.`);
+        const enqueuePendingSignal = (sessionId, payload, sourceSocket) => {
+            const entries = pendingSignals.get(sessionId) ?? [];
+            entries.push({ payload, source: sourceSocket });
+            pendingSignals.set(sessionId, entries);
+            logger.info(namespace, `Queued ${payload.type} for session ${sessionId}. Waiting for peer.`);
         };
 
-        const deliverPendingSignals = (room, socket, user) => {
-            const entries = pendingSignals.get(room);
+        const deliverPendingSignals = (sessionId, socket) => {
+            const entries = pendingSignals.get(sessionId);
             if (!entries || entries.length === 0) {
-                pendingSignals.delete(room);
+                pendingSignals.delete(sessionId);
                 return;
             }
             const remaining = [];
-            for (const payload of entries) {
-                if (payload.from === user) {
-                    remaining.push(payload);
+            for (const entry of entries) {
+                if (entry.source === socket) {
+                    remaining.push(entry);
                     continue;
                 }
-                safeSend(socket, payload);
-                logger.info(namespace, `Delivered queued ${payload.type} to ${user} in room ${room}.`);
+                safeSend(socket, entry.payload);
+                logger.info(namespace, `Delivered queued ${entry.payload.type} to session ${sessionId}.`);
             }
             if (remaining.length > 0) {
-                pendingSignals.set(room, remaining);
+                pendingSignals.set(sessionId, remaining);
             } else {
-                pendingSignals.delete(room);
+                pendingSignals.delete(sessionId);
             }
         };
 
         const cleanupSocket = (socket) => {
-            const meta = session.get(socket);
-            if (!meta) {
+            if (!socket) {
                 return;
             }
-            session.delete(socket);
-            try {
-                rooms.leave(meta.room, meta.user);
-                logger.info(namespace, `User ${meta.user} left room ${meta.room}.`);
-            } catch (err) {
-                logger.error(namespace, 'Failed to cleanup socket.', err);
-            }
+            sessions.deregister(socket);
         };
 
-        const registerSession = (socket, room, user) => {
-            const roomKey = normalizeString(room, 'room');
-            const userKey = normalizeString(user, 'user');
-            rooms.join(roomKey, userKey, socket);
-            session.set(socket, { room: roomKey, user: userKey });
-            logger.info(namespace, `User ${userKey} joined room ${roomKey}.`);
-            deliverPendingSignals(roomKey, socket, userKey);
+        const registerSession = (socket, sessionId) => {
+            const key = normalizeSessionId(sessionId, 'sessionId');
+            sessions.register(socket, key);
+            logger.info(namespace, `Socket joined session ${key}.`);
+            deliverPendingSignals(key, socket);
+            return key;
         };
 
         const handleJoin = (socket, message) => {
+            if (!message?.sessionId) {
+                sendError(socket, 'Join message requires sessionId.');
+                return;
+            }
             try {
-                registerSession(socket, message.room, message.user);
+                registerSession(socket, message.sessionId);
             } catch (err) {
                 logger.error(namespace, 'Failed to process join message.', err);
-                sendError(socket, 'Unable to join the room.');
+                sendError(socket, 'Unable to join the session.');
             }
         };
 
         const handleLeave = (socket, message) => {
-            const meta = session.get(socket);
-            const roomKey = typeof message.room === 'string' && message.room.trim() !== '' ? message.room.trim() : meta?.room;
-            const userKey = typeof message.user === 'string' && message.user.trim() !== '' ? message.user.trim() : meta?.user;
-            if (!roomKey || !userKey) {
-                sendError(socket, 'leave message requires room and user.');
+            const explicit = typeof message?.sessionId === 'string' && message.sessionId.trim().length
+                ? message.sessionId.trim()
+                : sessions.getSessionId(socket);
+            if (!explicit) {
+                sendError(socket, 'Leave message requires sessionId.');
                 return;
             }
             try {
-                rooms.leave(roomKey, userKey);
-                if (meta) {
-                    session.delete(socket);
-                }
-                logger.info(namespace, `User ${userKey} left room ${roomKey}.`);
+                sessions.deregister(socket);
+                logger.info(namespace, `Socket left session ${explicit}.`);
             } catch (err) {
                 logger.error(namespace, 'Failed to process leave message.', err);
-                sendError(socket, 'Unable to leave the room.');
+                sendError(socket, 'Unable to leave the session.');
             }
         };
 
         const forwardSignal = (socket, type, message) => {
-            const meta = session.get(socket);
-            if (!meta) {
-                sendError(socket, 'Join a room before sending signaling messages.');
+            const sessionId = typeof message?.sessionId === 'string' && message.sessionId.trim().length
+                ? message.sessionId.trim()
+                : sessions.getSessionId(socket);
+            if (!sessionId) {
+                sendError(socket, `${type} message requires sessionId.`);
                 return;
             }
-            let roomKey = typeof message.room === 'string' && message.room.trim() !== '' ? message.room.trim() : meta.room;
-            let fromKey = typeof message.from === 'string' && message.from.trim() !== '' ? message.from.trim() : meta.user;
-            if (!roomKey || !fromKey) {
-                sendError(socket, `${type} message requires room and from.`);
-                return;
-            }
-            const payload = { type, room: roomKey, from: fromKey };
+            let payload = { type, sessionId };
             if (type === 'offer' || type === 'answer') {
                 payload.sdp = message.sdp;
             } else if (type === 'candidate') {
                 payload.candidate = message.candidate;
             }
-            const targetSocket = rooms.getPeerSocket(roomKey, fromKey);
-            if (!targetSocket) {
-                enqueuePendingSignal(roomKey, payload);
+            const peers = sessions.getPeers(sessionId, socket);
+            if (!peers || peers.length === 0) {
+                enqueuePendingSignal(sessionId, payload, socket);
                 return;
             }
-            safeSend(targetSocket, payload);
-            logger.info(namespace, `Forwarded ${type} from ${fromKey} to peer in room ${roomKey}.`);
+            peers.forEach((targetSocket) => safeSend(targetSocket, payload));
+            logger.info(namespace, `Forwarded ${type} in session ${sessionId}.`);
         };
 
         const sendError = (socket, message) => {

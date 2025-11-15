@@ -10,13 +10,13 @@ export default class HomeCall_Web_Ui_Screen_Invite {
     this.templates = templates;
   }
 
-  show({ container, roomId, inviteUrl, canShare, onCopyLink, onShareLink, onStartCall } = {}) {
+  show({ container, sessionId, inviteUrl, canShare, onCopyLink, onShareLink, onStartCall } = {}) {
     if (!container) {
       return;
     }
     this.templates.apply('invite', container);
     const linkElement = container.querySelector('#invite-link');
-    const roomInfo = container.querySelector('#invite-room-info');
+    const sessionInfo = container.querySelector('#invite-session');
     const copyButton = container.querySelector('#copy-link');
     const shareButton = container.querySelector('#share-link');
     const startButton = container.querySelector('#start-call');
@@ -24,10 +24,10 @@ export default class HomeCall_Web_Ui_Screen_Invite {
     if (linkElement) {
       linkElement.textContent = inviteUrl || '';
     }
-    if (roomInfo) {
-      roomInfo.textContent = roomId
-        ? `Комната ${roomId} зарезервирована для этого звонка.`
-        : 'Комната готова к использованию.';
+    if (sessionInfo) {
+      sessionInfo.textContent = sessionId
+        ? `Сессия ${sessionId} готова к звонку.`
+        : 'Сессия готова к использованию.';
     }
     if (shareButton) {
       if (canShare) {

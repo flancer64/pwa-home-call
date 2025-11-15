@@ -2,28 +2,26 @@ const priv = new WeakMap();
 
 /**
  * @module HomeCall_Web_Core_CallFlow
- * @description Encapsulates the home → invite → call → end journey and manages call state.
+ * @description Orchestrates the home → invite → call → end cycle using sessionIds.
  */
 export default class HomeCall_Web_Core_CallFlow {
   constructor({
     HomeCall_Web_Core_StateMachine$: stateMachine,
-    HomeCall_Web_Core_RoomManager$: roomManager,
+    HomeCall_Web_Core_SessionManager$: sessionManager,
     HomeCall_Web_Core_InviteService$: inviteService,
     HomeCall_Web_Core_UiController$: uiController,
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Rtc_Peer$: peer,
     HomeCall_Web_Net_SignalClient$: signal,
-    HomeCall_Web_Infra_Storage$: storage,
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Pwa_CacheCleaner$: cacheCleaner,
     HomeCall_Web_Ui_Toast$: toast,
     HomeCall_Web_Shared_Logger$: logger
   } = {}) {
     if (!stateMachine) {
       throw new Error('State machine is required for the call flow.');
     }
-    if (!roomManager) {
-      throw new Error('Room manager is required for the call flow.');
+    if (!sessionManager) {
+      throw new Error('Session manager is required for the call flow.');
     }
     if (!inviteService) {
       throw new Error('Invite service is required for the call flow.');
@@ -40,14 +38,8 @@ export default class HomeCall_Web_Core_CallFlow {
     if (!signal) {
       throw new Error('Signal client is required for the call flow.');
     }
-    if (!storage) {
-      throw new Error('Storage is required for the call flow.');
-    }
     if (!env) {
       throw new Error('Environment provider is required for the call flow.');
-    }
-    if (!cacheCleaner) {
-      throw new Error('PWA cache cleaner is required for the call flow.');
     }
     if (!toast) {
       throw new Error('Toast module is required for the call flow.');
@@ -55,19 +47,14 @@ export default class HomeCall_Web_Core_CallFlow {
 
     const context = {
       root: null,
-      pendingRoom: roomManager.readRoomFromUrl(),
-      myName: storage.getMyData()?.myName ?? null,
-      activeRoom: null,
+      pendingSession: sessionManager.readSessionFromUrl(),
+      activeSession: null,
+      inviteUrl: null,
       remoteStream: null,
       connectionMessage: '',
       isCallInProgress: false
     };
     priv.set(this, context);
-
-    let showHome;
-    let showInviteScreen;
-    let showCall;
-    let showEnd;
 
     const log = logger ?? console;
     const toastNotifier = toast;
@@ -81,105 +68,49 @@ export default class HomeCall_Web_Core_CallFlow {
       throw new Error('Call flow requires a DOM root container.');
     };
 
-    const joinSignalRoom = () => {
-      if (!context.activeRoom || !context.myName) {
+    const joinSignalSession = () => {
+      if (!context.activeSession) {
         return;
       }
-      signal.joinRoom?.({ room: context.activeRoom, user: context.myName });
+      signal.joinSession?.({ sessionId: context.activeSession });
     };
 
-    const leaveSignalRoom = () => {
-      if (!context.activeRoom || !context.myName) {
+    const leaveSignalSession = () => {
+      if (!context.activeSession) {
         return;
       }
-      signal.leaveRoom?.({ room: context.activeRoom, user: context.myName });
-    };
-
-    const handleChangeName = () => {
-      storage.setMyName?.(null);
-      context.myName = null;
-      toastNotifier.info('Имя очищено. Введите новое имя, чтобы продолжить.');
-      context.pendingRoom = null;
-      showHome();
-    };
-
-    const handleClearCache = async () => {
-      const storageCleared = storage.resetMyData?.();
-      if (!storageCleared) {
-        log.warn?.('[CallFlow] Unable to reset local storage before cache clear.');
-      }
-      context.myName = null;
-      context.pendingRoom = null;
-      context.activeRoom = null;
-      context.remoteStream = null;
-      context.connectionMessage = '';
-      context.isCallInProgress = false;
-      showHome();
-      toastNotifier.info('Очистка кэша и локального хранилища...');
-      try {
-        await cacheCleaner.clear();
-      } catch (error) {
-        log.error?.('[CallFlow] Cache cleaner failed', error);
-        toastNotifier.error('Не удалось очистить кэш. Обновите страницу вручную.');
-      }
+      signal.leaveSession?.({ sessionId: context.activeSession });
     };
 
     const handleReturnHome = () => {
-      leaveSignalRoom();
+      leaveSignalSession();
       context.connectionMessage = '';
       context.remoteStream = null;
-      context.activeRoom = null;
-      context.pendingRoom = null;
+      context.activeSession = null;
+      context.inviteUrl = null;
       context.isCallInProgress = false;
-      roomManager.clearRoomFromUrl();
+      context.pendingSession = null;
+      sessionManager.clearSessionFromUrl();
       showHome();
-    };
-
-    const handleStartCall = async (name) => {
-      if (context.isCallInProgress) {
-        return;
-      }
-      log.info('Start call requested', {
-        hasName: Boolean(context.myName),
-        pendingRoom: context.pendingRoom
-      });
-      if (typeof name === 'string' && name.trim()) {
-        const normalized = name.trim();
-        const saved = storage.setMyName?.(normalized);
-        if (!saved) {
-          toastNotifier.error('Не удалось сохранить имя.');
-          return;
-        }
-        context.myName = normalized;
-        log.info('Caller name stored', { name: normalized });
-        toastNotifier.success('Имя сохранено.');
-      }
-      if (!context.myName) {
-          toastNotifier.error('Введите имя.');
-          return;
-        }
-        signal.setSenderName?.(context.myName);
-      if (context.pendingRoom) {
-        const room = context.pendingRoom;
-        context.pendingRoom = null;
-        log.info('Incoming room detected, resuming call.', { room });
-        await startIncomingCall(room);
-        return;
-      }
-      prepareOutgoingInvite();
     };
 
     const prepareOutgoingInvite = () => {
       if (context.isCallInProgress) {
         return;
       }
-      const roomId = roomManager.createRoomId();
-      context.activeRoom = roomId;
-      context.pendingRoom = null;
-      roomManager.clearRoomFromUrl();
-      context.isCallInProgress = true;
-      log.info('Prepared outgoing invite link.', { roomId });
-      showInviteScreen(roomId);
+      const sessionId = sessionManager.createSessionId();
+      context.activeSession = sessionId;
+      context.inviteUrl = sessionManager.buildInviteUrl(sessionId);
+      context.pendingSession = null;
+      sessionManager.clearSessionFromUrl();
+      showInviteScreen(sessionId);
+    };
+
+    const handleStartCall = () => {
+      if (context.isCallInProgress) {
+        return;
+      }
+      prepareOutgoingInvite();
     };
 
     const prepareLocalMedia = async () => {
@@ -188,14 +119,20 @@ export default class HomeCall_Web_Core_CallFlow {
       peer.setLocalStream(stream);
     };
 
-    const beginCallSession = async ({ roomId, role }) => {
-      if (!roomId) {
-        toastNotifier.error('Комната не указана.');
-        context.isCallInProgress = false;
+    const beginCallSession = async ({ sessionId, role }) => {
+      if (!sessionId) {
+        toastNotifier.error('Сессия не указана.');
         showHome();
         return;
       }
-      log.info('Beginning call session', { roomId, role, user: context.myName });
+      if (context.isCallInProgress) {
+        return;
+      }
+      context.isCallInProgress = true;
+      context.activeSession = sessionId;
+      context.inviteUrl = sessionManager.buildInviteUrl(sessionId);
+      context.connectionMessage = '';
+      context.remoteStream = null;
       try {
         await prepareLocalMedia();
       } catch (error) {
@@ -203,9 +140,7 @@ export default class HomeCall_Web_Core_CallFlow {
         endCall('Не удалось получить доступ к медиаустройствам.');
         return;
       }
-      context.remoteStream = null;
-      context.connectionMessage = '';
-      joinSignalRoom();
+      joinSignalSession();
       showCall();
       if (role === 'initiator') {
         try {
@@ -217,16 +152,15 @@ export default class HomeCall_Web_Core_CallFlow {
       }
     };
 
-    const startIncomingCall = async (roomId) => {
-      if (!roomId || context.isCallInProgress) {
+    const startOutgoingCall = () => beginCallSession({ sessionId: context.activeSession, role: 'initiator' });
+
+    const startIncomingCall = async (sessionId) => {
+      if (!sessionId || context.isCallInProgress) {
         return;
       }
-      context.activeRoom = roomId;
-      context.pendingRoom = null;
-      context.isCallInProgress = true;
-      roomManager.clearRoomFromUrl();
-      log.info('Incoming room accepted', { roomId });
-      await beginCallSession({ roomId, role: 'recipient' });
+      context.pendingSession = null;
+      sessionManager.clearSessionFromUrl();
+      await beginCallSession({ sessionId, role: 'recipient' });
     };
 
     const updateRemoteStream = (stream) => {
@@ -252,7 +186,7 @@ export default class HomeCall_Web_Core_CallFlow {
     };
 
     const endCall = (message = 'Звонок завершён.') => {
-      log.info('Ending call session.', { message });
+      log.info('Ending call session.', { message, sessionId: context.activeSession });
       if (stateMachine.getState() !== 'call') {
         context.connectionMessage = message;
         showEnd();
@@ -260,29 +194,21 @@ export default class HomeCall_Web_Core_CallFlow {
       }
       context.isCallInProgress = false;
       context.connectionMessage = message;
-      leaveSignalRoom();
+      leaveSignalSession();
       media.stopLocalStream();
       peer.end();
       context.remoteStream = null;
-      context.activeRoom = null;
+      context.activeSession = null;
+      context.inviteUrl = null;
       showEnd();
     };
 
     const handleOffer = async (data) => {
-      if (!data || !data.room) {
+      if (!data?.sessionId) {
         return;
       }
-      context.activeRoom = data.room;
-      log.info('Offer received via signal.', { room: data.room, from: data.from });
-      if (!context.myName) {
-        context.pendingRoom = data.room;
-        log.info('Name is missing, waiting for user input before joining.', { room: data.room });
-        showHome();
-        return;
-      }
-      signal.setSenderName?.(context.myName);
-      if (stateMachine.getState() !== 'call') {
-        await startIncomingCall(data.room);
+      if (!context.isCallInProgress) {
+        await startIncomingCall(data.sessionId);
       }
       try {
         await peer.handleOffer({ sdp: data.sdp });
@@ -296,9 +222,8 @@ export default class HomeCall_Web_Core_CallFlow {
       if (!data) {
         return;
       }
-      log.info('Answer received via signal.', { from: data.from });
       try {
-        await peer.handleAnswer({ from: data.from, sdp: data.sdp });
+        await peer.handleAnswer({ sdp: data.sdp });
       } catch (error) {
         log.error('[CallFlow] Failed to handle answer', error);
       }
@@ -308,7 +233,6 @@ export default class HomeCall_Web_Core_CallFlow {
       if (!data) {
         return;
       }
-      log.debug('Candidate received via signal.', { candidate: data.candidate?.candidate ?? null });
       try {
         await peer.addCandidate({ candidate: data.candidate });
       } catch (error) {
@@ -330,19 +254,19 @@ export default class HomeCall_Web_Core_CallFlow {
     const configurePeer = () => {
       peer.configure({
         sendOffer: async (sdp) => {
-          if (!context.activeRoom || !context.myName || !sdp) {
+          if (!context.activeSession || !sdp) {
             return;
           }
-          signal.sendOffer({ room: context.activeRoom, from: context.myName, sdp });
+          signal.sendOffer({ sessionId: context.activeSession, sdp });
         },
         sendAnswer: async (sdp) => {
-          if (!context.activeRoom || !context.myName || !sdp) {
+          if (!context.activeSession || !sdp) {
             return;
           }
-          signal.sendAnswer({ room: context.activeRoom, from: context.myName, sdp });
+          signal.sendAnswer({ sessionId: context.activeSession, sdp });
         },
         sendCandidate: async (candidate) => {
-          if (!context.activeRoom || !context.myName || !candidate) {
+          if (!context.activeSession || !candidate) {
             return;
           }
           const normalizedCandidate = {
@@ -351,8 +275,7 @@ export default class HomeCall_Web_Core_CallFlow {
             sdpMLineIndex: candidate.sdpMLineIndex ?? null
           };
           signal.sendCandidate({
-            room: context.activeRoom,
-            from: context.myName,
+            sessionId: context.activeSession,
             candidate: normalizedCandidate
           });
         },
@@ -363,17 +286,22 @@ export default class HomeCall_Web_Core_CallFlow {
 
     configurePeer();
 
-    showInviteScreen = (roomId) => {
+    let showInviteScreen;
+    let showCall;
+    let showEnd;
+    let showHome;
+
+    showInviteScreen = (sessionId) => {
       ensureRoot();
       stateMachine.goInvite();
       uiController.showInvite({
         container: context.root,
-        roomId,
-        inviteUrl: roomManager.buildInviteUrl(roomId),
+        sessionId,
+        inviteUrl: context.inviteUrl,
         canShare: inviteService.canShare(),
-        onCopyLink: () => inviteService.copyRoomLink(roomId),
-        onShareLink: () => inviteService.shareRoomLink(roomId),
-        onStartCall: () => beginCallSession({ roomId, role: 'initiator' })
+        onCopyLink: () => inviteService.copySessionLink(sessionId),
+        onShareLink: () => inviteService.shareSessionLink(sessionId),
+        onStartCall: () => startOutgoingCall()
       });
     };
 
@@ -400,26 +328,16 @@ export default class HomeCall_Web_Core_CallFlow {
     showHome = () => {
       ensureRoot();
       stateMachine.goHome();
-      const incomingRoomHint = context.pendingRoom && !context.myName ? context.pendingRoom : null;
       uiController.showHome({
         container: context.root,
-        savedName: context.myName,
-        incomingRoom: incomingRoomHint,
-        onStartCall: handleStartCall,
-        onChangeName: handleChangeName,
-        onClearCache: handleClearCache
+        onStartCall: handleStartCall
       });
     };
 
     const bootstrap = async () => {
       ensureRoot();
-      context.pendingRoom = roomManager.readRoomFromUrl();
-      context.myName = storage.getMyData()?.myName ?? null;
-      if (context.myName) {
-        signal.setSenderName?.(context.myName);
-      }
-      if (context.pendingRoom && context.myName) {
-        await startIncomingCall(context.pendingRoom);
+      if (context.pendingSession) {
+        await startIncomingCall(context.pendingSession);
         return;
       }
       showHome();
@@ -435,9 +353,6 @@ export default class HomeCall_Web_Core_CallFlow {
     this.bootstrap = bootstrap;
     this.renderHome = () => showHome();
     this.handleStartCall = handleStartCall;
-    this.handleChangeName = handleChangeName;
-    this.handleClearCache = handleClearCache;
-    this.handleResetSettings = handleClearCache;
     this.handleReturnHome = handleReturnHome;
     this.handleOffer = handleOffer;
     this.handleAnswer = handleAnswer;
