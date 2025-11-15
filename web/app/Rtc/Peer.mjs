@@ -85,14 +85,7 @@ export default class HomeCall_Web_Rtc_Peer {
         throw new Error('RTCPeerConnection is not available in this environment.');
       }
       const connectionConfig = {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          {
-            urls: 'turn:relay.metered.ca:80',
-            username: 'openai',
-            credential: 'openai'
-          }
-        ]
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       };
       trace('info', 'Creating RTCPeerConnection', { target, config: connectionConfig });
       const pc = new RTCPeerConnectionCtor(connectionConfig);
