@@ -4,9 +4,9 @@ name: LIVE - Build & Deploy the App
 on: workflow_dispatch
 
 env:
-  APP_DIR: /home/${{ vars.USER }}/inst/app/kolobok/ # Directory of the application
-  PRJ: kolobok # The name of the project
-  SERVICE: kolobok.service # The name of the service to manage
+  APP_DIR: /home/${{ vars.USER }}/inst/app/homecall/ # Directory of the application
+  PRJ: homecall # The name of the project
+  SERVICE: homecall.service # The name of the service to manage
 
 jobs:
   build:
