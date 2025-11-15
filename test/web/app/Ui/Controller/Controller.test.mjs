@@ -5,7 +5,7 @@ import { createWebContainer } from '../../../helper.mjs';
 test('UiController exposes home, invite, call, and end screens', async () => {
   const container = await createWebContainer();
   const recorded = {};
-  const enterScreen = { show(params) { recorded.home = params; } };
+  const homeScreen = { show(params) { recorded.home = params; } };
   const callScreen = {
     show(params) { recorded.call = params; },
     updateRemoteStream(stream) { recorded.stream = stream; }
@@ -13,7 +13,7 @@ test('UiController exposes home, invite, call, and end screens', async () => {
   const endScreen = { show(params) { recorded.end = params; } };
   const inviteScreen = { show(params) { recorded.invite = params; } };
 
-  container.register('HomeCall_Web_Ui_Screen_Enter$', enterScreen);
+  container.register('HomeCall_Web_Ui_Screen_Home$', homeScreen);
   container.register('HomeCall_Web_Ui_Screen_Invite$', inviteScreen);
   container.register('HomeCall_Web_Ui_Screen_Call$', callScreen);
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);

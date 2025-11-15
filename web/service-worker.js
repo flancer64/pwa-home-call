@@ -4,7 +4,7 @@ const STATIC_ASSETS = [
   'app.js',
   'manifest.json',
   'assets/style.css',
-  'ui/enter.html',
+  'ui/home.html',
   'ui/invite.html',
   'ui/call.html',
   'ui/end.html',
@@ -33,7 +33,7 @@ const MODULE_ASSETS = [
   'app/Ui/Toast.mjs',
   'app/Ui/Screen/Call.mjs',
   'app/Ui/Screen/End.mjs',
-  'app/Ui/Screen/Enter.mjs',
+  'app/Ui/Screen/Home.mjs',
   'app/Ui/Screen/Invite.mjs'
 ];
 const CORE_ASSETS = [...STATIC_ASSETS, ...MODULE_ASSETS];

@@ -4,7 +4,7 @@
  */
 
 const TEMPLATE_PATHS = new Map([
-  ['home', 'ui/enter.html'],
+  ['home', 'ui/home.html'],
   ['invite', 'ui/invite.html'],
   ['call', 'ui/call.html'],
   ['end', 'ui/end.html']
