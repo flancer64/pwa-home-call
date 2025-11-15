@@ -9,9 +9,9 @@
 export default class HomeCall_Web_Ui_Screen_End {
   /**
    * @param {Object} deps
-   * @param {HomeCall_Web_Core_TemplateLoader} deps.HomeCall_Web_Core_TemplateLoader$
+   * @param {HomeCall_Web_Ui_Templates_Loader} deps.HomeCall_Web_Ui_Templates_Loader$
    */
-  constructor({ HomeCall_Web_Core_TemplateLoader$: templates } = {}) {
+  constructor({ HomeCall_Web_Ui_Templates_Loader$: templates } = {}) {
     this.templates = templates;
   }
 

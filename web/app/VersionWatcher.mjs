@@ -1,13 +1,13 @@
 /**
- * @module HomeCall_Web_Core_VersionWatcher
+ * @module HomeCall_Web_VersionWatcher
  * @description Checks application version and triggers updates when needed.
  */
 
-export default class HomeCall_Web_Core_VersionWatcher {
+export default class HomeCall_Web_VersionWatcher {
   constructor({
-    HomeCall_Web_Core_ServiceWorkerManager$: sw,
+    HomeCall_Web_Pwa_ServiceWorker$: sw,
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_Logger$: logger
+    HomeCall_Web_Logger$: logger
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');

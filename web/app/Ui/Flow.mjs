@@ -1,21 +1,21 @@
 const priv = new WeakMap();
 
 /**
- * @module HomeCall_Web_Core_CallFlow
+ * @module HomeCall_Web_Ui_Flow
  * @description Orchestrates the home → invite → call → end cycle using sessionIds.
  */
-export default class HomeCall_Web_Core_CallFlow {
+export default class HomeCall_Web_Ui_Flow {
   constructor({
-    HomeCall_Web_Core_StateMachine$: stateMachine,
-    HomeCall_Web_Core_SessionManager$: sessionManager,
-    HomeCall_Web_Core_InviteService$: inviteService,
-    HomeCall_Web_Core_UiController$: uiController,
+    HomeCall_Web_State_Machine$: stateMachine,
+    HomeCall_Web_Net_Session_Manager$: sessionManager,
+    HomeCall_Web_Ui_InviteService$: inviteService,
+    HomeCall_Web_Ui_Controller$: uiController,
     HomeCall_Web_Media_Manager$: media,
     HomeCall_Web_Rtc_Peer$: peer,
-    HomeCall_Web_Net_SignalClient$: signal,
+    HomeCall_Web_Net_Signal_Client$: signal,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast,
-    HomeCall_Web_Shared_Logger$: logger
+    HomeCall_Web_Logger$: logger
   } = {}) {
     if (!stateMachine) {
       throw new Error('State machine is required for the call flow.');

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWebContainer } from '../../helper.mjs';
+import { createWebContainer } from '../helper.mjs';
 
 test('App orchestrates simplified home → invite → call flow', async () => {
   const container = await createWebContainer();
@@ -89,18 +89,18 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     updateRemoteStream(stream) { uiCalls.remote = stream; }
   };
 
-  container.register('HomeCall_Web_Core_TemplateLoader$', templateLoader);
-  container.register('HomeCall_Web_Core_ServiceWorkerManager$', swManager);
-  container.register('HomeCall_Web_Core_VersionWatcher$', versionWatcher);
+  container.register('HomeCall_Web_Ui_Templates_Loader$', templateLoader);
+  container.register('HomeCall_Web_Pwa_ServiceWorker$', swManager);
+  container.register('HomeCall_Web_VersionWatcher$', versionWatcher);
   container.register('HomeCall_Web_Media_Manager$', media);
-  container.register('HomeCall_Web_Net_SignalClient$', signalClient);
+  container.register('HomeCall_Web_Net_Signal_Client$', signalClient);
   container.register('HomeCall_Web_Rtc_Peer$', peer);
-  container.register('HomeCall_Web_Core_UiController$', uiController);
-  container.register('HomeCall_Web_Shared_Logger$', logger);
+  container.register('HomeCall_Web_Ui_Controller$', uiController);
+  container.register('HomeCall_Web_Logger$', logger);
   container.register('HomeCall_Web_Env_Provider$', env);
   container.register('HomeCall_Web_Ui_Toast$', toast);
 
-  const app = await container.get('HomeCall_Web_Core_App$');
+  const app = await container.get('HomeCall_Web_App$');
   await app.run();
 
   assert.equal(templateLoads, 1, 'templates should load once');

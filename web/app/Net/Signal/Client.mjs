@@ -1,5 +1,5 @@
 /**
- * @module HomeCall_Web_Net_SignalClient
+ * @module HomeCall_Web_Net_Signal_Client
  * @description WebSocket client for signaling server.
  */
 
@@ -24,8 +24,8 @@ const buildSignalLogger = (logger, env) => {
   };
 };
 
-export default class HomeCall_Web_Net_SignalClient {
-  constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Shared_Logger$: logger } = {}) {
+export default class HomeCall_Web_Net_Signal_Client {
+  constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Logger$: logger } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
     }

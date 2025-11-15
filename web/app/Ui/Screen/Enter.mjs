@@ -3,7 +3,7 @@
  * @description Renders the minimal home screen with a single action.
  */
 export default class HomeCall_Web_Ui_Screen_Enter {
-  constructor({ HomeCall_Web_Core_TemplateLoader$: templates } = {}) {
+  constructor({ HomeCall_Web_Ui_Templates_Loader$: templates } = {}) {
     if (!templates) {
       throw new Error('Template loader is required for the home screen.');
     }

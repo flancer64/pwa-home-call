@@ -1,8 +1,8 @@
 /**
- * @module HomeCall_Web_Core_UiController
+ * @module HomeCall_Web_Ui_Controller
  * @description Coordinates the minimal home → invite → call → end screens.
  */
-export default class HomeCall_Web_Core_UiController {
+export default class HomeCall_Web_Ui_Controller {
   /**
    * @param {Object} deps
  * @param {HomeCall_Web_Ui_Screen_Enter$} deps.HomeCall_Web_Ui_Screen_Enter$

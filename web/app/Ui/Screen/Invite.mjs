@@ -3,7 +3,7 @@
  * @description Shows the invite screen with link sharing controls.
  */
 export default class HomeCall_Web_Ui_Screen_Invite {
-  constructor({ HomeCall_Web_Core_TemplateLoader$: templates } = {}) {
+  constructor({ HomeCall_Web_Ui_Templates_Loader$: templates } = {}) {
     if (!templates) {
       throw new Error('Template loader is required for the invite screen.');
     }

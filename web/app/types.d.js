@@ -4,40 +4,44 @@
  * These typedefs enable IDE navigation and autocompletion without direct imports.
  */
 
-/* ---------- Core ---------- */
-/** @typedef {import('./Core/App.mjs').default} HomeCall_Web_Core_App */
-/** @typedef {import('./Core/TemplateLoader.mjs').default} HomeCall_Web_Core_TemplateLoader */
-/** @typedef {import('./Core/UiController.mjs').default} HomeCall_Web_Core_UiController */
-/** @typedef {import('./Core/ServiceWorkerManager.mjs').default} HomeCall_Web_Core_ServiceWorkerManager */
-/** @typedef {import('./Core/VersionWatcher.mjs').default} HomeCall_Web_Core_VersionWatcher */
-/** @typedef {import('./Core/StateMachine.mjs').default} HomeCall_Web_Core_StateMachine */
-/** @typedef {import('./Core/SessionManager.mjs').default} HomeCall_Web_Core_SessionManager */
-/** @typedef {import('./Core/InviteService.mjs').default} HomeCall_Web_Core_InviteService */
-/** @typedef {import('./Core/SignalOrchestrator.mjs').default} HomeCall_Web_Core_SignalOrchestrator */
-/** @typedef {import('./Core/CallFlow.mjs').default} HomeCall_Web_Core_CallFlow */
+/* ---------- App ---------- */
+/** @typedef {import('./App.mjs').default} HomeCall_Web_App */
+/** @typedef {import('./VersionWatcher.mjs').default} HomeCall_Web_VersionWatcher */
+/** @typedef {import('./Logger.mjs').default} HomeCall_Web_Logger */
 
 /* ---------- Env ---------- */
 /** @typedef {import('./Env/Provider.mjs').default} HomeCall_Web_Env_Provider */
 
 /* ---------- Media ---------- */
-/** @typedef {import('./Media/DeviceMonitor.mjs').default} HomeCall_Web_Media_DeviceMonitor */
+/** @typedef {import('./Media/Monitor.mjs').default} HomeCall_Web_Media_Monitor */
 /** @typedef {import('./Media/Manager.mjs').default} HomeCall_Web_Media_Manager */
 
 /* ---------- Net ---------- */
-/** @typedef {import('./Net/SignalClient.mjs').default} HomeCall_Web_Net_SignalClient */
+/** @typedef {import('./Net/Signal/Client.mjs').default} HomeCall_Web_Net_Signal_Client */
+/** @typedef {import('./Net/Signal/Orchestrator.mjs').default} HomeCall_Web_Net_Signal_Orchestrator */
+/** @typedef {import('./Net/Session/Manager.mjs').default} HomeCall_Web_Net_Session_Manager */
 
 /* ---------- RTC ---------- */
 /** @typedef {import('./Rtc/Peer.mjs').default} HomeCall_Web_Rtc_Peer */
 
-/* ---------- Shared ---------- */
-/** @typedef {import('./Shared/Logger.mjs').default} HomeCall_Web_Shared_Logger */
+/* ---------- PWA ---------- */
+/** @typedef {import('./Pwa/ServiceWorker.mjs').default} HomeCall_Web_Pwa_ServiceWorker */
+/** @typedef {import('./Pwa/Cache.mjs').default} HomeCall_Web_Pwa_Cache */
+
+/* ---------- State ---------- */
+/** @typedef {import('./State/Machine.mjs').default} HomeCall_Web_State_Machine */
+/** @typedef {import('./State/Media.mjs').default} HomeCall_Web_State_Media */
 
 /* ---------- UI ---------- */
+/** @typedef {import('./Ui/Controller.mjs').default} HomeCall_Web_Ui_Controller */
+/** @typedef {import('./Ui/Templates/Loader.mjs').default} HomeCall_Web_Ui_Templates_Loader */
+/** @typedef {import('./Ui/Flow.mjs').default} HomeCall_Web_Ui_Flow */
+/** @typedef {import('./Ui/InviteService.mjs').default} HomeCall_Web_Ui_InviteService */
+/** @typedef {import('./Ui/Toast.mjs').default} HomeCall_Web_Ui_Toast */
 /** @typedef {import('./Ui/Screen/Enter.mjs').default} HomeCall_Web_Ui_Screen_Enter */
 /** @typedef {import('./Ui/Screen/Invite.mjs').default} HomeCall_Web_Ui_Screen_Invite */
 /** @typedef {import('./Ui/Screen/Call.mjs').default} HomeCall_Web_Ui_Screen_Call */
 /** @typedef {import('./Ui/Screen/End.mjs').default} HomeCall_Web_Ui_Screen_End */
-/** @typedef {import('./Ui/Toast.mjs').default} HomeCall_Web_Ui_Toast */
 
 /**
  * @interface HomeCall_Web_Ui_Screen_Interface

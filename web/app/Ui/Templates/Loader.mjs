@@ -1,5 +1,5 @@
 /**
- * @module HomeCall_Web_Core_TemplateLoader
+ * @module HomeCall_Web_Ui_Templates_Loader
  * @description Loads and caches HTML templates for HomeCall screens.
  */
 
@@ -10,7 +10,7 @@ const TEMPLATE_PATHS = new Map([
   ['end', 'ui/end.html']
 ]);
 
-export default class HomeCall_Web_Core_TemplateLoader {
+export default class HomeCall_Web_Ui_Templates_Loader {
   /**
    * @param {Object} deps
    * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$

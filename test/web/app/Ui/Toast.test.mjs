@@ -56,7 +56,7 @@ test('web toast queue honors env timers and logger levels', async () => {
   const env = createFakeEnv();
   const { logger, calls } = createLoggerSpy();
   container.register('HomeCall_Web_Env_Provider$', env);
-  container.register('HomeCall_Web_Shared_Logger$', logger);
+  container.register('HomeCall_Web_Logger$', logger);
   const toast = await container.get('HomeCall_Web_Ui_Toast$');
 
   toast.info('alpha');
@@ -82,7 +82,7 @@ test('web toast hide interrupts display and starts next', async () => {
   const env = createFakeEnv();
   const { logger, calls } = createLoggerSpy();
   container.register('HomeCall_Web_Env_Provider$', env);
-  container.register('HomeCall_Web_Shared_Logger$', logger);
+  container.register('HomeCall_Web_Logger$', logger);
   const toast = await container.get('HomeCall_Web_Ui_Toast$');
 
   toast.success('first');

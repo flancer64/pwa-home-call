@@ -94,7 +94,7 @@ test('Media manager prepares devices and updates UI bindings', async () => {
       return WebSocketStub;
     }
   });
-  container.register('HomeCall_Web_Media_DeviceMonitor$', monitor);
+  container.register('HomeCall_Web_Media_Monitor$', monitor);
   container.register('HomeCall_Web_Rtc_Peer$', peer);
   container.register('HomeCall_Web_Ui_Toast$', {
     init() {},

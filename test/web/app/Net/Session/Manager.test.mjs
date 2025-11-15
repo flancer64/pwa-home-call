@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import HomeCall_Web_Core_SessionManager from '../../../../web/app/Core/SessionManager.mjs';
+import { createWebContainer } from '../../../helper.mjs';
 
-test('Session manager exposes session URLs and parses query params', () => {
+test('Session manager exposes session URLs and parses query params', async () => {
+  const container = await createWebContainer();
   const location = new URL('https://domozvon.app/?session=initiator123');
   const historyCalls = [];
   const history = {
@@ -16,7 +17,8 @@ test('Session manager exposes session URLs and parses query params', () => {
       history
     }
   };
-  const manager = new HomeCall_Web_Core_SessionManager({ HomeCall_Web_Env_Provider$: env });
+  container.register('HomeCall_Web_Env_Provider$', env);
+  const manager = await container.get('HomeCall_Web_Net_Session_Manager$');
   const inviteSession = manager.createSessionId();
   assert.equal(typeof inviteSession, 'string');
   const inviteUrl = manager.buildInviteUrl(inviteSession);

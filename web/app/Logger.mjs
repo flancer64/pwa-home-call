@@ -1,9 +1,9 @@
 /**
- * @module HomeCall_Web_Shared_Logger
+ * @module HomeCall_Web_Logger
  * @description Console-backed logger with optional context augmentation.
  */
 
-export default class HomeCall_Web_Shared_Logger {
+export default class HomeCall_Web_Logger {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     const consoleRef = env?.console ?? globalThis.console ?? null;
     this.console = consoleRef;

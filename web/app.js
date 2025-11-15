@@ -13,6 +13,6 @@ import Container from 'https://cdn.jsdelivr.net/npm/@teqfw/di@latest/+esm';
   const baseUrl = new URL('./', import.meta.url).href;
   resolver.addNamespaceRoot('HomeCall_Web_', `${baseUrl}app/`, 'mjs');
 
-  const app = await container.get('HomeCall_Web_Core_App$');
+  const app = await container.get('HomeCall_Web_App$');
   await app.run();
 })()

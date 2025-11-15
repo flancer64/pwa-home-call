@@ -15,7 +15,7 @@ export default class HomeCall_Web_Ui_Toast {
   #container;
   #currentElement;
 
-  constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Shared_Logger$: logger } = {}) {
+  constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Logger$: logger } = {}) {
     this.#env = env ?? {};
     this.#logger = logger ?? this.#env.console ?? globalThis.console ?? null;
     this.#queue = [];

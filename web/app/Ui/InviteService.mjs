@@ -1,12 +1,12 @@
 /**
- * @module HomeCall_Web_Core_InviteService
+ * @module HomeCall_Web_Ui_InviteService
  * @description Handles sharing and copying invite links with minimal UI feedback.
  */
-export default class HomeCall_Web_Core_InviteService {
+export default class HomeCall_Web_Ui_InviteService {
   constructor({
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast,
-    HomeCall_Web_Core_SessionManager$: sessionManager
+    HomeCall_Web_Net_Session_Manager$: sessionManager
   } = {}) {
     if (!env) {
       throw new Error('Environment provider is required for the invite service.');

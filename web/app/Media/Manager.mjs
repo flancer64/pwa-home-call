@@ -5,7 +5,7 @@
 
 export default class HomeCall_Web_Media_Manager {
   constructor({
-    HomeCall_Web_Media_DeviceMonitor$: monitor,
+    HomeCall_Web_Media_Monitor$: monitor,
     HomeCall_Web_State_Media$: mediaState,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast

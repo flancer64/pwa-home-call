@@ -1,9 +1,9 @@
 /**
- * @module HomeCall_Web_Media_DeviceMonitor
+ * @module HomeCall_Web_Media_Monitor
  * @description Observes media device changes.
  */
 
-export default class HomeCall_Web_Media_DeviceMonitor {
+export default class HomeCall_Web_Media_Monitor {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
@@ -20,7 +20,7 @@ export default class HomeCall_Web_Media_DeviceMonitor {
         try {
           callback?.();
         } catch (error) {
-          console.error('[DeviceMonitor] Callback failed', error);
+          console.error('[Monitor] Callback failed', error);
         }
       };
       if (typeof mediaDevices.addEventListener === 'function') {

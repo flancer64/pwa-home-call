@@ -27,7 +27,7 @@ const buildPeerLogger = (logger, env) => {
 export default class HomeCall_Web_Rtc_Peer {
   constructor({
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_Logger$: logger,
+    HomeCall_Web_Logger$: logger,
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');

@@ -1,8 +1,8 @@
 /**
- * @module HomeCall_Web_Core_StateMachine
+ * @module HomeCall_Web_State_Machine
  * @description Tracks the current UI state and keeps body CSS in sync with the call screen.
  */
-export default class HomeCall_Web_Core_StateMachine {
+export default class HomeCall_Web_State_Machine {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     if (!env) {
       throw new Error('Environment provider is required for the state machine.');

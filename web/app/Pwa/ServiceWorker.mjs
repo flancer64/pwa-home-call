@@ -1,9 +1,9 @@
 /**
- * @module HomeCall_Web_Core_ServiceWorkerManager
+ * @module HomeCall_Web_Pwa_ServiceWorker
  * @description Handles registration and lifecycle of the service worker.
  */
 
-export default class HomeCall_Web_Core_ServiceWorkerManager {
+export default class HomeCall_Web_Pwa_ServiceWorker {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required.');
@@ -31,7 +31,7 @@ export default class HomeCall_Web_Core_ServiceWorkerManager {
         registration = reg;
         return reg;
       } catch (error) {
-        console.warn('[ServiceWorkerManager] Registration failed', error);
+        console.warn('[ServiceWorker] Registration failed', error);
         return null;
       }
     };

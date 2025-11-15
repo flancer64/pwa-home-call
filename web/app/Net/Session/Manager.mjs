@@ -1,8 +1,8 @@
 /**
- * @module HomeCall_Web_Core_SessionManager
+ * @module HomeCall_Web_Net_Session_Manager
  * @description Handles session identifiers and invite URL generation.
  */
-export default class HomeCall_Web_Core_SessionManager {
+export default class HomeCall_Web_Net_Session_Manager {
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
     if (!env) {
       throw new Error('Environment provider is required for the session manager.');

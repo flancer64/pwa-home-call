@@ -1,17 +1,17 @@
 /**
- * @module HomeCall_Web_Pwa_CacheCleaner
+ * @module HomeCall_Web_Pwa_Cache
  * @description Clears all service worker caches and reloads the application.
  */
 
-export default class HomeCall_Web_Pwa_CacheCleaner {
+export default class HomeCall_Web_Pwa_Cache {
   /**
    * @param {Object} deps
    * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
-   * @param {HomeCall_Web_Shared_Logger} [deps.HomeCall_Web_Shared_Logger$]
+   * @param {HomeCall_Web_Logger} [deps.HomeCall_Web_Logger$]
    */
   constructor({
     HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Shared_Logger$: logger
+    HomeCall_Web_Logger$: logger
   } = {}) {
     if (!env) {
       throw new Error('HomeCall environment provider is required for cache cleaning.');
@@ -24,17 +24,17 @@ export default class HomeCall_Web_Pwa_CacheCleaner {
   async clear() {
     const cachesRef = this.window?.caches ?? globalThis.caches ?? null;
     if (!cachesRef) {
-      this.log?.warn?.('[CacheCleaner] Caches API is unavailable.');
+      this.log?.warn?.('[Cache] Caches API is unavailable.');
     } else {
       try {
         const names = await cachesRef.keys();
         await Promise.all(names.map((name) => cachesRef.delete(name)));
       } catch (error) {
-        this.log?.warn?.('[CacheCleaner] Failed to delete caches', error);
+        this.log?.warn?.('[Cache] Failed to delete caches', error);
       }
     }
     await this.unregisterServiceWorkers();
-    this.log?.info?.('[CacheCleaner] PWA cache cleared and service worker reinstalled');
+    this.log?.info?.('[Cache] PWA cache cleared and service worker reinstalled');
     this.reload();
   }
 
@@ -62,7 +62,7 @@ export default class HomeCall_Web_Pwa_CacheCleaner {
         })
       );
     } catch (error) {
-      this.log?.warn?.('[CacheCleaner] Failed to unregister service workers', error);
+      this.log?.warn?.('[Cache] Failed to unregister service workers', error);
     }
   }
 }

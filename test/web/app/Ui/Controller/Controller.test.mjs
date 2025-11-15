@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createWebContainer } from '../../helper.mjs';
+import { createWebContainer } from '../../../helper.mjs';
 
 test('UiController exposes home, invite, call, and end screens', async () => {
   const container = await createWebContainer();
@@ -18,7 +18,7 @@ test('UiController exposes home, invite, call, and end screens', async () => {
   container.register('HomeCall_Web_Ui_Screen_Call$', callScreen);
   container.register('HomeCall_Web_Ui_Screen_End$', endScreen);
 
-  const controller = await container.get('HomeCall_Web_Core_UiController$');
+  const controller = await container.get('HomeCall_Web_Ui_Controller$');
   controller.showHome({ container: 'root', onStartCall: () => {} });
   controller.showInvite({ container: 'invite-root', sessionId: 'session42', inviteUrl: 'https://domozvon.app/?session=session42' });
   controller.showCall({ container: 'call-root', remoteStream: 'stream', onEnd: () => {} });

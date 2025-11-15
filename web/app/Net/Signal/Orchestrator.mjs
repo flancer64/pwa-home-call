@@ -1,11 +1,11 @@
 const priv = new WeakMap();
 
 /**
- * @module HomeCall_Web_Core_SignalOrchestrator
+ * @module HomeCall_Web_Net_Signal_Orchestrator
  * @description Registers signaling callbacks so the core application stays decoupled from event wiring.
  */
-export default class HomeCall_Web_Core_SignalOrchestrator {
-  constructor({ HomeCall_Web_Net_SignalClient$: signal, HomeCall_Web_Shared_Logger$: logger } = {}) {
+export default class HomeCall_Web_Net_Signal_Orchestrator {
+  constructor({ HomeCall_Web_Net_Signal_Client$: signal, HomeCall_Web_Logger$: logger } = {}) {
     if (!signal) {
       throw new Error('Signal client is required for the orchestrator.');
     }

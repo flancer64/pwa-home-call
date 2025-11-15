@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import HomeCall_Web_Ui_Screen_Enter from '../../../../web/app/Ui/Screen/Enter.mjs';
+import { createWebContainer } from '../../helper.mjs';
 
 const createContainer = () => {
   const listeners = new Map();
@@ -23,15 +23,13 @@ const createContainer = () => {
   return { container, callButton: button };
 };
 
-const homeScreenFactory = () => new HomeCall_Web_Ui_Screen_Enter({
-  HomeCall_Web_Core_TemplateLoader$: { apply() {} }
-});
-
-test('Home screen triggers callback when call button is pressed', () => {
-  const screen = homeScreenFactory();
-  const { container, callButton } = createContainer();
+test('Home screen triggers callback when call button is pressed', async () => {
+  const container = await createWebContainer();
+  container.register('HomeCall_Web_Ui_Templates_Loader$', { apply() {} });
+  const screen = await container.get('HomeCall_Web_Ui_Screen_Enter$');
+  const { container: dom, callButton } = createContainer();
   let triggered = false;
-  screen.show({ container, onStartCall: () => { triggered = true; } });
+  screen.show({ container: dom, onStartCall: () => { triggered = true; } });
   callButton.trigger('click');
   assert.equal(triggered, true);
 });

@@ -8,7 +8,7 @@ const statusRefs = new WeakMap();
 const mediaStatusUnsubscribeRefs = new WeakMap();
 
 export default class HomeCall_Web_Ui_Screen_Call {
-  constructor({ HomeCall_Web_Core_TemplateLoader$: templates, HomeCall_Web_Media_Manager$: media, HomeCall_Web_State_Media$: mediaState } = {}) {
+  constructor({ HomeCall_Web_Ui_Templates_Loader$: templates, HomeCall_Web_Media_Manager$: media, HomeCall_Web_State_Media$: mediaState } = {}) {
     if (!templates) {
       throw new Error('Template loader is required for the call screen.');
     }
