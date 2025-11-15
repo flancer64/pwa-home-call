@@ -19,5 +19,17 @@ export default class HomeCall_Web_Env_Provider {
     this.crypto = g.crypto ?? null;
     this.console = g.console ?? null;
     this.localStorage = g.localStorage ?? null;
+    const normalizedHost = (this.window?.location?.hostname ?? '').trim().toLowerCase();
+    const processEnv = typeof g.process === 'object' && g.process !== null ? g.process?.env ?? null : null;
+    const hasExplicitDevFlag = processEnv?.NODE_ENV === 'development';
+    const localHosts = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1']);
+    const hostLooksLikeDev =
+      normalizedHost === 'dev' ||
+      normalizedHost.startsWith('dev.') ||
+      normalizedHost.endsWith('.dev') ||
+      normalizedHost.includes('.dev.');
+    const hostLooksLikeLocal =
+      normalizedHost.endsWith('.local') || normalizedHost.includes('.local.');
+    this.isDevelopment = hasExplicitDevFlag || localHosts.has(normalizedHost) || hostLooksLikeDev || hostLooksLikeLocal;
   }
 }

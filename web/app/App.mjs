@@ -13,6 +13,7 @@ export default class HomeCall_Web_App {
     HomeCall_Web_Logger$: logger,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast,
+    HomeCall_Web_Ui_Router_Dev$: devRouter,
     HomeCall_Web_Net_Signal_Orchestrator$: signalOrchestrator,
     HomeCall_Web_Ui_Flow$: callFlow
   } = {}) {
@@ -49,6 +50,22 @@ export default class HomeCall_Web_App {
 
     const documentRef = env.document ?? null;
     const log = logger ?? console;
+    let devRouterStarted = false;
+    const startDevRouter = () => {
+      if (devRouterStarted || !env?.isDevelopment || typeof devRouter?.init !== 'function') {
+        return;
+      }
+      devRouterStarted = true;
+      try {
+        devRouter.init();
+      } catch (error) {
+        if (typeof log.warn === 'function') {
+          log.warn('[App] DevRouter failed to initialize', error);
+        } else if (typeof log.info === 'function') {
+          log.info('[App] DevRouter failed to initialize', error);
+        }
+      }
+    };
 
     const run = async () => {
       if (!documentRef) {
@@ -76,6 +93,7 @@ export default class HomeCall_Web_App {
         log.error('[App] Failed to connect to signaling server', error);
         toast.error('Не удалось подключиться к серверу сигналинга.');
         callFlow.renderHome();
+        startDevRouter();
         return;
       }
       try {
@@ -84,6 +102,9 @@ export default class HomeCall_Web_App {
         log.error('[App] Call flow bootstrap failed', error);
         toast.error('Не удалось запустить сценарий звонка.');
         callFlow.renderHome();
+        return;
+      } finally {
+        startDevRouter();
       }
     };
 
