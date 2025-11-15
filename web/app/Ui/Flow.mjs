@@ -300,7 +300,8 @@ export default class HomeCall_Web_Ui_Flow {
         canShare: inviteService.canShare(),
         onCopyLink: () => inviteService.copySessionLink(resolvedSessionId),
         onShareLink: () => inviteService.shareSessionLink(resolvedSessionId),
-        onStartCall: () => startOutgoingCall()
+        onStartCall: () => startOutgoingCall(),
+        onClose: () => showHome()
       });
     };
 

@@ -1,58 +1,37 @@
 <section data-screen="invite" class="screen-card screen-invite">
-  <div class="screen-zone screen-zone--header">
-    <p class="screen-kicker">Колобок — приглашение</p>
-    <h1>Сессия создана и ожидает подключения.</h1>
-    <p id="invite-session" class="screen-subtext screen-subtext--strong"></p>
+  <div class="screen-zone screen-zone--header invite-header">
+    <h1>Ссылка для соединения</h1>
+    <button class="settings-close invite-close" type="button" aria-label="Закрыть экран приглашения">
+      <span class="settings-close-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+          <path d="M6 6 18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </span>
+    </button>
   </div>
-  <div class="screen-zone screen-zone--action">
-    <div class="invite-link-display" aria-live="polite">
-      <div class="invite-link-heading">
-        <span class="ui-glyph ui-glyph--ghost" aria-hidden="true">
-          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-            <rect x="4" y="4" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"></rect>
-            <path d="M8 8h14v12a2 2 0 0 1-2 2H8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-        </span>
-        <div>
-          <p class="screen-label">Ссылка на звонок</p>
-          <p id="invite-intro" class="screen-subtext">Скопируйте или поделитесь одним касанием.</p>
-        </div>
-      </div>
-      <div id="invite-link" class="invite-link ui-large" tabindex="0" role="textbox" aria-label="Ссылка на звонок"></div>
+  <div class="screen-zone invite-link-zone">
+    <div class="invite-link-card">
+      <p id="invite-link" class="invite-link-text" tabindex="0" aria-label="Ссылка для соединения"></p>
     </div>
-    <div class="invite-actions">
-      <button id="copy-link" class="ghost ui-large" type="button">
-        <span class="ui-glyph ui-glyph--outline" aria-hidden="true">
-          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-            <rect x="9" y="3" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"></rect>
-            <rect x="2" y="8" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"></rect>
-          </svg>
-        </span>
-        <span class="ui-label">Скопировать ссылку</span>
-      </button>
-      <button id="share-link" class="ghost ui-large" type="button" hidden>
-        <span class="ui-glyph ui-glyph--outline" aria-hidden="true">
-          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-            <circle cx="18" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle>
-            <circle cx="6" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle>
-            <circle cx="18" cy="19" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle>
-            <path d="m8.59 13.51 6.83 3.98" fill="none" stroke="currentColor" stroke-width="2"></path>
-            <path d="m15.41 6.51-6.82 3.98" fill="none" stroke="currentColor" stroke-width="2"></path>
-          </svg>
-        </span>
-        <span class="ui-label">Поделиться</span>
-      </button>
-    </div>
-    <button id="start-call" class="primary ui-large" type="button">
-      <span class="ui-glyph" aria-hidden="true">
+  </div>
+  <div class="screen-zone screen-zone--action invite-actions">
+    <button id="invite-primary-action" class="invite-action-button invite-action-secondary ui-large" type="button">
+      <span class="ui-glyph invite-action-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+          <rect x="9" y="3" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"></rect>
+          <rect x="2" y="8" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"></rect>
+        </svg>
+      </span>
+      <span class="invite-action-text">Скопировать ссылку</span>
+    </button>
+    <button id="start-call" class="invite-action-button primary ui-large" type="button">
+      <span class="ui-glyph invite-action-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" role="presentation" focusable="false">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.58A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12 12 0 0 0 .69 2.75 2 2 0 0 1-.45 2.11L7.08 9.75a16 16 0 0 0 6 6l1.17-1.17a2 2 0 0 1 2.11-.45 12 12 0 0 0 2.75.69A2 2 0 0 1 22 16.92z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
       </span>
-      <span class="ui-label">Начать звонок</span>
+      <span class="invite-action-text">Начать звонок</span>
     </button>
-  </div>
-  <div class="screen-zone screen-zone--hint">
-    <p class="screen-note">Отправьте ссылку в привычный мессенджер. Получатель сразу подключится по одноразовой сессии.</p>
   </div>
 </section>
