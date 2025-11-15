@@ -41,7 +41,7 @@ Ui разрешается через `@teqfw/di`. Core передаёт `callbac
 ## Связи
 
 - `ctx/rules/web/app.md` — состояния `home → invite → call → end`.
-- `ctx/rules/web/ui/home.md`, `share-link.md`, `screens/call.md`, `screens/end.md` — конкретные шаблоны и описания экранов.
+- `ctx/rules/web/ui/screens/home.md`, `share-link.md`, `screens/call.md`, `screens/end.md` — конкретные шаблоны и описания экранов.
 - `ctx/rules/web/contours/core.md` — Core управляет переходами и `toast`.
 - `ctx/rules/web/contours/media.md` — `Ui` отображает `localStream` и миниатюру без статусов.
 - `ctx/product/features/invite.md` — подтверждает, что ссылка создаётся автоматически.
