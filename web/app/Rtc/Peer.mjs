@@ -72,6 +72,8 @@ export default class HomeCall_Web_Rtc_Peer {
     let remoteStream = null;
     let connection = null;
     let target = null;
+    let pendingRemoteCandidates = [];
+    let remoteDescriptionApplied = false;
 
     const ensureConnection = () => {
       if (connection) {
@@ -84,6 +86,7 @@ export default class HomeCall_Web_Rtc_Peer {
       if (typeof RTCPeerConnectionCtor !== 'function') {
         throw new Error('RTCPeerConnection is not available in this environment.');
       }
+      remoteDescriptionApplied = false;
       const connectionConfig = {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       };
@@ -204,6 +207,43 @@ export default class HomeCall_Web_Rtc_Peer {
       });
     };
 
+    const addIceCandidateInternal = async (init) => {
+      if (!connection || typeof RTCIceCandidateCtor !== 'function') {
+        return;
+      }
+      try {
+        await connection.addIceCandidate(new RTCIceCandidateCtor(init));
+      } catch (error) {
+        trace('error', 'Failed to add ICE candidate', { error });
+        console.error('[Peer] Failed to add ICE candidate', error);
+      }
+    };
+
+    const flushPendingRemoteCandidates = async () => {
+      if (!connection || pendingRemoteCandidates.length === 0) {
+        return;
+      }
+      const queue = pendingRemoteCandidates.splice(0, pendingRemoteCandidates.length);
+      for (const candidateInit of queue) {
+        await addIceCandidateInternal(candidateInit);
+      }
+    };
+
+    const queueRemoteCandidate = (init) => {
+      pendingRemoteCandidates.push(init);
+      trace('debug', 'Queuing remote ICE candidate until remote description is set', {
+        target,
+        candidate: init.candidate ?? null,
+        sdpMid: init.sdpMid ?? null,
+        sdpMLineIndex: init.sdpMLineIndex ?? null
+      });
+    };
+
+    const resetRemoteState = () => {
+      pendingRemoteCandidates.length = 0;
+      remoteDescriptionApplied = false;
+    };
+
     this.configure = (newHandlers = {}) => {
       handlers = { ...handlers, ...newHandlers };
     };
@@ -247,6 +287,8 @@ export default class HomeCall_Web_Rtc_Peer {
         throw new Error('RTCSessionDescription is not available.');
       }
       await pc.setRemoteDescription(new RTCSessionDescriptionCtor({ type: 'offer', sdp }));
+      remoteDescriptionApplied = true;
+      await flushPendingRemoteCandidates();
       trace('debug', 'Remote description set for offer', { from: target });
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
@@ -271,6 +313,8 @@ export default class HomeCall_Web_Rtc_Peer {
         return;
       }
       await connection.setRemoteDescription(new RTCSessionDescriptionCtor({ type: 'answer', sdp }));
+      remoteDescriptionApplied = true;
+      await flushPendingRemoteCandidates();
       trace('debug', 'Remote description set for answer', {
         from,
         state: connection?.connectionState ?? null
@@ -285,7 +329,7 @@ export default class HomeCall_Web_Rtc_Peer {
         sdpMid: iceCandidate?.sdpMid ?? null,
         sdpMLineIndex: iceCandidate?.sdpMLineIndex ?? null
       });
-      if (!connection || typeof RTCIceCandidateCtor !== 'function' || !iceCandidate) {
+      if (typeof RTCIceCandidateCtor !== 'function' || !iceCandidate) {
         return;
       }
       const init = {
@@ -294,7 +338,11 @@ export default class HomeCall_Web_Rtc_Peer {
         sdpMLineIndex: iceCandidate.sdpMLineIndex ?? 0
       };
       try {
-        await connection.addIceCandidate(new RTCIceCandidateCtor(init));
+        if (!connection || !remoteDescriptionApplied) {
+          queueRemoteCandidate(init);
+          return;
+        }
+        await addIceCandidateInternal(init);
       } catch (error) {
         trace('error', 'Failed to add ICE candidate', { error });
         console.error('[Peer] Failed to add ICE candidate', error);
@@ -326,6 +374,7 @@ export default class HomeCall_Web_Rtc_Peer {
       }
       connection = null;
       remoteStream = null;
+      resetRemoteState();
       return this.start();
     };
 
@@ -337,6 +386,7 @@ export default class HomeCall_Web_Rtc_Peer {
       connection = null;
       remoteStream = null;
       target = null;
+      resetRemoteState();
       handlers.onStateChange?.('closed');
     };
   }

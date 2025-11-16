@@ -52,6 +52,8 @@ export default class HomeCall_Web_Ui_Flow {
       connectionMessage: '',
       isCallInProgress: false
     };
+    let mediaPreparation = null;
+    const waitForLocalMediaReady = () => mediaPreparation ?? Promise.resolve();
     const log = logger ?? console;
     const toastNotifier = toast;
     const ensureRoot = () => {
@@ -111,16 +113,26 @@ export default class HomeCall_Web_Ui_Flow {
       prepareOutgoingInvite();
     };
 
-    const prepareLocalMedia = async () => {
+    const prepareLocalMedia = () => {
+      if (mediaPreparation) {
+        return mediaPreparation;
+      }
       log.info('[CallFlow] Preparing local media.');
-      await media.prepare();
-      const stream = media.getLocalStream();
-      const trackCount = typeof stream?.getTracks === 'function' ? stream.getTracks().length : 0;
-      log.info('[CallFlow] Local media stream ready.', {
-        sessionId: context.activeSession,
-        tracks: trackCount
+      mediaPreparation = (async () => {
+        await media.prepare();
+        const stream = media.getLocalStream();
+        const trackCount = typeof stream?.getTracks === 'function' ? stream.getTracks().length : 0;
+        log.info('[CallFlow] Local media stream ready.', {
+          sessionId: context.activeSession,
+          tracks: trackCount
+        });
+        peer.setLocalStream(stream);
+        return stream;
+      })();
+      mediaPreparation.finally(() => {
+        mediaPreparation = null;
       });
-      peer.setLocalStream(stream);
+      return mediaPreparation;
     };
 
     const beginCallSession = async ({ sessionId, role }) => {
@@ -217,6 +229,7 @@ export default class HomeCall_Web_Ui_Flow {
         await startIncomingCall(data.sessionId);
       }
       try {
+        await waitForLocalMediaReady();
         await peer.handleOffer({ sdp: data.sdp });
       } catch (error) {
         log.error('[CallFlow] Failed to handle offer', error);
