@@ -27,7 +27,9 @@ export default class HomeCall_Web_Net_Signal_Orchestrator {
       bind('offer', handlers.onOffer);
       bind('answer', handlers.onAnswer);
       bind('candidate', handlers.onCandidate);
+      bind('hangup', handlers.onHangup);
       bind('error', handlers.onError);
+      bind('status', handlers.onStatus);
     };
   }
 }

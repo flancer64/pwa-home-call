@@ -24,6 +24,11 @@ describe('HomeCall_Back_Service_Signal_SessionManager', () => {
         const peers = manager.getPeers('session-a', socketAlice);
         assert.equal(peers.length, 1);
         assert.strictEqual(peers[0], socketBob);
+        const socketCharlie = createMockSocket();
+        assert.throws(
+            () => manager.register(socketCharlie, 'session-a'),
+            /already has 2 participants/
+        );
 
         manager.deregister(socketAlice);
         assert.equal(manager.getPeers('session-a', socketBob).length, 0);

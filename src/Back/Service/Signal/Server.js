@@ -4,6 +4,9 @@
  */
 
 import { WebSocketServer, WebSocket } from 'ws';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export default class HomeCall_Back_Service_Signal_Server {
     /**
@@ -20,6 +23,9 @@ export default class HomeCall_Back_Service_Signal_Server {
         }
 
         const namespace = 'HomeCall_Back_Service_Signal_Server';
+        const logInfo = (message, details) => logger.info(namespace, `[Signal] ${message}`, details);
+        const logWarn = (message, details) => logger.warn(namespace, `[Signal] ${message}`, details);
+        const logError = (message, details) => logger.error(namespace, `[Signal] ${message}`, details);
         let server = null;
         const pendingSignals = new Map();
         const SIGNAL_PATH = '/signal';
@@ -45,6 +51,26 @@ export default class HomeCall_Back_Service_Signal_Server {
             return value.trim();
         };
 
+        const SIGNAL_TYPES = new Set(['offer', 'answer', 'candidate', 'hangup', 'error']);
+
+        const extractSessionIdFromRequest = (req) => {
+            if (!req || typeof req.url !== 'string') {
+                return null;
+            }
+            try {
+                const host = typeof req.headers?.host === 'string' && req.headers.host.length > 0 ? req.headers.host : 'localhost';
+                const normalized = new URL(req.url, `http://${host}`);
+                const sessionId = normalized.searchParams.get('sessionId');
+                if (!sessionId) {
+                    return null;
+                }
+                return normalizeSessionId(sessionId, 'sessionId');
+            } catch (error) {
+                logWarn('Unable to parse sessionId from WebSocket handshake.', { error: error?.message ?? null });
+                return null;
+            }
+        };
+
         const toJson = (payload) => JSON.stringify(payload);
 
         const safeSend = (targetSocket, payload) => {
@@ -61,7 +87,25 @@ export default class HomeCall_Back_Service_Signal_Server {
             const entries = pendingSignals.get(sessionId) ?? [];
             entries.push({ payload, source: sourceSocket });
             pendingSignals.set(sessionId, entries);
-            logger.info(namespace, `Queued ${payload.type} for session ${sessionId}. Waiting for peer.`);
+            logInfo(`Queued ${payload.type} for session ${sessionId}. Waiting for peer.`, {
+                sessionId,
+                type: payload.type
+            });
+        };
+
+        const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
+        const serverLogPath = path.join(repoRoot, 'tmp', 'signal-server.log');
+        try {
+            fs.rmSync(serverLogPath);
+        } catch (error) {
+            // ignore
+        }
+        const logServerEvent = (entry) => {
+            try {
+                fs.appendFileSync(serverLogPath, `${JSON.stringify(entry)}\n`);
+            } catch (error) {
+                // ignore
+            }
         };
 
         const deliverPendingSignals = (sessionId, socket) => {
@@ -77,7 +121,16 @@ export default class HomeCall_Back_Service_Signal_Server {
                     continue;
                 }
                 safeSend(socket, entry.payload);
-                logger.info(namespace, `Delivered queued ${entry.payload.type} to session ${sessionId}.`);
+                logServerEvent({
+                    when: 'deliver-pending',
+                    sessionId,
+                    type: entry.payload.type,
+                    target: socket === entry.source ? 'self' : 'peer'
+                });
+                logInfo(`Delivered queued ${entry.payload.type} to session ${sessionId}.`, {
+                    sessionId,
+                    type: entry.payload.type
+                });
             }
             if (remaining.length > 0) {
                 pendingSignals.set(sessionId, remaining);
@@ -86,76 +139,116 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
         };
 
+        const removePendingSignalsForSocket = (socket) => {
+            if (!socket) {
+                return;
+            }
+            for (const [sessionId, entries] of pendingSignals.entries()) {
+                const updated = entries.filter((entry) => entry.source !== socket);
+                if (updated.length === entries.length) {
+                    continue;
+                }
+                if (updated.length === 0) {
+                    pendingSignals.delete(sessionId);
+                } else {
+                    pendingSignals.set(sessionId, updated);
+                }
+            }
+        };
+
         const cleanupSocket = (socket) => {
             if (!socket) {
                 return;
             }
+            const sessionId = sessions.getSessionId(socket);
             sessions.deregister(socket);
+            removePendingSignalsForSocket(socket);
+            if (sessionId) {
+                const peers = sessions.getPeers(sessionId);
+                if (!peers || peers.length === 0) {
+                    pendingSignals.delete(sessionId);
+                }
+            }
         };
 
         const registerSession = (socket, sessionId) => {
             const key = normalizeSessionId(sessionId, 'sessionId');
+            const currentSession = sessions.getSessionId(socket);
+            if (currentSession === key) {
+                return key;
+            }
+            if (currentSession) {
+                sessions.deregister(socket);
+            }
             sessions.register(socket, key);
-            logger.info(namespace, `Socket joined session ${key}.`);
+            logInfo(`Socket joined session ${key}.`, { sessionId: key });
             deliverPendingSignals(key, socket);
             return key;
         };
 
-        const handleJoin = (socket, message) => {
-            if (!message?.sessionId) {
-                sendError(socket, 'Join message requires sessionId.');
-                return;
+        const buildSignalPayload = (type, message, sessionId) => {
+            const payload = { type, sessionId };
+            if (type === 'offer' || type === 'answer') {
+                const sdp = typeof message?.sdp === 'string' ? message.sdp : '';
+                if (!sdp) {
+                    throw new Error(`${type} payload requires a non-empty SDP.`);
+                }
+                payload.sdp = sdp;
+            } else if (type === 'candidate') {
+                const candidate = message?.candidate;
+                if (!candidate || typeof candidate.candidate !== 'string' || candidate.candidate.trim() === '') {
+                    throw new Error('Candidate payload requires valid candidate data.');
+                }
+                payload.candidate = candidate;
+            } else if (type === 'hangup') {
+                const initiator = typeof message?.initiator === 'string' ? message.initiator.trim() : '';
+                if (!['caller', 'callee'].includes(initiator)) {
+                    throw new Error('Hangup payload requires initiator equal caller or callee.');
+                }
+                payload.initiator = initiator;
+            } else if (type === 'error') {
+                payload.message = typeof message?.message === 'string' ? message.message : 'Unknown signaling error.';
+                if (typeof message?.code !== 'undefined') {
+                    payload.code = message.code;
+                }
             }
-            try {
-                registerSession(socket, message.sessionId);
-            } catch (err) {
-                logger.error(namespace, 'Failed to process join message.', err);
-                sendError(socket, 'Unable to join the session.');
-            }
-        };
-
-        const handleLeave = (socket, message) => {
-            const explicit = typeof message?.sessionId === 'string' && message.sessionId.trim().length
-                ? message.sessionId.trim()
-                : sessions.getSessionId(socket);
-            if (!explicit) {
-                sendError(socket, 'Leave message requires sessionId.');
-                return;
-            }
-            try {
-                sessions.deregister(socket);
-                logger.info(namespace, `Socket left session ${explicit}.`);
-            } catch (err) {
-                logger.error(namespace, 'Failed to process leave message.', err);
-                sendError(socket, 'Unable to leave the session.');
-            }
+            return payload;
         };
 
         const forwardSignal = (socket, type, message) => {
-            const sessionId = typeof message?.sessionId === 'string' && message.sessionId.trim().length
-                ? message.sessionId.trim()
-                : sessions.getSessionId(socket);
-            if (!sessionId) {
-                sendError(socket, `${type} message requires sessionId.`);
+            let normalizedSession;
+            try {
+                normalizedSession = registerSession(socket, message?.sessionId);
+            } catch (error) {
+                const errMsg = error?.message ?? 'Unable to register for the session.';
+                logWarn('Failed to register session for signal.', { error: errMsg, sessionId: message?.sessionId ?? null });
+                sendError(socket, errMsg, message?.sessionId ?? null);
                 return;
             }
-            let payload = { type, sessionId };
-            if (type === 'offer' || type === 'answer') {
-                payload.sdp = message.sdp;
-            } else if (type === 'candidate') {
-                payload.candidate = message.candidate;
+            let payload;
+            try {
+                payload = buildSignalPayload(type, message, normalizedSession);
+            } catch (error) {
+                const errMsg = error?.message ?? 'Invalid signal payload.';
+                logWarn('Invalid signal payload.', { error: errMsg, sessionId: normalizedSession });
+                sendError(socket, errMsg, normalizedSession);
+                return;
             }
-            const peers = sessions.getPeers(sessionId, socket);
+            const peers = sessions.getPeers(normalizedSession, socket);
             if (!peers || peers.length === 0) {
-                enqueuePendingSignal(sessionId, payload, socket);
+                enqueuePendingSignal(normalizedSession, payload, socket);
                 return;
             }
             peers.forEach((targetSocket) => safeSend(targetSocket, payload));
-            logger.info(namespace, `Forwarded ${type} in session ${sessionId}.`);
+            logInfo(`Forwarded ${type} in session ${normalizedSession}.`, {
+                sessionId: normalizedSession,
+                type
+            });
         };
 
-        const sendError = (socket, message) => {
-            safeSend(socket, { type: 'error', message });
+        const sendError = (socket, message, sessionId = null) => {
+            logWarn('Sending error response to client.', { message, sessionId });
+            safeSend(socket, { type: 'error', sessionId, message });
         };
 
         const handleMessage = (socket, data) => {
@@ -164,52 +257,59 @@ export default class HomeCall_Back_Service_Signal_Server {
                 const text = typeof data === 'string' ? data : data.toString();
                 parsed = JSON.parse(text);
             } catch (err) {
-                logger.warn(namespace, 'Received invalid JSON payload.');
+                logWarn('Received invalid JSON payload.', { error: err?.message ?? null });
                 sendError(socket, 'Invalid JSON payload.');
                 return;
             }
             const type = typeof parsed.type === 'string' ? parsed.type.trim() : '';
             if (!type) {
-                sendError(socket, 'Message type is required.');
+                logWarn('Signaling message missing type.');
+                sendError(socket, 'Message type is required.', parsed?.sessionId ?? null);
                 return;
             }
-            switch (type) {
-                case 'join':
-                    handleJoin(socket, parsed);
-                    break;
-                case 'leave':
-                    handleLeave(socket, parsed);
-                    break;
-                case 'offer':
-                case 'answer':
-                case 'candidate':
-                    forwardSignal(socket, type, parsed);
-                    break;
-                case 'error':
-                    logger.warn(namespace, 'Client reported an error.', parsed);
-                    break;
-                default:
-                    logger.warn(namespace, `Unsupported message type: ${type}`);
-                    sendError(socket, `Unsupported message type: ${type}`);
-                    break;
+            if (!SIGNAL_TYPES.has(type)) {
+                logWarn(`Unsupported message type: ${type}`, { type });
+                sendError(socket, `Unsupported message type: ${type}`, parsed?.sessionId ?? null);
+                return;
             }
+            forwardSignal(socket, type, parsed);
         };
 
         const setupServer = () => {
             const port = parsePort();
             const host = parseHost();
             const wss = new WebSocketServer({ port, host, path: SIGNAL_PATH });
-            wss.on('connection', (socket) => {
-                logger.info(namespace, 'Incoming WebSocket connection.');
+            wss.on('connection', (socket, req) => {
+                logServerEvent({
+                    when: 'connection',
+                    url: req?.url ?? null,
+                    host: req?.headers?.host ?? null
+                });
+                const sessionIdFromHandshake = extractSessionIdFromRequest(req);
+                if (sessionIdFromHandshake) {
+                    try {
+                        registerSession(socket, sessionIdFromHandshake);
+                    } catch (error) {
+                        const reason = error?.message ?? 'Unable to join session.';
+                        sendError(socket, reason, sessionIdFromHandshake);
+                        socket.close(1008, reason);
+                        return;
+                    }
+                }
+                logInfo('Incoming WebSocket connection.', { sessionId: sessionIdFromHandshake ?? null });
                 socket.on('message', (data) => handleMessage(socket, data));
-                socket.on('close', () => cleanupSocket(socket));
+                socket.on('close', () => {
+                    const sessionId = sessions.getSessionId(socket);
+                    logInfo('WebSocket connection closed.', { sessionId });
+                    cleanupSocket(socket);
+                });
                 socket.on('error', (err) => {
-                    logger.error(namespace, 'WebSocket connection error.', err);
+                    logError('WebSocket connection error.', err);
                     cleanupSocket(socket);
                 });
             });
             wss.on('error', (err) => {
-                logger.error(namespace, 'WebSocket server error.', err);
+                logError('WebSocket server error.', err);
             });
             return wss;
         };
@@ -226,7 +326,7 @@ export default class HomeCall_Back_Service_Signal_Server {
             server = wss;
             const address = server.address();
             const portInfo = typeof address === 'object' && address ? address.port : parsePort();
-            logger.info(namespace, `WebSocket signaling server started on port ${portInfo} (path ${SIGNAL_PATH}).`);
+            logInfo('WebSocket signaling server started.', { port: portInfo, path: SIGNAL_PATH });
         };
 
         this.stop = async () => {
@@ -247,11 +347,12 @@ export default class HomeCall_Back_Service_Signal_Server {
                     try {
                         client.terminate();
                     } catch (err) {
-                        logger.error(namespace, 'Failed to terminate client connection.', err);
+                        logError('Failed to terminate client connection.', err);
                     }
                 }
             });
-            logger.info(namespace, 'WebSocket signaling server stopped.');
+            pendingSignals.clear();
+            logInfo('WebSocket signaling server stopped.');
         };
 
         this.getAddress = () => {

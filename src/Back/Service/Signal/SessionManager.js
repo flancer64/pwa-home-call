@@ -6,6 +6,7 @@ export default class HomeCall_Back_Service_Signal_SessionManager {
     constructor() {
         const sessions = new Map();
         const registry = new WeakMap();
+        const MAX_PARTICIPANTS = 2;
 
         const normalizeSessionId = (value, label) => {
             if (typeof value !== 'string' || value.trim() === '') {
@@ -28,6 +29,9 @@ export default class HomeCall_Back_Service_Signal_SessionManager {
             if (!participants) {
                 participants = new Set();
                 sessions.set(key, participants);
+            }
+            if (!participants.has(ws) && participants.size >= MAX_PARTICIPANTS) {
+                throw new Error(`Session ${key} already has ${MAX_PARTICIPANTS} participants.`);
             }
             participants.add(ws);
             registry.set(ws, key);

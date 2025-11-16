@@ -50,12 +50,14 @@ export default class HomeCall_Web_Ui_Flow {
       inviteUrl: null,
       remoteStream: null,
       connectionMessage: '',
-      isCallInProgress: false
+      isCallInProgress: false,
+      role: null
     };
     let mediaPreparation = null;
     const waitForLocalMediaReady = () => mediaPreparation ?? Promise.resolve();
     const log = logger ?? console;
     const toastNotifier = toast;
+    let recoveryInProgress = false;
     const ensureRoot = () => {
       if (context.root) {
         return;
@@ -65,30 +67,28 @@ export default class HomeCall_Web_Ui_Flow {
       }
       throw new Error('Call flow requires a DOM root container.');
     };
-
-    const joinSignalSession = () => {
-      if (!context.activeSession) {
-        return;
+    const getFlowLogger = (level) => {
+      if (typeof log[level] === 'function') {
+        return log[level].bind(log);
       }
-      log.info('[CallFlow] Joining signal session.', { sessionId: context.activeSession });
-      signal.joinSession?.({ sessionId: context.activeSession });
+      if (typeof log.info === 'function') {
+        return log.info.bind(log);
+      }
+      return () => {};
     };
 
-    const leaveSignalSession = () => {
-      if (!context.activeSession) {
-        return;
-      }
-      log.info('[CallFlow] Leaving signal session.', { sessionId: context.activeSession });
-      signal.leaveSession?.({ sessionId: context.activeSession });
+    const flowLog = (level, message, details) => {
+      const writer = getFlowLogger(level);
+      writer(`[Flow] ${message}`, details);
     };
 
     const handleReturnHome = () => {
-      leaveSignalSession();
       context.connectionMessage = '';
       context.remoteStream = null;
       context.activeSession = null;
       context.inviteUrl = null;
       context.isCallInProgress = false;
+      context.role = null;
       context.pendingSession = null;
       sessionManager.clearSessionFromUrl();
       showHome();
@@ -117,16 +117,24 @@ export default class HomeCall_Web_Ui_Flow {
       if (mediaPreparation) {
         return mediaPreparation;
       }
-      log.info('[CallFlow] Preparing local media.');
+      flowLog('info', 'Preparing local media.');
       mediaPreparation = (async () => {
         await media.prepare();
         const stream = media.getLocalStream();
         const trackCount = typeof stream?.getTracks === 'function' ? stream.getTracks().length : 0;
-        log.info('[CallFlow] Local media stream ready.', {
+        flowLog('info', 'Local media stream ready.', {
           sessionId: context.activeSession,
           tracks: trackCount
         });
         peer.setLocalStream(stream);
+        if (typeof peer.prepare === 'function') {
+          try {
+            peer.prepare();
+          } catch (error) {
+            flowLog('error', 'RTC peer preparation failed.', error);
+            throw error;
+          }
+        }
         return stream;
       })();
       mediaPreparation.finally(() => {
@@ -144,7 +152,8 @@ export default class HomeCall_Web_Ui_Flow {
       if (context.isCallInProgress) {
         return;
       }
-      log.info('[CallFlow] Initiating call session.', { sessionId, role });
+      flowLog('info', 'Initiating call session.', { sessionId, role });
+      context.role = role;
       context.isCallInProgress = true;
       context.activeSession = sessionId;
       context.inviteUrl = sessionManager.buildInviteUrl(sessionId);
@@ -153,17 +162,23 @@ export default class HomeCall_Web_Ui_Flow {
       try {
         await prepareLocalMedia();
       } catch (error) {
-        log.error('[CallFlow] Media preparation failed', error);
+        flowLog('error', 'Media preparation failed', error);
         endCall('Не удалось получить доступ к медиаустройствам.');
         return;
       }
-      joinSignalSession();
+      try {
+        await signal.connect(context.activeSession);
+      } catch (error) {
+        flowLog('error', 'Signaling connection failed', { error, sessionId: context.activeSession });
+        endCall('Не удалось подключиться к серверу сигналинга.');
+        return;
+      }
       showCall();
       if (role === 'initiator') {
         try {
           await peer.start();
         } catch (error) {
-          log.error('[CallFlow] Unable to start call', error);
+          flowLog('error', 'Unable to start call', error);
           endCall('Не удалось начать звонок.');
         }
       }
@@ -202,29 +217,30 @@ export default class HomeCall_Web_Ui_Flow {
       }
     };
 
-    const endCall = (message = 'Звонок завершён.') => {
-      log.info('Ending call session.', { message, sessionId: context.activeSession });
-      if (stateMachine.getState() !== 'call') {
-        context.connectionMessage = message;
-        showEnd();
-        return;
+    const endCall = (message = 'Звонок завершён.', skipSignalHangup = false) => {
+      flowLog('info', 'Ending call session.', { message, sessionId: context.activeSession });
+      const sessionId = context.activeSession;
+      if (!skipSignalHangup && sessionId) {
+        const initiator = context.role === 'initiator' ? 'caller' : 'callee';
+        signal.sendHangup({ sessionId, initiator });
       }
+      peer.end();
+      signal.disconnect();
       context.isCallInProgress = false;
       context.connectionMessage = message;
-      leaveSignalSession();
-      media.stopLocalStream();
-      peer.end();
       context.remoteStream = null;
       context.activeSession = null;
       context.inviteUrl = null;
+      context.role = null;
+      media.stopLocalStream();
       showEnd();
     };
 
     const handleOffer = async (data) => {
-      if (!data?.sessionId) {
+      if (!data?.sessionId || typeof data?.sdp !== 'string') {
         return;
       }
-      log.info('[CallFlow] Received offer.', { sessionId: data.sessionId });
+      flowLog('info', 'Received offer.', { sessionId: data.sessionId });
       if (!context.isCallInProgress) {
         await startIncomingCall(data.sessionId);
       }
@@ -232,65 +248,140 @@ export default class HomeCall_Web_Ui_Flow {
         await waitForLocalMediaReady();
         await peer.handleOffer({ sdp: data.sdp });
       } catch (error) {
-        log.error('[CallFlow] Failed to handle offer', error);
+        flowLog('error', 'Failed to handle offer', error);
         endCall('Не удалось принять звонок.');
       }
     };
 
     const handleAnswer = async (data) => {
-      if (!data) {
+      if (!data?.sdp) {
         return;
       }
-      log.info('[CallFlow] Received answer.', { sessionId: context.activeSession });
+      flowLog('info', 'Received answer.', { sessionId: data.sessionId ?? context.activeSession });
       try {
         await peer.handleAnswer({ sdp: data.sdp });
       } catch (error) {
-        log.error('[CallFlow] Failed to handle answer', error);
+        flowLog('error', 'Failed to handle answer', error);
       }
     };
 
     const handleCandidate = async (data) => {
-      if (!data) {
+      const candidate = data?.candidate;
+      if (!candidate) {
         return;
       }
-      log.info('[CallFlow] Received ICE candidate.', {
+      flowLog('info', 'Received ICE candidate.', {
         sessionId: data?.sessionId ?? context.activeSession,
-        sdpMid: data?.candidate?.sdpMid ?? null,
-        sdpMLineIndex: data?.candidate?.sdpMLineIndex ?? null
+        sdpMid: candidate?.sdpMid ?? null,
+        sdpMLineIndex: candidate?.sdpMLineIndex ?? null
       });
       try {
-        await peer.addCandidate({ candidate: data.candidate });
+        await peer.addCandidate({ candidate });
       } catch (error) {
-        log.error('[CallFlow] Failed to add candidate', error);
+        flowLog('error', 'Failed to add candidate', error);
       }
     };
 
     const handleSignalError = (data) => {
       const userMessage = 'Произошла ошибка сигналинга.';
-      if (data?.message) {
-        log.error('[CallFlow] Signal error', data.message, data);
-      } else {
-        log.error('[CallFlow] Signal error', data);
-      }
+      flowLog('error', 'Signal error', data ?? undefined);
       toastNotifier.error(userMessage);
       endCall(userMessage);
     };
 
+    const attemptPeerRecovery = async () => {
+      if (!context.isCallInProgress || recoveryInProgress) {
+        return;
+      }
+      const state = typeof peer.getConnectionState === 'function' ? peer.getConnectionState() : null;
+      if (!state || state === 'connected') {
+        return;
+      }
+      if (!['disconnected', 'failed', 'closed'].includes(state)) {
+        return;
+      }
+      recoveryInProgress = true;
+      flowLog('info', 'Rebuilding peer connection after signal reconnection.', {
+        sessionId: context.activeSession,
+        previousState: state
+      });
+      try {
+        peer.end();
+        const stream = media.getLocalStream();
+        if (stream && typeof peer.setLocalStream === 'function') {
+          peer.setLocalStream(stream);
+        }
+        peer.prepare();
+        if (context.role === 'initiator') {
+          await peer.start();
+        }
+      } catch (error) {
+        flowLog('error', 'Failed to rebuild peer connection.', error);
+        endCall('Связь потеряна.', true);
+      } finally {
+        recoveryInProgress = false;
+      }
+    };
+
+    const handleSignalStatus = async (payload) => {
+      const state = payload?.state ?? null;
+      const sessionId = payload?.sessionId ?? context.activeSession;
+      if (state === 'connected') {
+        flowLog('info', 'Signaling session established.', { sessionId });
+        return;
+      }
+      if (state === 'reconnected') {
+        flowLog('info', 'Signaling session reconnected.', { sessionId });
+        await attemptPeerRecovery();
+        return;
+      }
+      if (state === 'closed') {
+        flowLog('warn', 'Signaling session closed.', { sessionId });
+      }
+    };
+
+    const handleHangup = (data) => {
+      if (!data?.sessionId || data.sessionId !== context.activeSession) {
+        return;
+      }
+      flowLog('info', 'Remote hangup received.', {
+        sessionId: data.sessionId,
+        initiator: data.initiator ?? null
+      });
+      endCall('Собеседник завершил звонок.', true);
+    };
+
     const configurePeer = () => {
       peer.configure({
-        sendOffer: async (sdp) => {
+        sendOffer: async ({ sdp }) => {
           if (!context.activeSession || !sdp) {
             return;
           }
-          signal.sendOffer({ sessionId: context.activeSession, sdp });
+          const payload = {
+            sessionId: context.activeSession,
+            sdp
+          };
+          flowLog('info', 'Sending offer', {
+            sessionId: context.activeSession,
+            sdpLength: typeof sdp === 'string' ? sdp.length : 0
+          });
+          signal.sendOffer(payload);
         },
-        sendAnswer: async (sdp) => {
+        sendAnswer: async ({ sdp }) => {
           if (!context.activeSession || !sdp) {
             return;
           }
-          signal.sendAnswer({ sessionId: context.activeSession, sdp });
+          const payload = {
+            sessionId: context.activeSession,
+            sdp
+          };
+          flowLog('info', 'Sending answer', {
+            sessionId: context.activeSession,
+            sdpLength: typeof sdp === 'string' ? sdp.length : 0
+          });
+          signal.sendAnswer(payload);
         },
-        sendCandidate: async (candidate) => {
+        sendCandidate: async ({ candidate }) => {
           if (!context.activeSession || !candidate) {
             return;
           }
@@ -299,7 +390,7 @@ export default class HomeCall_Web_Ui_Flow {
             sdpMid: candidate.sdpMid ?? null,
             sdpMLineIndex: candidate.sdpMLineIndex ?? null
           };
-          log.info('[CallFlow] Sending ICE candidate.', {
+          flowLog('info', 'Sending ICE candidate.', {
             sessionId: context.activeSession,
             sdpMid: normalizedCandidate.sdpMid,
             sdpMLineIndex: normalizedCandidate.sdpMLineIndex
@@ -408,6 +499,8 @@ export default class HomeCall_Web_Ui_Flow {
     this.handleOffer = handleOffer;
     this.handleAnswer = handleAnswer;
     this.handleCandidate = handleCandidate;
+    this.handleHangup = handleHangup;
+    this.handleSignalStatus = handleSignalStatus;
     this.handleSignalError = handleSignalError;
   }
 }

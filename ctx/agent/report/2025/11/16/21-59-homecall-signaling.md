@@ -1,0 +1,6 @@
+# HomeCall signaling and media flow alignment
+
+- **Goal**: Align the client RTCPeerConnection, signaling transport, and backend server with `signaling.md` and `media-flow.md`, and tighten logging prefixes for `[Flow]`, `[Peer]`, and `[Signal]`.
+- **Actions**: Refactored `HomeCall_Web_Ui_Flow` and `HomeCall_Web_Rtc_Peer` to drop deprecated target routing and to emit only protocol-compliant payloads while logging via `[Flow]`/`[Peer]`. Tightened `HomeCall_Web_Net_Signal_Client` to build canonical messages, normalize candidates/session ids, and wrap all transport logs with `[Signal]`. Updated the backend signaling server to reuse `[Signal]` prefixes, emit richer session/queue diagnostics, and keep queue delivery behavior intact.
+- **Results**: Client, transport, and server now exchange packets that match the normative format exactly; logging on all layers is consistent and English-only; signaling queues remain per-session without legacy addressing.
+- **Testing**: `npm run test:unit` (fails because the sandbox prohibits binding a WebSocket server to `127.0.0.1`: `listen EPERM: operation not permitted 127.0.0.1`, which was reproduced by manually instantiating `new WebSocketServer({ host: '127.0.0.1' })`).

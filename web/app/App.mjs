@@ -95,17 +95,10 @@ export default class HomeCall_Web_App {
         onOffer: callFlow.handleOffer,
         onAnswer: callFlow.handleAnswer,
         onCandidate: callFlow.handleCandidate,
+        onHangup: callFlow.handleHangup,
+        onStatus: callFlow.handleSignalStatus,
         onError: callFlow.handleSignalError
       });
-      try {
-        await signal.connect();
-      } catch (error) {
-        log.error('[App] Failed to connect to signaling server', error);
-        toast.error('Не удалось подключиться к серверу сигналинга.');
-        callFlow.renderHome();
-        startDevRouter();
-        return;
-      }
       try {
         await callFlow.bootstrap();
       } catch (error) {

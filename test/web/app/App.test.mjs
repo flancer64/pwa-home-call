@@ -23,24 +23,33 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   };
   let connectCalls = 0;
   let sendOfferArgs = null;
-  let joinSessionArgs = null;
+  let lastConnectSession = null;
   const signalClient = {
     on() {},
-    async connect() { connectCalls += 1; },
-    sendOffer(payload) { sendOfferArgs = payload; },
+    off() {},
+    async connect(sessionId) {
+      connectCalls += 1;
+      lastConnectSession = sessionId;
+    },
+    disconnect() {},
+    sendOffer(payload) {
+      sendOfferArgs = payload;
+    },
     sendAnswer() {},
     sendCandidate() {},
-    joinSession(payload) { joinSessionArgs = payload; },
-    leaveSession() {}
+    sendHangup() {},
   };
   let configuredHandlers = null;
   let peerStartCalls = 0;
   const peer = {
     configure(handlers) { configuredHandlers = handlers; },
     setLocalStream() {},
-    async start() {
+    async start(options = {}) {
       peerStartCalls += 1;
-      await configuredHandlers?.sendOffer?.('sdp-token');
+      await configuredHandlers?.sendOffer?.({
+        target: options.target ?? null,
+        sdp: 'sdp-token'
+      });
       return { sdp: 'sdp-token' };
     },
     end() {},
@@ -113,7 +122,7 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   assert.equal(swRegisters, 1, 'service worker should register');
   assert.equal(versionStarts, 1, 'version watcher should start');
   assert.equal(mediaPrepareCalls, 0, 'media should not prepare before call');
-  assert.equal(connectCalls, 1, 'signal client connects once');
+  assert.equal(connectCalls, 0, 'signal client should not connect before call');
   assert.ok(uiCalls.home, 'home screen should render');
   assert.strictEqual(typeof uiCalls.home?.onStartCall, 'function', 'home should provide call handler');
 
@@ -129,9 +138,9 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   assert.equal(mediaPrepareCalls, 1, 'media should prepare for outgoing call');
   assert.equal(peerStartCalls, 1, 'peer start should be invoked once');
   assert.ok(uiCalls.call, 'call screen should render when the call starts');
-  assert.ok(joinSessionArgs, 'signal should join session before exchanging offers');
-  assert.equal(joinSessionArgs?.sessionId, uiCalls.invite?.sessionId, 'join payload reuses the invite session');
   assert.ok(sendOfferArgs, 'signal should send offer payload');
   assert.ok(sendOfferArgs?.sessionId?.length > 0, 'offer payload includes session id');
   assert.equal(sendOfferArgs?.sessionId, uiCalls.invite?.sessionId, 'offer payload uses the same session id');
+  assert.equal(connectCalls, 1, 'signal client connects when call starts');
+  assert.equal(lastConnectSession, uiCalls.invite?.sessionId, 'signal connect receives the session id');
 });
