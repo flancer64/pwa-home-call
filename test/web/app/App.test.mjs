@@ -48,7 +48,7 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     async handleAnswer() {},
     async addCandidate() {}
   };
-  const logger = { info() {}, warn() {}, error() {} };
+  const logger = { info() {}, warn() {}, error() {}, setRemoteLoggingEnabled() {} };
   const rootElement = { classList: { toggle() {} } };
   const location = new URL('https://kolobok.app/');
   const history = { replaceState() {}, state: null };
@@ -89,6 +89,11 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     updateRemoteStream(stream) { uiCalls.remote = stream; }
   };
 
+  const remoteLoggingConfig = {
+    isRemoteLoggingEnabled() {
+      return false;
+    }
+  };
   container.register('HomeCall_Web_Ui_Templates_Loader$', templateLoader);
   container.register('HomeCall_Web_Pwa_ServiceWorker$', swManager);
   container.register('HomeCall_Web_VersionWatcher$', versionWatcher);
@@ -99,6 +104,7 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   container.register('HomeCall_Web_Logger$', logger);
   container.register('HomeCall_Web_Env_Provider$', env);
   container.register('HomeCall_Web_Ui_Toast$', toast);
+  container.register('HomeCall_Web_Config_RemoteLogging$', remoteLoggingConfig);
 
   const app = await container.get('HomeCall_Web_App$');
   await app.run();

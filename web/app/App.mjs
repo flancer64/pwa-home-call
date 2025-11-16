@@ -11,6 +11,7 @@ export default class HomeCall_Web_App {
     HomeCall_Web_Net_Signal_Client$: signal,
     HomeCall_Web_Rtc_Peer$: peer,
     HomeCall_Web_Logger$: logger,
+    HomeCall_Web_Config_RemoteLogging$: remoteLoggingConfig,
     HomeCall_Web_Env_Provider$: env,
     HomeCall_Web_Ui_Toast$: toast,
     HomeCall_Web_Ui_Router_Dev$: devRouter,
@@ -50,6 +51,14 @@ export default class HomeCall_Web_App {
 
     const documentRef = env.document ?? null;
     const log = logger ?? console;
+    const configureRemoteLogging = () => {
+      if (
+        typeof logger?.setRemoteLoggingEnabled === 'function' &&
+        typeof remoteLoggingConfig?.isRemoteLoggingEnabled === 'function'
+      ) {
+        logger.setRemoteLoggingEnabled(Boolean(remoteLoggingConfig.isRemoteLoggingEnabled()));
+      }
+    };
     let devRouterStarted = false;
     const startDevRouter = () => {
       if (devRouterStarted || !env?.isDevelopment || typeof devRouter?.init !== 'function') {
@@ -75,6 +84,7 @@ export default class HomeCall_Web_App {
       if (!root) {
         throw new Error('Element with id "app" was not found.');
       }
+      configureRemoteLogging();
       toast.init();
       media.setPeer(peer);
       await sw.register();

@@ -144,6 +144,14 @@ test('Remote logging toggle updates configuration state', async () => {
   container.register('HomeCall_Web_Pwa_Cache$', { async clear() {} });
   const loggingConfig = createRemoteLoggingConfig(false);
   container.register('HomeCall_Web_Config_RemoteLogging$', loggingConfig);
+  const loggerCalls = [];
+  const logger = {
+    setRemoteLoggingEnabled(value) {
+      loggerCalls.push(value);
+      loggingConfig.setRemoteLoggingEnabled(value);
+    }
+  };
+  container.register('HomeCall_Web_Logger$', logger);
   const screen = await container.get('HomeCall_Web_Ui_Screen_Settings$');
   const closeButton = { addEventListener() {} };
   const reinstallButton = { addEventListener() {} };
@@ -156,5 +164,6 @@ test('Remote logging toggle updates configuration state', async () => {
   assert.equal(remoteToggle.getAttribute('aria-pressed'), 'true');
   await remoteToggle.trigger();
   assert.deepStrictEqual(loggingConfig.calls, [true, false]);
+  assert.deepStrictEqual(loggerCalls, [true, false]);
   assert.equal(remoteToggle.getAttribute('aria-pressed'), 'false');
 });

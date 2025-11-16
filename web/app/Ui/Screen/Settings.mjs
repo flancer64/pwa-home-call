@@ -6,6 +6,7 @@ export default class HomeCall_Web_Ui_Screen_Settings {
   constructor({
     HomeCall_Web_Ui_Templates_Loader$: templates,
     HomeCall_Web_Pwa_Cache$: cache,
+    HomeCall_Web_Logger$: logger,
     HomeCall_Web_Config_RemoteLogging$: remoteLoggingConfig
   } = {}) {
     if (!templates) {
@@ -16,6 +17,7 @@ export default class HomeCall_Web_Ui_Screen_Settings {
     }
     this.templates = templates;
     this.cache = cache;
+    this.logger = logger ?? null;
     this.remoteLoggingConfig = remoteLoggingConfig ?? {
       isRemoteLoggingEnabled: () => false,
       setRemoteLoggingEnabled: () => {}
@@ -59,7 +61,11 @@ export default class HomeCall_Web_Ui_Screen_Settings {
     remoteLoggingToggle?.addEventListener('click', (event) => {
       event.preventDefault();
       const next = !this.remoteLoggingConfig.isRemoteLoggingEnabled();
-      this.remoteLoggingConfig.setRemoteLoggingEnabled(next);
+      if (typeof this.logger?.setRemoteLoggingEnabled === 'function') {
+        this.logger.setRemoteLoggingEnabled(next);
+      } else if (typeof this.remoteLoggingConfig.setRemoteLoggingEnabled === 'function') {
+        this.remoteLoggingConfig.setRemoteLoggingEnabled(next);
+      }
       updateRemoteState();
     });
     updateRemoteState();
