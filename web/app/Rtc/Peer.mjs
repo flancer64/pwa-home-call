@@ -9,12 +9,12 @@ const buildPeerLogger = (logger, env) => {
   }
   const consoleRef = env?.console ?? (typeof globalThis !== 'undefined' ? globalThis.console : null);
   if (!consoleRef) {
-    const noop = () => {};
+    const noop = () => { };
     return { debug: noop, info: noop, warn: noop, error: noop };
   }
   const bindLevel = (level) => {
     const fn = typeof consoleRef[level] === 'function' ? consoleRef[level] : consoleRef.log;
-    return typeof fn === 'function' ? fn.bind(consoleRef) : () => {};
+    return typeof fn === 'function' ? fn.bind(consoleRef) : () => { };
   };
   return {
     debug: bindLevel('debug'),
@@ -55,7 +55,7 @@ export default class HomeCall_Web_Rtc_Peer {
 
     const subscribeConnectionState = (handler) => {
       if (typeof handler !== 'function') {
-        return () => {};
+        return () => { };
       }
       connectionStateListeners.add(handler);
       return () => connectionStateListeners.delete(handler);
@@ -63,7 +63,7 @@ export default class HomeCall_Web_Rtc_Peer {
 
     const subscribeRemoteStream = (handler) => {
       if (typeof handler !== 'function') {
-        return () => {};
+        return () => { };
       }
       remoteStreamListeners.add(handler);
       return () => remoteStreamListeners.delete(handler);
@@ -88,8 +88,19 @@ export default class HomeCall_Web_Rtc_Peer {
       }
       remoteDescriptionApplied = false;
       const connectionConfig = {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          {
+            urls: [
+              'turn:turn.wiredgeese.com:3478?transport=udp',
+              'turn:turn.wiredgeese.com:3478?transport=tcp'
+            ],
+            username: 'demo',
+            credential: 'Pt26kp9d2IblMdkUjsbzfZJs-QnRvav7hyfxZ5xnznSKfqZhr-0DbnNeGOfG6Nx9UOYsZPlFE'
+          }
+        ]
       };
+
       trace('info', 'Creating RTCPeerConnection', { target, config: connectionConfig });
       const pc = new RTCPeerConnectionCtor(connectionConfig);
       if (localStream) {
