@@ -283,6 +283,27 @@ body {
 
 .settings-remote-logging-button {
   border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.settings-remote-logging-state {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: background-color 0.2s ease;
+}
+
+.settings-remote-logging-state[data-state='enabled'] {
+  color: var(--accent-secondary);
+  background-color: rgba(56, 201, 119, 0.2);
 }
 
 .screen-kicker {

@@ -32,6 +32,7 @@ export default class HomeCall_Web_Ui_Screen_Settings {
     const closeButton = container.querySelector('.settings-close');
     const reinstallButton = container.querySelector('#settings-reinstall');
     const remoteLoggingToggle = container.querySelector('#settings-remote-logging');
+    const remoteLoggingState = container.querySelector('.settings-remote-logging-state');
 
     const updateRemoteState = () => {
       if (!remoteLoggingToggle) {
@@ -39,6 +40,11 @@ export default class HomeCall_Web_Ui_Screen_Settings {
       }
       const enabled = Boolean(this.remoteLoggingConfig.isRemoteLoggingEnabled());
       remoteLoggingToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      remoteLoggingToggle.setAttribute('data-state', enabled ? 'enabled' : 'disabled');
+      if (remoteLoggingState) {
+        remoteLoggingState.textContent = enabled ? 'Вкл' : 'Выкл';
+        remoteLoggingState.setAttribute('data-state', enabled ? 'enabled' : 'disabled');
+      }
     };
 
     closeButton?.addEventListener('click', (event) => {
