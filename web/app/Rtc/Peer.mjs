@@ -81,8 +81,8 @@ export default class HomeCall_Web_Rtc_Peer {
             'turn:turn.wiredgeese.com:3478?transport=udp',
             'turn:turn.wiredgeese.com:3478?transport=tcp'
           ],
-          username: 'alex',
-          credential: 'MyTurnPassword123'
+          username: 'demo',
+          credential: 'Pt26kp9d2IblMdkUjsbzfZJs-QnRvav7hyfxZ5xnznSKfqZhr-0DbnNeGOfG6Nx9UOYsZPlFE'
         }
       ]
     };
