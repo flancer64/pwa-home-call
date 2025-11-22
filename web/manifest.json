@@ -1,7 +1,7 @@
 {
-  "name": "Колобок",
-  "short_name": "Колобок",
-  "description": "Простые видеозвонки Колобок.",
+  "name": "Связист",
+  "short_name": "Связист",
+  "description": "Простые видеозвонки Связист.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#00110e",

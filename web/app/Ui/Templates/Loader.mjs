@@ -1,6 +1,6 @@
 /**
  * @module HomeCall_Web_Ui_Templates_Loader
- * @description Loads and caches HTML templates for Kolobok screens.
+ * @description Loads and caches HTML templates for Svyazist screens.
  */
 
 const TEMPLATE_PATHS = new Map([
@@ -17,7 +17,7 @@ export default class HomeCall_Web_Ui_Templates_Loader {
    * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
    */
   constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
-    if (!env) throw new Error('Kolobok environment provider is required.');
+    if (!env) throw new Error('Svyazist environment provider is required.');
     if (typeof env.fetch !== 'function') throw new Error('Fetch API is not available.');
 
     const cache = new Map();

@@ -11,7 +11,7 @@ export default class HomeCall_Web_Media_Manager {
     HomeCall_Web_Ui_Toast$: toast
   } = {}) {
     if (!env) {
-      throw new Error('Kolobok environment provider is required.');
+      throw new Error('Svyazist environment provider is required.');
     }
     if (!toast) {
       throw new Error('Toast module is required for media manager.');

@@ -14,7 +14,7 @@ export default class HomeCall_Web_Pwa_Cache {
     HomeCall_Web_Logger$: logger
   } = {}) {
     if (!env) {
-      throw new Error('Kolobok environment provider is required for cache cleaning.');
+      throw new Error('Svyazist environment provider is required for cache cleaning.');
     }
     this.window = env.window;
     this.navigator = env.navigator;

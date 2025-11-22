@@ -1,5 +1,5 @@
 const REMOTE_LOGGING_ENDPOINT = 'https://console.wiredgeese.com/log/homecall';
-const DEFAULT_CONTEXT = 'Kolobok';
+const DEFAULT_CONTEXT = 'Svyazist';
 
 const formatLevel = (level) => (typeof level === 'string' ? level.toUpperCase() : 'INFO');
 

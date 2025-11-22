@@ -1,6 +1,6 @@
 // web/app/types.d.js
 /**
- * Global JSDoc type declarations for Kolobok web application.
+ * Global JSDoc type declarations for Svyazist web application.
  * These typedefs enable IDE navigation and autocompletion without direct imports.
  */
 

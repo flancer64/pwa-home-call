@@ -54,7 +54,7 @@ const RECONNECT_MAX_DELAY = 5000;
 export default class HomeCall_Web_Net_Signal_Client {
   constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Logger$: logger } = {}) {
     if (!env) {
-      throw new Error('Kolobok environment provider is required.');
+      throw new Error('Svyazist environment provider is required.');
     }
 
     const signalLog = buildSignalLogger(logger, env);

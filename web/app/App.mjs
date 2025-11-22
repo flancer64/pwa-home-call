@@ -19,34 +19,34 @@ export default class HomeCall_Web_App {
     HomeCall_Web_Ui_Flow$: callFlow
   } = {}) {
     if (!templates) {
-      throw new Error('Template loader is required for Kolobok core.');
+      throw new Error('Template loader is required for Svyazist core.');
     }
     if (!sw) {
-      throw new Error('Service worker module is required for Kolobok core.');
+      throw new Error('Service worker module is required for Svyazist core.');
     }
     if (!version) {
-      throw new Error('Version watcher is required for Kolobok core.');
+      throw new Error('Version watcher is required for Svyazist core.');
     }
     if (!media) {
-      throw new Error('Media manager is required for Kolobok core.');
+      throw new Error('Media manager is required for Svyazist core.');
     }
     if (!signal) {
-      throw new Error('Signal client is required for Kolobok core.');
+      throw new Error('Signal client is required for Svyazist core.');
     }
     if (!peer) {
-      throw new Error('RTC peer is required for Kolobok core.');
+      throw new Error('RTC peer is required for Svyazist core.');
     }
     if (!env) {
-      throw new Error('Environment provider is required for Kolobok core.');
+      throw new Error('Environment provider is required for Svyazist core.');
     }
     if (!toast) {
-      throw new Error('Toast module is required for Kolobok core.');
+      throw new Error('Toast module is required for Svyazist core.');
     }
     if (!signalOrchestrator) {
-      throw new Error('Signal orchestrator is required for Kolobok core.');
+      throw new Error('Signal orchestrator is required for Svyazist core.');
     }
     if (!callFlow) {
-      throw new Error('Call flow controller is required for Kolobok core.');
+      throw new Error('Call flow controller is required for Svyazist core.');
     }
 
     const documentRef = env.document ?? null;
@@ -78,7 +78,7 @@ export default class HomeCall_Web_App {
 
     const run = async () => {
       if (!documentRef) {
-        throw new Error('Document is not available for Kolobok application.');
+        throw new Error('Document is not available for Svyazist application.');
       }
       const root = documentRef.getElementById('app');
       if (!root) {
