@@ -2,16 +2,16 @@
 
 ## Назначение
 
-Apache используется как внешний HTTP-сервер в архитектуре проекта **Колобок**: раздаёт статику фронтенда и проксирует API-запросы к Node.js-приложению, построенному на `@flancer32/teq-web` поверх `@teqfw/di`.
+Apache используется как внешний HTTP-сервер в архитектуре проекта **Связист**: раздаёт статику фронтенда и проксирует API-запросы к Node.js-приложению, построенному на `@flancer32/teq-web` поверх `@teqfw/di`.
 
 ## Минимальная конфигурация
 
 ```apache
 <VirtualHost *:80>
-    ServerName kolobok.local
-    DocumentRoot /var/www/kolobok/web
+    ServerName svyazist.local
+    DocumentRoot /var/www/svyazist/web
 
-    <Directory /var/www/kolobok/web>
+    <Directory /var/www/svyazist/web>
         Options -Indexes +FollowSymLinks
         AllowOverride None
         Require all granted
@@ -25,8 +25,8 @@ Apache используется как внешний HTTP-сервер в ар�
     ProxyPass /signal ws://127.0.0.1:${WS_PORT}/signal
     ProxyPassReverse /signal ws://127.0.0.1:${WS_PORT}/signal
 
-    ErrorLog ${APACHE_LOG_DIR}/kolobok-error.log
-    CustomLog ${APACHE_LOG_DIR}/kolobok-access.log combined
+    ErrorLog ${APACHE_LOG_DIR}/svyazist-error.log
+    CustomLog ${APACHE_LOG_DIR}/svyazist-access.log combined
 </VirtualHost>
 ```
 
@@ -45,4 +45,4 @@ Apache использует значения из `.env`, в частности 
 
 ## Итог
 
-Документ фиксирует роль Apache как внешнего слоя развёртывания и поддерживает связь с архитектурными декларациями Колобок.
+Документ фиксирует роль Apache как внешнего слоя развёртывания и поддерживает связь с архитектурными декларациями Связист.
