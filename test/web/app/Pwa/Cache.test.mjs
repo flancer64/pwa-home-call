@@ -8,7 +8,7 @@ test('Cache removes caches and triggers reload', async () => {
   const deletedKeys = [];
   globalThis.caches = {
     async keys() {
-      return ['kolobok-v0', 'kolobok-v1'];
+      return ['svyazist-v0', 'svyazist-v1'];
     },
     async delete(name) {
       deletedKeys.push(name);
@@ -50,7 +50,7 @@ test('Cache removes caches and triggers reload', async () => {
   const cleaner = await container.get('HomeCall_Web_Pwa_Cache$');
   try {
     await cleaner.clear();
-    assert.deepEqual(deletedKeys, ['kolobok-v0', 'kolobok-v1']);
+    assert.deepEqual(deletedKeys, ['svyazist-v0', 'svyazist-v1']);
     assert.equal(unregisterCalls.length, 1);
     assert.equal(reloadCalls.length, 1);
   } finally {

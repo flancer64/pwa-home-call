@@ -4,7 +4,7 @@ import { createWebContainer } from '../../../helper.mjs';
 
 test('Session manager exposes session URLs and parses query params', async () => {
   const container = await createWebContainer();
-  const location = new URL('https://kolobok.app/?session=initiator123');
+  const location = new URL('https://svyazist.app/?session=initiator123');
   const historyCalls = [];
   const history = {
     replaceState(state, title, url) {

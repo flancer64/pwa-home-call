@@ -1,6 +1,6 @@
 /**
  * @module HomeCall_Back_App
- * @description Minimal backend application entry point for Kolobok.
+ * @description Minimal backend application entry point for Svyazist.
  */
 
 export default class HomeCall_Back_App {
@@ -23,9 +23,9 @@ export default class HomeCall_Back_App {
          * @returns {Promise<void>}
          */
         this.run = async () => {
-            logger.info(namespace, 'Kolobok backend starting.');
+            logger.info(namespace, 'Svyazist backend starting.');
             await signal.start();
-            logger.info(namespace, 'Kolobok backend started.');
+            logger.info(namespace, 'Svyazist backend started.');
         };
 
         /**
@@ -33,9 +33,9 @@ export default class HomeCall_Back_App {
          * @returns {Promise<void>}
          */
         this.stop = async () => {
-            logger.info(namespace, 'Kolobok backend stopping.');
+            logger.info(namespace, 'Svyazist backend stopping.');
             await signal.stop();
-            logger.info(namespace, 'Kolobok backend stopped.');
+            logger.info(namespace, 'Svyazist backend stopped.');
         };
     }
 }

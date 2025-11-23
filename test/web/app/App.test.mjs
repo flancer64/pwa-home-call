@@ -59,7 +59,7 @@ test('App orchestrates simplified home → invite → call flow', async () => {
   };
   const logger = { info() {}, warn() {}, error() {}, setRemoteLoggingEnabled() {} };
   const rootElement = { classList: { toggle() {} } };
-  const location = new URL('https://kolobok.app/');
+  const location = new URL('https://svyazist.app/');
   const history = { replaceState() {}, state: null };
   const windowStub = { location, history };
   const navigatorStub = { clipboard: { async writeText() {} } };

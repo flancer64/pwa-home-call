@@ -1,6 +1,6 @@
 /**
  * @module HomeCall_Back_Logger
- * @description Internal logger implementation for Kolobok back-end zone.
+ * @description Internal logger implementation for Svyazist back-end zone.
  */
 
 export default class HomeCall_Back_Logger {

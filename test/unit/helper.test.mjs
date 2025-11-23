@@ -11,7 +11,7 @@ function normalize(pathname) {
     return pathname.replace(/\\/g, '/');
 }
 
-test('createTestContainer registers Kolobok namespace root', async () => {
+test('createTestContainer registers Svyazist namespace root', async () => {
     const container = await createTestContainer();
     assert.ok(container, 'container is created');
 

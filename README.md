@@ -1,6 +1,6 @@
-# Kolobok
+# Svyazist
 
-**Kolobok** is a small self-hosted PWA for private video calls between family members.  
+**Svyazist** is a small self-hosted PWA for private video calls between family members.  
 Pure JavaScript, WebRTC, no installs, no accounts.
 
 **Live demo:** https://call.wiredgeese.com/

@@ -22,7 +22,7 @@ test('UiController exposes home, invite, call, and end screens', async () => {
 
   const controller = await container.get('HomeCall_Web_Ui_Controller$');
   controller.showHome({ container: 'root', onStartCall: () => {} });
-  controller.showInvite({ container: 'invite-root', sessionId: 'session42', inviteUrl: 'https://kolobok.app/?session=session42' });
+  controller.showInvite({ container: 'invite-root', sessionId: 'session42', inviteUrl: 'https://svyazist.app/?session=session42' });
   controller.showCall({ container: 'call-root', remoteStream: 'stream', onEnd: () => {} });
   controller.showEnd({ container: 'end-root', connectionMessage: 'ok', onReturn: () => {} });
   controller.updateRemoteStream('stream2');
