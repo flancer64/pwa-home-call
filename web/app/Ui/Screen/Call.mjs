@@ -5,8 +5,7 @@
 export default class HomeCall_Web_Ui_Screen_Call {
   constructor({
     HomeCall_Web_Ui_Templates_Loader$: templates,
-    HomeCall_Web_Media_Manager$: media,
-    HomeCall_Web_State_Media$: mediaState
+    HomeCall_Web_Media_Manager$: media
   } = {}) {
     if (!templates) {
       throw new Error('Template loader is required for the call screen.');
@@ -14,12 +13,8 @@ export default class HomeCall_Web_Ui_Screen_Call {
     if (!media) {
       throw new Error('Media manager is required for the call screen.');
     }
-    if (!mediaState) {
-      throw new Error('Media state tracker is required for the call screen.');
-    }
     this.templates = templates;
     this.media = media;
-    this.mediaState = mediaState;
 
     const context = {
       remoteVideo: null
