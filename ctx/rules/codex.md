@@ -23,7 +23,7 @@
 ## Ссылки
 
 - `./architecture.md`
-- `../agent/overview.md`
+- `../agent/AGENTS.md`
 
 ## Итог
 
