@@ -9,7 +9,7 @@
 ## Zones
 
 1. **Header** — `component/screen-header` с заголовком «Ссылка для соединения» и иконкой закрытия (внешне похожей на FAB, но не плавающей).
-2. **Action** — блок ссылки с `component/big-button` (Share/Copy) и `component/big-button` **«Начать звонок»**; действия `share`/`copy` описаны в `share-link.md`.
+2. **Action** — блок ссылки с `component/big-button` (Share/Copy) и `component/big-button` **«Связать»**; действия `share`/`copy` описаны в `share-link.md`.
 3. **Hint** — `component/screen-note` для короткой подсказки («Скопируйте ссылку и отправьте») или согласованного напоминания; не содержит натяжек или дополнительной логики.
 
 ## Requirements

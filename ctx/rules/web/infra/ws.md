@@ -29,8 +29,8 @@
 
 ## 3. Поведение клиента
 
-1. `HomeCall_Web_Core_App` генерирует `sessionId` при нажатии **«Позвонить»**, а `ShareLink` добавляет его в ссылку `/?session=<uuid>`.  
-2. После нажатия **«Начать звонок»** `Net.startSignal(sessionId)` отправляет первые `offer`/`candidate`, а `Rtc.startOutgoingSession(sessionId)` прокидывает `onIceCandidate`.  
+1. `HomeCall_Web_Core_App` генерирует `sessionId` при нажатии **«Связать»**, а `ShareLink` добавляет его в ссылку `/?session=<uuid>`.  
+2. После нажатия **«Связать»** `Net.startSignal(sessionId)` отправляет первые `offer`/`candidate`, а `Rtc.startOutgoingSession(sessionId)` прокидывает `onIceCandidate`.  
 3. Получатель ссылки, открыв `?session=<uuid>`, получает `sessionId` из `Env`, сразу включает `Media.prepare()`, начинает `Net.startSignal(sessionId)` и ждёт `offer`, чтобы отправить `answer`.  
 4. Любые повторные подключения используют тот же `sessionId`; если второй участник ещё не пришёл, `offer`/`candidate` сохраняются на сервере и доставляются при появлении клиента.
 5. В случае разрыва `Core` вызывает `Net.stopSignal()`, сервер очищает очередь по `sessionId`, а `call` возвращается в `end`.

@@ -31,7 +31,7 @@ Core не использует `Shared.EventBus` — все коллбэки р�
 ### Основной поток
 
 1. UI вызывает `onCallRequest()` → `Core` генерирует новый `sessionId`, вызывает `share-link.generateShareLink(sessionId)` и отображает `Ui.showInvite(sessionId)` с автоматически готовой ссылкой.
-2. После нажатия **«Начать звонок»** invite вызывает `onStartCall()`; `Core` выполняет `Media.prepare()`, `Net.startSignal(sessionId)` и `Rtc.startOutgoingSession(sessionId)`, а затем показывает `Ui.showCall(connectionMessage)`.
+2. После нажатия **«Связать»** invite вызывает `onStartCall()`; `Core` выполняет `Media.prepare()`, `Net.startSignal(sessionId)` и `Rtc.startOutgoingSession(sessionId)`, а затем показывает `Ui.showCall(connectionMessage)`.
 3. `Net` доставляет `offer`/`answer`/`candidate`, `Rtc` сообщает о состоянии соединения, а `Core` транслирует статусы через `Ui.showCall()` и `toast` (названия `Готово`, `Повторить`, `Связь потеряна`).
 
 ### Входящий сеанс

@@ -8,7 +8,7 @@ Path: `ctx/rules/web/ui/component/icon-wrapper.md`
 
 ## API
 
-- `name` — идентификатор иконки, передаётся в `slot="glyph"` для внешней системы.
+- `name` — путь к внешнему SVG-файлу из `web/assets/icons/`, передаётся в `slot="glyph"` для внешней системы.
 - `tone` (`default | accent`) — регулирует фон и цвет, не подключаясь к логике.
 - `size` (`small | medium | large`) — фиксированные размеры (32/40/48px).
 
@@ -17,6 +17,7 @@ Path: `ctx/rules/web/ui/component/icon-wrapper.md`
 - Иконка центруется, круглая рамка не содержит текста или описаний.
 - Атрибуты обновляются экраном вместе с контентом: никаких внутренних `onClick`.
 - Используется в `screen-header` (иконка закрытия) и рядом с `big-button` (например, иконка Share/Copy).
+- `slot="glyph"` принимает только путь к SVG-ресурсу внутри `web/assets/icons/`.
 
 ## Примечания
 
