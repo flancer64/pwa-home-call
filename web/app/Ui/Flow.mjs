@@ -456,7 +456,8 @@ export default class HomeCall_Web_Ui_Flow {
       stateMachine.goHome();
       uiController.showHome({
         container: context.root,
-        onStartCall: handleStartCall
+        onStartCall: handleStartCall,
+        onOpenSettings: () => showSettings?.()
       });
     };
 

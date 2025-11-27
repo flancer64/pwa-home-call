@@ -10,15 +10,20 @@ export default class HomeCall_Web_Ui_Screen_Home {
     this.templates = templates;
   }
 
-  show({ container, onStartCall } = {}) {
+  show({ container, onStartCall, onOpenSettings } = {}) {
     if (!container) {
       return;
     }
     this.templates.apply('home', container);
     const callButton = container.querySelector('#home-call');
+    const settingsButton = container.querySelector('#home-settings');
     callButton?.addEventListener('click', (event) => {
       event.preventDefault();
       onStartCall?.();
+    });
+    settingsButton?.addEventListener('click', (event) => {
+      event.preventDefault();
+      onOpenSettings?.();
     });
   }
 }

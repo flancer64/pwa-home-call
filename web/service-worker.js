@@ -54,6 +54,8 @@ const CORE_ASSETS = [
   'service-worker.js',
   'ui/component/big-button.css',
   'ui/component/big-button.js',
+  'ui/component/header-action-button.css',
+  'ui/component/header-action-button.js',
   'ui/component/components.js',
   'ui/component/icon-wrapper.css',
   'ui/component/icon-wrapper.js',

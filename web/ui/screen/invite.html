@@ -5,7 +5,7 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: clamp(1.25rem, 3vw, 2.5rem);
+      padding: clamp(0.625rem, 1.5vw, 1.25rem);
     }
     .invite-actions {
       display: flex;
@@ -32,11 +32,11 @@
   </style>
   <screen-card>
     <screen-header slot="header" title="Ссылка для соединения">
-      <button slot="action" id="invite-close" type="button" aria-label="Закрыть экран приглашения">
-        <icon-wrapper size="small" tone="default">
+      <header-action-button slot="action" id="invite-close" aria-label="Закрыть экран приглашения">
+        <icon-wrapper slot="icon" size="small" tone="default">
           <img src="assets/icons/close.svg" alt="" aria-hidden="true">
         </icon-wrapper>
-      </button>
+      </header-action-button>
     </screen-header>
     <div slot="main" class="invite-actions">
       <div class="invite-link-card">

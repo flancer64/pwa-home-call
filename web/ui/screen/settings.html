@@ -5,7 +5,7 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: clamp(1.25rem, 3vw, 2.5rem);
+      padding: clamp(0.625rem, 1.5vw, 1.25rem);
     }
     .settings-actions {
       display: flex;
@@ -16,11 +16,11 @@
   </style>
   <screen-card>
     <screen-header slot="header" title="Настройки">
-      <button slot="action" id="settings-close" type="button" aria-label="Закрыть настройки">
-        <icon-wrapper size="small" tone="default">
+      <header-action-button slot="action" id="settings-close" aria-label="Закрыть настройки">
+        <icon-wrapper slot="icon" size="small" tone="default">
           <img src="assets/icons/close.svg" alt="" aria-hidden="true">
         </icon-wrapper>
-      </button>
+      </header-action-button>
     </screen-header>
     <div slot="main" class="settings-actions">
       <big-button id="settings-remote-logging" label="Удалённое логирование" tone="ghost">

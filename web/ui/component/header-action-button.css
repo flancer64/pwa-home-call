@@ -1,0 +1,40 @@
+:host {
+  display: inline-flex;
+  background: transparent;
+}
+button {
+  border: none;
+  background: var(--accent-gradient);
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-cta);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  padding: 0;
+  position: relative;
+}
+button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
+}
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 0.75rem 1.8rem rgba(0, 0, 0, 0.35);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.icon-slot {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-strong);
+}

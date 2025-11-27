@@ -5,16 +5,22 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      padding: clamp(1.25rem, 3vw, 2.5rem);
+      padding: clamp(0.625rem, 1.5vw, 1.25rem);
     }
     [slot="main"] {
       width: 100%;
     }
   </style>
   <screen-card>
-    <screen-header slot="header" title="Связист"></screen-header>
+    <screen-header slot="header" title="Связист">
+      <header-action-button slot="action" id="home-settings" aria-label="Открыть настройки">
+        <icon-wrapper slot="icon" size="small" tone="default">
+          <img src="assets/icons/settings.svg" alt="" aria-hidden="true">
+        </icon-wrapper>
+      </header-action-button>
+    </screen-header>
     <div slot="main">
-      <big-button id="home-call" label="Связать" tone="primary">
+      <big-button id="home-call" label="Связать" tone="primary" icon="link">
         <icon-wrapper slot="icon" size="small" tone="accent">
           <img src="assets/icons/link.svg" alt="" aria-hidden="true">
         </icon-wrapper>
