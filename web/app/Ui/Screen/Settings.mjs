@@ -29,7 +29,7 @@ export default class HomeCall_Web_Ui_Screen_Settings {
       return;
     }
     this.templates.apply('settings', container);
-    const closeButton = container.querySelector('.settings-close');
+    const closeButton = container.querySelector('#settings-close');
     const reinstallButton = container.querySelector('#settings-reinstall');
     const remoteLoggingToggle = container.querySelector('#settings-remote-logging');
     const remoteLoggingState = container.querySelector('.settings-remote-logging-state');

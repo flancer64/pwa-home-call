@@ -1,44 +1,104 @@
-<section data-screen="call" class="screen-card screen-call">
+<section data-screen="call" class="call-screen">
+  <style>
+    .call-screen {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      background: #010d0a;
+    }
+    .call-stage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      background: linear-gradient(180deg, #010d0a 0%, #021c17 60%, rgba(1, 29, 22, 0.95) 100%);
+    }
+    #remote-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+    .call-local {
+      position: absolute;
+      top: clamp(1.5rem, 4vw, 2rem);
+      right: clamp(1rem, 3vw, 1.5rem);
+      width: clamp(120px, 22vw, 200px);
+      height: clamp(150px, 27vw, 230px);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.45);
+      z-index: 2;
+    }
+    .call-local video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .call-controls {
+      position: absolute;
+      bottom: max(env(safe-area-inset-bottom, 1.75rem), clamp(1.75rem, 4vw, 3rem));
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1rem;
+      z-index: 3;
+    }
+    .fab {
+      width: clamp(52px, 10vw, 60px);
+      height: clamp(52px, 10vw, 60px);
+      border-radius: 50%;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+    }
+    .fab:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.6);
+      outline-offset: 3px;
+    }
+    .fab-settings {
+      background: linear-gradient(145deg, #0e6251 0%, #0faf8f 100%);
+    }
+    .fab-end {
+      background: linear-gradient(145deg, #b04536 0%, #d95c4a 100%);
+    }
+    .fab icon-wrapper {
+      color: var(--icon-accent);
+    }
+  </style>
   <div class="call-stage" role="presentation" aria-label="Видеозвонок">
     <video id="remote-video" playsinline autoplay></video>
-    <button
-      id="call-settings"
-      type="button"
-      class="home-settings call-settings"
-      aria-label="Открыть настройки"
-    >
-      <span class="home-settings-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-          <path
-            d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915A2.34 2.34 0 0 1 19.969 8.084a2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915A2.34 2.34 0 0 1 6.35 13.203a2.34 2.34 0 0 0 0-3.831 2.34 2.34 0 0 1 2.33-4.033 2.34 2.34 0 0 0 3.319-1.915Z"
-          />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      </span>
-    </button>
     <div class="call-local" aria-label="Локальное видео">
-      <video
-        id="local-video"
-        playsinline
-        autoplay
-        muted
-        tabindex="-1"
-        aria-hidden="true"
-      ></video>
+      <video id="local-video" playsinline autoplay muted tabindex="-1" aria-hidden="true"></video>
     </div>
-    <button
-      id="end-call"
-      type="button"
-      class="call-close danger ui-large"
-      aria-label="Завершить звонок"
-    >
-      <span class="ui-glyph" aria-hidden="true">
-        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-          <line x1="5" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
-      </span>
-      <span class="ui-label">Закрыть</span>
-    </button>
+    <div class="call-controls">
+      <button id="call-settings" class="fab fab-settings" type="button" aria-label="Открыть настройки">
+        <icon-wrapper size="medium" tone="accent">
+          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+            <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915A2.34 2.34 0 0 1 19.969 8.084a2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915A2.34 2.34 0 0 1 6.35 13.203a2.34 2.34 0 0 0 0-3.831 2.34 2.34 0 0 1 2.33-4.033 2.34 2.34 0 0 0 3.319-1.915Z" fill="none" stroke="currentColor" stroke-width="2"></path>
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </icon-wrapper>
+      </button>
+      <button id="end-call" class="fab fab-end" type="button" aria-label="Завершить звонок">
+        <icon-wrapper size="medium">
+          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+            <line x1="5" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          </svg>
+        </icon-wrapper>
+      </button>
+    </div>
   </div>
 </section>

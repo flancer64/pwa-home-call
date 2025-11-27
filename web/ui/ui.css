@@ -1,0 +1,81 @@
+:root {
+  color-scheme: dark;
+  font-size: 18px;
+  --bg-root: #00110e;
+  --bg-panel: #002d2a;
+  --bg-panel-strong: #021c17;
+  --bg-soft: rgba(8, 28, 24, 0.85);
+  --text-strong: #EAF2F1;
+  --text-muted: #B8C7C3;
+  --icon-accent: #F0F7F6;
+  --icon-settings: #EAF2F1;
+  --accent-primary: #0E6251;
+  --accent-secondary: #0FAF8F;
+  --accent-soft: rgba(14, 98, 81, 0.25);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --danger: #D95C4A;
+  --danger-strong: #B04536;
+  --surface-elevated: rgba(255, 255, 255, 0.04);
+  --control-radius: 1.5rem;
+  --shadow-soft: 0 1.5rem 3rem rgba(0, 0, 0, 0.45);
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at 20% -10%, rgba(15, 175, 143, 0.25), transparent 45%),
+    var(--bg-root);
+  color: var(--text-strong);
+}
+.app-shell {
+  min-height: 100vh;
+  width: 100%;
+}
+.main-area,
+.screen-wrapper {
+  width: 100%;
+}
+#app {
+  width: 100%;
+}
+#toast-container {
+  position: fixed;
+  right: 1rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+}
+.toast {
+  min-width: 220px;
+  max-width: 340px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 1rem;
+  color: var(--text-strong);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1rem 1.75rem rgba(0, 0, 0, 0.6);
+}
+.toast-info {
+  background: #6ECFC0;
+  color: #04120e;
+  box-shadow: 0 0.75rem 1.5rem rgba(110, 207, 192, 0.35);
+}
+.toast-success {
+  background: linear-gradient(140deg, #0FAF8F 0%, #0E6251 100%);
+}
+.toast-warn {
+  background: #E9A944;
+  color: #201205;
+  box-shadow: 0 0.75rem 1.5rem rgba(233, 169, 68, 0.35);
+}
+.toast-error {
+  background: #D95C4A;
+  color: #fff;
+  box-shadow: 0 0.75rem 1.5rem rgba(217, 92, 74, 0.45);
+}

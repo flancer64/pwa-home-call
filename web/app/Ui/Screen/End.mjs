@@ -29,7 +29,10 @@ export default class HomeCall_Web_Ui_Screen_End {
     this.templates.apply('end', container);
     const messageBox = container.querySelector('#end-message');
     if (messageBox) {
-      messageBox.textContent = connectionMessage || 'Звонок завершён.';
+      messageBox.setAttribute(
+        'text',
+        connectionMessage || 'Можно начать новый сеанс в любой момент.'
+      );
     }
     const returnButton = container.querySelector('#return-home');
     returnButton?.addEventListener('click', (event) => {

@@ -1,20 +1,25 @@
-<section data-screen="end" class="screen-card screen-end">
-  <div class="screen-zone screen-zone--header">
-    <p class="screen-kicker">Связист</p>
-    <h2>Звонок завершён</h2>
-  </div>
-  <div class="screen-zone screen-zone--action end-action">
-    <button id="return-home" class="primary ui-large end-action-button" type="button">
-      <span class="ui-glyph" aria-hidden="true">
-        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-          <path d="M3 12L12 4l9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M5 11v9h5v-5h4v5h5v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </span>
-      <span class="ui-label end-action-text">Вернуться на главную</span>
-    </button>
-  </div>
-  <div class="screen-zone screen-zone--hint">
-    <p id="end-message" class="screen-note">Можно начать новый сеанс в любой момент.</p>
-  </div>
+<section class="screen-shell" data-screen="end">
+  <style>
+    .screen-shell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: clamp(1.25rem, 3vw, 2.5rem);
+    }
+  </style>
+  <screen-card>
+    <screen-header slot="header" title="Звонок завершён"></screen-header>
+    <div slot="action">
+      <big-button id="return-home" label="Вернуться на главную" tone="primary">
+        <icon-wrapper slot="icon" size="small">
+          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+            <path d="M3 12L12 4l9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M5 11v9h5v-5h4v5h5v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </icon-wrapper>
+      </big-button>
+    </div>
+    <screen-note slot="hint" id="end-message" text="Можно начать новый сеанс в любой момент." tone="neutral"></screen-note>
+  </screen-card>
 </section>

@@ -1,0 +1,24 @@
+:host {
+  display: block;
+}
+.note {
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.25rem 0;
+}
+.meta {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+}
+:host([tone='whisper']) .note {
+  color: rgba(255, 255, 255, 0.65);
+}
+:host(:not([has-meta])) .meta {
+  display: none;
+}

@@ -1,28 +1,42 @@
-<section data-screen="settings" class="screen-card screen-settings">
-  <div class="screen-zone screen-zone--header settings-header">
-    <h1>Настройки</h1>
-    <button class="settings-close" type="button" aria-label="Закрыть настройки">
-      <span class="settings-close-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-          <path d="M6 6 18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-          <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-        </svg>
-      </span>
-    </button>
-  </div>
-  <div class="screen-zone screen-zone--action settings-action">
-    <button id="settings-remote-logging" class="primary ui-large settings-remote-logging-button" type="button" aria-pressed="false">
-      <span class="ui-glyph settings-remote-logging-symbol" aria-hidden="true">
-        <img src="assets/icons/rss.svg" alt="">
-      </span>
-      <span class="settings-remote-logging-text">Удалённое логирование</span>
-      <span class="settings-remote-logging-state" aria-live="polite">Выкл</span>
-    </button>
-    <button id="settings-reinstall" class="primary ui-large settings-reinstall-button" type="button">
-      <span class="ui-glyph settings-reinstall-symbol" aria-hidden="true">
-        <img src="assets/icons/refresh-ccw.svg" alt="">
-      </span>
-      <span class="settings-reinstall-text">Переустановить приложение</span>
-    </button>
-  </div>
+<section class="screen-shell" data-screen="settings">
+  <style>
+    .screen-shell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: clamp(1.25rem, 3vw, 2.5rem);
+    }
+    .settings-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+    }
+  </style>
+  <screen-card data-variant="elevated">
+    <screen-header slot="header" title="Настройки">
+      <button slot="action" id="settings-close" type="button" aria-label="Закрыть настройки">
+        <icon-wrapper size="small" tone="default">
+          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          </svg>
+        </icon-wrapper>
+      </button>
+    </screen-header>
+    <div slot="action" class="settings-actions">
+      <big-button id="settings-remote-logging" label="Удалённое логирование" tone="ghost">
+        <icon-wrapper slot="icon" size="small">
+          <img src="assets/icons/rss.svg" alt="">
+        </icon-wrapper>
+        <span slot="meta" class="settings-remote-logging-state" aria-live="polite">Выкл</span>
+      </big-button>
+      <big-button id="settings-reinstall" label="Переустановить приложение" tone="ghost">
+        <icon-wrapper slot="icon" size="small">
+          <img src="assets/icons/refresh-ccw.svg" alt="">
+        </icon-wrapper>
+      </big-button>
+    </div>
+  </screen-card>
 </section>

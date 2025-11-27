@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  width: min(100%, 640px);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3.25rem);
+  border-radius: clamp(1.25rem, 4vw, 2.5rem);
+  background: linear-gradient(180deg, rgba(0, 45, 42, 0.95) 0%, rgba(14, 98, 81, 0.9) 55%, rgba(14, 98, 81, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.45);
+  color: var(--text-strong);
+}
+:host([data-variant='elevated']) {
+  box-shadow: 0 2.25rem 3.25rem rgba(0, 0, 0, 0.55);
+}
+:host([data-status='error']) {
+  border-color: var(--danger);
+}
+.zone {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.zone--hint {
+  margin-top: auto;
+}
+@media (max-width: 520px) {
+  :host {
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+}

@@ -33,7 +33,7 @@ export default class HomeCall_Web_Ui_Screen_Invite {
       }
     }
 
-    const closeButton = container.querySelector('.invite-close');
+    const closeButton = container.querySelector('#invite-close');
     if (closeButton) {
       closeButton.onclick = (event) => {
         event.preventDefault();
@@ -52,14 +52,11 @@ export default class HomeCall_Web_Ui_Screen_Invite {
     const primaryLabel = shareAvailable ? 'Поделиться' : 'Скопировать ссылку';
 
     if (primaryButton) {
-      const glyph = primaryButton.querySelector('.invite-action-icon');
-      const text = primaryButton.querySelector('.invite-action-text');
+      const glyph = primaryButton.querySelector('icon-wrapper');
       if (glyph) {
         glyph.innerHTML = primaryIcon;
       }
-      if (text) {
-        text.textContent = primaryLabel;
-      }
+      primaryButton.setAttribute('label', primaryLabel);
       primaryButton.addEventListener('click', (event) => {
         event.preventDefault();
         primaryHandler?.();
@@ -71,10 +68,6 @@ export default class HomeCall_Web_Ui_Screen_Invite {
         event.preventDefault();
         onStartCall?.();
       });
-      const phoneGlyph = startButton.querySelector('.invite-action-icon');
-      if (phoneGlyph) {
-        phoneGlyph.innerHTML = ICONS.phone;
-      }
     }
   }
 }
