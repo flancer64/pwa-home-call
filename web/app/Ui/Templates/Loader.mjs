@@ -4,11 +4,11 @@
  */
 
 const TEMPLATE_PATHS = new Map([
-  ['home', 'ui/home.html'],
-  ['settings', 'ui/settings.html'],
-  ['invite', 'ui/invite.html'],
-  ['call', 'ui/call.html'],
-  ['end', 'ui/end.html']
+  ['home', 'ui/screen/home.html'],
+  ['settings', 'ui/screen/settings.html'],
+  ['invite', 'ui/screen/invite.html'],
+  ['call', 'ui/screen/call.html'],
+  ['end', 'ui/screen/end.html']
 ]);
 
 export default class HomeCall_Web_Ui_Templates_Loader {
