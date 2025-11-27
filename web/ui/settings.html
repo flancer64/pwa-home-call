@@ -14,18 +14,15 @@
       width: 100%;
     }
   </style>
-  <screen-card data-variant="elevated">
+  <screen-card>
     <screen-header slot="header" title="Настройки">
       <button slot="action" id="settings-close" type="button" aria-label="Закрыть настройки">
         <icon-wrapper size="small" tone="default">
-          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
-          </svg>
+          <img src="assets/icons/close.svg" alt="" aria-hidden="true">
         </icon-wrapper>
       </button>
     </screen-header>
-    <div slot="action" class="settings-actions">
+    <div slot="main" class="settings-actions">
       <big-button id="settings-remote-logging" label="Удалённое логирование" tone="ghost">
         <icon-wrapper slot="icon" size="small">
           <img src="assets/icons/rss.svg" alt="">

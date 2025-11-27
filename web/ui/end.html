@@ -10,16 +10,13 @@
   </style>
   <screen-card>
     <screen-header slot="header" title="Звонок завершён"></screen-header>
-    <div slot="action">
+    <div slot="main">
       <big-button id="return-home" label="Вернуться на главную" tone="primary">
         <icon-wrapper slot="icon" size="small">
-          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-            <path d="M3 12L12 4l9 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M5 11v9h5v-5h4v5h5v-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
+          <img src="assets/icons/return-home.svg" alt="" aria-hidden="true">
         </icon-wrapper>
       </big-button>
     </div>
-    <screen-note slot="hint" id="end-message" text="Можно начать новый сеанс в любой момент." tone="neutral"></screen-note>
+    <screen-note slot="footer" id="end-message" text="Можно начать новый сеанс в любой момент." tone="neutral"></screen-note>
   </screen-card>
 </section>
