@@ -4,6 +4,7 @@ const STATIC_ASSETS = [
   'app.js',
   'manifest.json',
   'ui/ui.css',
+  'ui/toast.css',
   'ui/home.html',
   'ui/invite.html',
   'ui/call.html',

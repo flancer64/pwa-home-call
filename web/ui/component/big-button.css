@@ -17,16 +17,15 @@ button {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease;
   color: var(--text-strong);
-}
-button:focus-visible,
-button:hover {
-  transform: translateY(-1px);
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-cta);
 }
 button:focus-visible {
-  outline: 2px solid rgba(15, 175, 143, 0.5);
+  outline: 2px solid var(--accent-secondary-soft);
   outline-offset: 3px;
+  box-shadow: var(--shadow-cta);
 }
 .glyph {
   display: inline-flex;
@@ -41,12 +40,12 @@ button:focus-visible {
   color: var(--text-muted);
 }
 :host([tone='primary']) button {
-  background: linear-gradient(145deg, #0e6251 0%, #0faf8f 50%, #0e6251 100%);
-  box-shadow: 0 1.75rem 3rem rgba(2, 22, 18, 0.7);
+  background: var(--accent-gradient);
+  box-shadow: var(--shadow-cta);
 }
 :host([tone='secondary']) button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--control-muted);
+  border: 1px solid var(--control-muted-border);
   color: var(--text-strong);
 }
 :host([tone='ghost']) button {
