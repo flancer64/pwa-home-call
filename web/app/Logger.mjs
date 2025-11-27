@@ -80,9 +80,10 @@ export default class HomeCall_Web_Logger {
         return;
       }
       const formatted = prepareMessage(level, message);
+      const timestamped = `${new Date().toISOString()} ${formatted}`;
       const payload = details ? [message, details] : [message];
       const write = typeof consoleRef[level] === 'function' ? consoleRef[level] : consoleRef.log;
-      write.call(consoleRef, formatted, ...payload.slice(1));
+      write.call(consoleRef, timestamped, ...payload.slice(1));
     };
 
     const record = (level, message, details) => {
