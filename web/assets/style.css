@@ -702,8 +702,67 @@ body.state-call {
   height: 1.8rem;
 }
 
+.screen-end {
+  background: linear-gradient(180deg, #002d2a 0%, #0e6251 100%);
+}
+
 .screen-end .screen-zone--action {
+  flex: 1;
+  display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.screen-end .end-action-button {
+  width: min(480px, 100%);
+  min-height: 56px;
+  background: linear-gradient(145deg, #0e6251 0%, #0faf8f 50%, #0e6251 100%);
+  color: var(--text-strong);
+  box-shadow: 0 1.75rem 3rem rgba(2, 22, 18, 0.7);
+}
+
+.screen-end .end-action-button:hover,
+.screen-end .end-action-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 2rem 3.5rem rgba(0, 0, 0, 0.65);
+}
+
+.screen-end .screen-zone--hint {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.screen-end .screen-note {
+  max-width: 320px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+#return-home .ui-label.end-action-text {
+  display: block;
+  gap: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+#return-home .ui-glyph {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+#return-home .ui-glyph svg {
+  width: 1.9rem;
+  height: 1.9rem;
+  stroke-width: 2.2;
+}
+
+#return-home .ui-glyph svg path {
+  stroke-width: 2.2;
 }
 
 #toast-container {
