@@ -52,6 +52,7 @@ const CORE_ASSETS = [
   'index.html',
   'manifest.json',
   'service-worker.js',
+  'reinstall.html',
   'ui/component/big-button.css',
   'ui/component/big-button.js',
   'ui/component/header-action-button.css',

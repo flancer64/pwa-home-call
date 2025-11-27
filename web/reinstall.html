@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0E6251" />
+  <title>Связист — переустановка</title>
+  <style>
+    :root {
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #0E6251;
+      background: #F4F7F6;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F4F7F6;
+    }
+
+    main {
+      padding: clamp(1rem, 2vw, 1.5rem);
+      background: #FFFFFF;
+      border-radius: 1rem;
+      box-shadow: 0 1rem 2rem rgba(14, 98, 81, 0.2);
+      max-width: 28rem;
+      width: min(90vw, 32rem);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      line-height: 1.25;
+    }
+
+    p {
+      margin: 0.5rem 0;
+      color: #2E4137;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .status {
+      font-weight: 600;
+      color: #0E6251;
+    }
+
+    .detail {
+      font-size: 0.9rem;
+      color: #51615A;
+    }
+  </style>
+</head>
+
+<body>
+  <main aria-live="polite">
+    <h1>Переустановка Связиста</h1>
+    <p class="status" id="reinstall-status">Подготавливаем переустановку…</p>
+    <p class="detail" id="reinstall-detail">
+      Скрипт очищает кеши и обновляет сервис-воркер, затем возвращает домой.
+    </p>
+  </main>
+  <script>
+    const statusEl = document.getElementById('reinstall-status');
+    const detailEl = document.getElementById('reinstall-detail');
+    const HOME_URL = '/';
+
+    const setStatus = (text) => {
+      statusEl.textContent = text;
+    };
+
+    const setDetail = (text) => {
+      detailEl.textContent = text;
+    };
+
+    const safeDelayRedirect = (delay = 1500) => {
+      setTimeout(() => {
+        window.location.replace(HOME_URL);
+      }, delay);
+    };
+
+    const fetchVersion = async () => {
+      try {
+        const response = await fetch('./version.json', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Не удалось загрузить version.json');
+        }
+        const payload = await response.json();
+        return typeof payload?.version === 'string' ? payload.version : '0';
+      } catch (error) {
+        console.warn('[reinstall] version fetch failed', error);
+        return '0';
+      }
+    };
+
+    const clearCaches = async () => {
+      if (!('caches' in window)) {
+        return;
+      }
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    };
+
+    const clearWorkers = async () => {
+      if (!('serviceWorker' in navigator)) {
+        return;
+      }
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    };
+
+    const installWorker = async (version) => {
+      if (!('serviceWorker' in navigator)) {
+        return;
+      }
+      const registration = await navigator.serviceWorker.register('./service-worker.js', {
+        scope: '/',
+      });
+      await navigator.serviceWorker.ready;
+      const controller = navigator.serviceWorker.controller;
+      if (controller && version !== '0') {
+        controller.postMessage({ type: 'clear-caches-and-rebuild', version });
+      }
+      return registration;
+    };
+
+    const reinstall = async () => {
+      try {
+        setStatus('Сохраняем новую версию…');
+        const version = await fetchVersion();
+        setStatus('Очищаем кэш браузера…');
+        await clearCaches();
+        setStatus('Удаляем старые сервис-воркеры…');
+        await clearWorkers();
+        setStatus('Регистрируем свежий сервис-воркер…');
+        await installWorker(version);
+        setStatus('Готово, перенаправляем на домашнюю страницу…');
+        setDetail('Если редирект не сработает, обновите страницу вручную.');
+      } catch (error) {
+        console.error('[reinstall] error', error);
+        setStatus('Что-то пошло не так, но попытка завершена.');
+        setDetail(error?.message ?? 'Неизвестная ошибка. Попробуйте перезагрузить вручную.');
+      } finally {
+        safeDelayRedirect();
+      }
+    };
+
+    reinstall();
+  </script>
+</body>
+
+</html>
