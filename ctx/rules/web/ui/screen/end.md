@@ -1,6 +1,6 @@
 # End Screen
 
-**Path:** ./ctx/rules/web/ui/screens/end.md
+**Path:** ./ctx/rules/web/ui/screen/end.md
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # Экран «Настройки»
 
-**Path:** `./ctx/rules/web/ui/screens/settings.md`
+**Path:** `./ctx/rules/web/ui/screen/settings.md`
 
 ## Purpose
 

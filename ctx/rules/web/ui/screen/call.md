@@ -1,6 +1,6 @@
 # Экран «Звонок»
 
-**Path:** `./ctx/rules/web/ui/screens/call.md`
+**Path:** `./ctx/rules/web/ui/screen/call.md`
 
 ## Purpose
 

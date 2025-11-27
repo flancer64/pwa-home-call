@@ -1,6 +1,6 @@
 # Home Screen
 
-**Path:** `./ctx/rules/web/ui/screens/home.md`
+**Path:** `./ctx/rules/web/ui/screen/home.md`
 
 ## Purpose
 

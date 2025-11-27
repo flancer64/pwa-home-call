@@ -1,6 +1,6 @@
 # Экран «Ссылка для соединения»
 
-**Path:** `./ctx/rules/web/ui/screens/invite.md`
+**Path:** `./ctx/rules/web/ui/screen/invite.md`
 
 ## Purpose
 
