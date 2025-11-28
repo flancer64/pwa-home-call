@@ -5,12 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0E6251" />
-  <title>Связист — переустановка</title>
+  <title>Связист — восстановление</title>
   <style>
     :root {
       font-family: 'Inter', system-ui, sans-serif;
       color: #0E6251;
-      background: #F4F7F6;
+      background: #0B1F1A;
     }
 
     body {
@@ -19,82 +19,123 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #F4F7F6;
+      background: radial-gradient(circle at top, rgba(14, 98, 81, 0.2), #06120e 60%);
     }
 
     main {
       padding: clamp(1rem, 2vw, 1.5rem);
-      background: #FFFFFF;
-      border-radius: 1rem;
-      box-shadow: 0 1rem 2rem rgba(14, 98, 81, 0.2);
+      background: #0D2B26;
+      border-radius: 1.25rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       max-width: 28rem;
       width: min(90vw, 32rem);
       text-align: center;
+      color: #f6f7f8;
     }
 
     h1 {
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.75rem;
       font-size: clamp(1.5rem, 2vw, 2rem);
-      line-height: 1.25;
+      line-height: 1.2;
     }
 
     p {
       margin: 0.5rem 0;
-      color: #2E4137;
       font-size: 1rem;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     .status {
       font-weight: 600;
-      color: #0E6251;
+      color: #18a085;
     }
 
     .detail {
       font-size: 0.9rem;
-      color: #51615A;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .warning {
+      margin: 0.5rem 0 0;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .confirmation {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+      user-select: none;
+    }
+
+    .confirmation input {
+      width: 1rem;
+      height: 1rem;
+      accent-color: #18a085;
+    }
+
+    .action {
+      margin-top: 1rem;
+      width: 100%;
+      border: none;
+      border-radius: 0.85rem;
+      padding: 0.9rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background: #18a085;
+      color: #f6f7f8;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .action:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   </style>
 </head>
 
 <body>
   <main aria-live="polite">
-    <h1>Переустановка Связиста</h1>
-    <p class="status" id="reinstall-status">Подготавливаем переустановку…</p>
+    <h1>Восстановить Связист</h1>
+    <p class="status" id="reinstall-status">Страница готова к восстановлению.</p>
     <p class="detail" id="reinstall-detail">
-      Скрипт очищает кеши и обновляет сервис-воркер, затем возвращает домой.
+      Нажмите кнопку ниже, чтобы удалить устаревшие кеши, перезапустить сервис-воркер и вернуться на домашнюю страницу.
     </p>
+    <p class="warning">
+      Перед запуском восстановления подтвердите, что вы понимаете: действие очищает все локальные артефакты и возвращает приложение к чистому состоянию.
+    </p>
+    <label class="confirmation">
+      <input id="reinstall-confirm" type="checkbox" />
+      Я подтверждаю намерение вручную восстановить приложение.
+    </label>
+    <button id="reinstall-action" class="action" type="button" disabled>Запустить восстановление</button>
   </main>
   <script>
     const statusEl = document.getElementById('reinstall-status');
     const detailEl = document.getElementById('reinstall-detail');
+    const actionEl = document.getElementById('reinstall-action');
+    const confirmEl = document.getElementById('reinstall-confirm');
     const HOME_URL = '/';
 
-    const setStatus = (text) => {
+    const updateStatus = (text) => {
       statusEl.textContent = text;
     };
 
-    const setDetail = (text) => {
+    const updateDetail = (text) => {
       detailEl.textContent = text;
     };
 
-    const safeDelayRedirect = (delay = 1500) => {
-      setTimeout(() => {
-        window.location.replace(HOME_URL);
-      }, delay);
-    };
-
-    const fetchVersion = async () => {
-      try {
-        const response = await fetch('./version.json', { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error('Не удалось загрузить version.json');
-        }
-        const payload = await response.json();
-        return typeof payload?.version === 'string' ? payload.version : '0';
-      } catch (error) {
-        console.warn('[reinstall] version fetch failed', error);
-        return '0';
+    const disableAction = (disabled = true) => {
+      if (actionEl) {
+        actionEl.disabled = disabled;
       }
     };
 
@@ -111,10 +152,19 @@
         return;
       }
       const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map((registration) => registration.unregister()));
+      await Promise.all(registrations.map((registration) => registration.unregister().catch(() => { })));
     };
 
-    const installWorker = async (version) => {
+    const clearStorage = () => {
+      if ('localStorage' in window && typeof window.localStorage.clear === 'function') {
+        window.localStorage.clear();
+      }
+      if ('sessionStorage' in window && typeof window.sessionStorage.clear === 'function') {
+        window.sessionStorage.clear();
+      }
+    };
+
+    const reinstallWorker = async () => {
       if (!('serviceWorker' in navigator)) {
         return;
       }
@@ -123,34 +173,57 @@
       });
       await navigator.serviceWorker.ready;
       const controller = navigator.serviceWorker.controller;
-      if (controller && version !== '0') {
-        controller.postMessage({ type: 'clear-caches-and-rebuild', version });
+      if (controller) {
+        controller.postMessage({ type: 'clear-caches-and-rebuild' });
       }
       return registration;
     };
 
-    const reinstall = async () => {
+    const safeRedirect = () => {
+      setTimeout(() => {
+        window.location.replace(HOME_URL);
+      }, 1200);
+    };
+
+    const runRecovery = async () => {
+      disableAction(true);
+      updateStatus('Очищаем локальные кеши...');
+      updateDetail('Это освобождает все ранее сохранённые ресурсы и данные приложения.');
       try {
-        setStatus('Сохраняем новую версию…');
-        const version = await fetchVersion();
-        setStatus('Очищаем кэш браузера…');
         await clearCaches();
-        setStatus('Удаляем старые сервис-воркеры…');
+        updateStatus('Удаляем сервис-воркеры...');
         await clearWorkers();
-        setStatus('Регистрируем свежий сервис-воркер…');
-        await installWorker(version);
-        setStatus('Готово, перенаправляем на домашнюю страницу…');
-        setDetail('Если редирект не сработает, обновите страницу вручную.');
+        updateStatus('Сбрасываем хранилища...');
+        clearStorage();
+        updateDetail('Сбой устранён. Регистрируем свежий сервис-воркер и возвращаемся на главную.');
+        updateStatus('Регистрируем сервис-воркер...');
+        await reinstallWorker();
+        updateStatus('Готово, возвращаемся домой.');
       } catch (error) {
-        console.error('[reinstall] error', error);
-        setStatus('Что-то пошло не так, но попытка завершена.');
-        setDetail(error?.message ?? 'Неизвестная ошибка. Попробуйте перезагрузить вручную.');
+        console.error('[reinstall] recovery failure', error);
+        updateStatus('Ошибка при восстановлении.');
+        updateDetail(error?.message ?? 'Неожиданная ошибка. Попробуйте обновить страницу и повторить.');
       } finally {
-        safeDelayRedirect();
+        safeRedirect();
       }
     };
 
-    reinstall();
+    const syncConfirmation = () => {
+      const confirmed = confirmEl?.checked === true;
+      disableAction(!confirmed);
+    };
+
+    confirmEl?.addEventListener('change', syncConfirmation);
+    syncConfirmation();
+
+    actionEl?.addEventListener('click', () => {
+      updateStatus('Подтверждена ручная очистка.');
+      runRecovery();
+    });
+
+    window.addEventListener('load', () => {
+      actionEl.focus();
+    });
   </script>
 </body>
 

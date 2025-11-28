@@ -21,6 +21,74 @@
   <div id="toast-container" aria-live="polite"></div>
   <script type="module" src="ui/component/components.js"></script>
   <script type="module" src="app.js"></script>
+  <script>
+    (function () {
+      const ROOT_ID = 'app';
+      const FAILURE_TIMEOUT = 6000;
+      const POLL_INTERVAL = 300;
+      let monitorTimeout = null;
+      let monitorInterval = null;
+
+      const getRoot = () => document.getElementById(ROOT_ID);
+      const hasUiContent = () => {
+        const root = getRoot();
+        if (!root) {
+          return false;
+        }
+        if (root.childElementCount > 0) {
+          return true;
+        }
+        return Boolean(root.textContent && root.textContent.trim().length);
+      };
+
+      const stopMonitoring = () => {
+        if (monitorTimeout) {
+          clearTimeout(monitorTimeout);
+          monitorTimeout = null;
+        }
+        if (monitorInterval) {
+          clearInterval(monitorInterval);
+          monitorInterval = null;
+        }
+      };
+
+      const redirectToReinstall = () => {
+        stopMonitoring();
+        window.location.replace('/reinstall.html');
+      };
+
+      const monitorHealth = () => {
+        const root = getRoot();
+        if (!root) {
+          return;
+        }
+        if (hasUiContent()) {
+          stopMonitoring();
+          return;
+        }
+        if (!monitorInterval) {
+          monitorInterval = setInterval(() => {
+            if (hasUiContent()) {
+              stopMonitoring();
+            }
+          }, POLL_INTERVAL);
+        }
+        if (!monitorTimeout) {
+          monitorTimeout = setTimeout(() => {
+            if (!hasUiContent()) {
+              redirectToReinstall();
+            }
+          }, FAILURE_TIMEOUT);
+        }
+      };
+
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        monitorHealth();
+      } else {
+        document.addEventListener('DOMContentLoaded', monitorHealth);
+      }
+    })();
+  </script>
 </body>
 
 </html>
