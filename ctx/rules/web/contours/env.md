@@ -6,6 +6,8 @@
 
 `HomeCall_Web_Env_Provider$` агрегирует переменные окружения, URL-параметры и платформенные флаги. Он предоставляет методы `getContext()` и `onChange(callback)`, которые вызываются напрямую `Core`, `Net` и `Ui` через DI без публикации событий на шине.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` подчёркивает, что `session` в URL — это часть одного окна, а не отдельная комната, поэтому Env передаёт параметр `session` напрямую в Core и `share-link`, а не по отдельным экранным веткам; будущий single-window state machine описан в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ---
 
 ## Границы и интерфейсы

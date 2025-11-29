@@ -6,6 +6,8 @@
 
 Сводит в одном месте состояния `home → invite → call → end`, фиксирует CTA (`component/big-button`) и триггеры переходов, а также отмечает ограничения на дополнительные действия. Документы в `screens/` описывают только содержание зон, компоненты (`component/screen-card`, `component/screen-header`, `component/screen-note`) и переходы содержатся здесь.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` и `ctx/product/capabilities/connection.md` показывают, что интерфейс должен оставаться в одном окне и переключаться между состояниями `ready`, `waiting`, `active`. Этот документ описывает существующую реализацию через экраны `home → invite → call → end`, но future state machine, описанный в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`, будет переименовывать их в состояния одного окна и формировать inline-оверлеи вместо отдельных страниц.
+
 ## States
 
 1. **home** — бренд, обычный заголовок с кнопкой настроек в правой зоне и `component/big-button` **«Связать»**; единственный CTA создаёт `sessionId` и инициирует переход к `invite`.

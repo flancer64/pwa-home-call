@@ -6,6 +6,8 @@
 
 Фиксирует ссылку для приглашения, два CTA (`component/big-button`) и связывает текст с компонентами без логики переходов. `component/screen-card` задаёт структуру, `component/screen-header` показывает заголовок и кнопки закрытия, `component/screen-note` описывает краткую подсказку по ссылке.
 
+> **Согласованность с продуктом:** `ctx/product/capabilities/link-sharing.md` фиксирует, что ссылка генерируется внутри слоёв `waiting`/`active` одного окна, поэтому текущий `invite` эквивалентен будущему фрагменту `waiting`: он остаётся частью `screen-card`, а план `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md` описывает, как `invite` будет перестроен в overlay внутри состояния `waiting`.
+
 ## Zones
 
 1. **Header** — `component/screen-header` с заголовком «Ссылка для соединения» и иконкой закрытия (внешне похожей на FAB, но не плавающей).

@@ -6,6 +6,8 @@
 
 Net обеспечивает надёжную передачу SDP и ICE между участниками одного `sessionId`. Он не опирается на EventBus — коллбэки передаются через DI и работают синхронно.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` и `ctx/product/capabilities/connection.md` фиксируют, что сигналинг работает в состоянии `waiting` → `active` внутри одного окна, поэтому Net использует только `sessionId` без комнат и связывается с `call`-потоком; будущий state machine описан в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ---
 
 ## Границы и интерфейсы

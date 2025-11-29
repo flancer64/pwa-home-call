@@ -6,6 +6,8 @@
 Он фиксирует роль `HomeCall_Web_Core_App`, которая управляет жизненным циклом `home → invite → call → end`, синхронизирует UI, медиа и сеть и исключает лишние экраны, формы или настройки.  
 UI-переходы и CTA-действия подробно описаны в `ctx/rules/web/ui/screens.md`, а этот документ вместе с `contours/core.md` концентрируется на техническом потоке, который запускает `Media`, `Net` и `Rtc`.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md`, `ctx/product/capabilities/connection.md` и `ctx/product/flows/connection.md` описывают один браузерный контекст с состояниями `ready`, `waiting`, `active` и inline-обменом ссылками. В текущем коде (`web/app/Ui/Flow.mjs`, `web/app/Ui/Controller.mjs`, `web/app/State/Machine.mjs`) всё ещё реализована последовательность `home → invite → call → end`, поэтому документ фиксирует существующие экраны и CTA, но будущий переход к state machine указан в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ---
 
 ## 1. Роль приложения

@@ -6,6 +6,8 @@
 
 Сервисная карточка `component/screen-card`, которая открывается из `home` через кнопку в правой части верхней зоны (`header`), и содержит `component/big-button` для служебных действий. Страница показывает только набор действий и закрытие через `component/screen-header`.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` и `ctx/product/capabilities/connection.md` предполагают, что `settings` остаются overlay-слоем поверх текущего состояния `ready/waiting/active`, не образуя новых экранов; документ подчёркивает, что каркас `component/screen-card` используется поверх активного состояния, а `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md` описывает, как overlay будет работать внутри единого окна.
+
 ## Zones
 
 1. **Header** — `component/screen-header` со служебным текстом «Настройки» и иконкой закрытия.

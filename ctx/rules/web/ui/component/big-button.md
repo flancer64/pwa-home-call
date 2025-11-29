@@ -6,6 +6,8 @@ Path: `ctx/rules/web/ui/component/big-button.md`
 
 `big-button` — универсальный CTA, используемый в зоне `action` и в служебных карточках (`settings`, `invite`, `end`). Он оформляет текст, иконку и отбивается крупными отступами без формирования логики переходов.
 
+> **Согласованность с продуктом:** кнопки должны служить состояниям `ready`, `waiting`, `active` внутри одного окна (`ctx/product/overview.md`, `ctx/product/capabilities/connection.md`), поэтому `big-button` остаётся визуальным элементом без собственной логики; различные состояния задаются DI-контроллерами. Будущий single-window state machine описан в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ## API
 
 - `label` — основной текст кнопки (используется в `action` зоне).

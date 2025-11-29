@@ -5,6 +5,8 @@
 Документ фиксирует архитектуру серверной части **Связист** — совокупность Bootstrap-скрипта (`bin/server.js`) и головного модуля приложения (`HomeCall_Back_App`).  
 Оба компонента образуют единый процесс, реализующий запуск и жизненный цикл backend-части системы.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` требует минимальный сервер без профилей, а `ctx/product/capabilities/connection.md` и `ctx/product/capabilities/link-sharing.md` описывают единую сессию `ready/waiting/active` с `sessionId`, привязанным к текущему окну. Несмотря на то, что frontend пока описывает переход `home → invite → call → end`, backend уже хранит только приведённое техническое состояние (sessionId, WebPush-метаданные и маршруты сигнала). Для привязки серверных процессов к будущей реализации одного окна см. план `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ## 1. Структура и роли
 
 - **Bootstrap-скрипт (`bin/server.js`)** — composition root.  

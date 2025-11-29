@@ -6,6 +6,8 @@ Path: `ctx/rules/web/ui/component/icon-wrapper.md`
 
 `icon-wrapper` гарантирует, что все иконки (закрытие, статус, кисть) сохраняют одинаковые размеры, контраст и отступы внутри `screen-card`. Компонент не создаёт событий — он просто отображает SVG или иконку шрифта.
 
+> **Согласованность с продуктом:** иконки поддерживают состояния `ready/waiting/active` в одном окне (см. `ctx/product/overview.md`, `ctx/product/capabilities/connection.md`), поэтому `icon-wrapper` остаётся чистым визуальным контейнером, пока state machine в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md` определяет, какие иконки видны.
+
 ## API
 
 - `name` — путь к внешнему SVG-файлу из `web/assets/icons/`, передаётся в `slot="glyph"` для внешней системы.

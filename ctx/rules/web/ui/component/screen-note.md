@@ -8,6 +8,8 @@ Path: `ctx/rules/web/ui/component/screen-note.md`
 Не содержит динамических сообщений и не заменяет toast.  
 `screen-note` — вспомогательный текст в `slot="hint"` для статических подсказок (например, «Отправьте ссылку и закройте окно»). Он не отображает текущие статусы или события — все динамические состояния транслируются только через `notifications.md` (toast).
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` и `ctx/product/capabilities/connection.md` объединяют `ready`, `waiting`, `active` в одно окно, поэтому `screen-note` служит статическим фрагментом этого общего состояния и не пытается описывать отдельные экраны; future state machine documented in `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ## API
 
 - `text` — одна-две строки краткого справочного сообщения или инструкции.

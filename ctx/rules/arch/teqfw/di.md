@@ -4,6 +4,8 @@
 
 Документ описывает принципы использования контейнера зависимостей **@teqfw/di** во всех проектах TeqFW и служит опорой для проектных правил `../teqfw.md`.
 
+> **Согласованность с продуктом:** контейнер `@teqfw/di` связывает Core, Ui, Media, Net и Rtc, обеспечивая, что состояние `ready/waiting/active` остаётся единым потоком внутри одного окна (`ctx/product/overview.md`, `ctx/product/capabilities/connection.md`). Пока код ещё реализует экраны `home → invite → call → end`, именно через DI передаются состояния и параметры `sessionId`, поэтому будущая перестройка state machine указана в `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`.
+
 ## Платформа
 
 - `@flancer32/teq-web` — Node.js-обёртка, предоставляющая HTTP-слой и использующая `@teqfw/di` для управления зависимостями.

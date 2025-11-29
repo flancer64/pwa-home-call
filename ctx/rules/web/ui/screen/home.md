@@ -6,6 +6,8 @@
 
 Фиксирует запуск потока: экран содержит бренд и единственное действие, которое создаёт `sessionId` и переводит пользователя к `invite`. `component/screen-card` объединяет `component/screen-header` и `component/big-button`.
 
+> **Согласованность с продуктом:** `ctx/product/overview.md` и `ctx/product/capabilities/connection.md` описывают состояние `ready` единого окна, поэтому `home` документирует текущее состояние интерфейса (`home → invite`), а будущий state machine (`ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`) будет отображать эти элементы как фрагменты `ready` и `waiting`, а не как отдельные экраны.
+
 ## Zones
 
 1. **Header** — `component/screen-header` с текстом «Связист» и кнопкой настроек в правой зоне, открывающей экран `settings`.

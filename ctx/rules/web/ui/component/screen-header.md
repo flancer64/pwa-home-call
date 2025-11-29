@@ -6,6 +6,8 @@ Path: `ctx/rules/web/ui/component/screen-header.md`
 
 `screen-header` упаковывает верхнюю зону `screen-card`: заголовок, подзаголовок, значок или служебные иконки. Он не управляет переходами, а лишь отображает статичное или DI-переданное состояние (`title`, `status`, `hintIcon`).
 
+> **Согласованность с продуктом:** заголовки фиксируют состояния `ready`, `waiting`, `active` одного окна (`ctx/product/overview.md`, `ctx/product/capabilities/connection.md`) и не управляют логикой переходов; экраны описывают, какие данные показываются, а state machine (в будущем `ctx/agent/plan/2025/11/20251129-rules-implementation-fixes.md`) будет задавать, какие заголовки видны.
+
 ## API
 
 - `title` — основной заголовок верхней зоны (`home`, `invite`, `end`, `settings`).
