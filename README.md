@@ -1,7 +1,7 @@
 # Svyazist
 
 **Svyazist** is a small self-hosted PWA for private video calls between family members.  
-Pure JavaScript, WebRTC, no installs, no accounts.
+Pure JavaScript, WebRTC - no installation required for end users, no accounts.
 
 **Live demo:** <https://call.wiredgeese.com/>
 
