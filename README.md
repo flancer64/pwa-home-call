@@ -13,7 +13,7 @@ see [AGENTS.md](./AGENTS.md) as the entry point.
 
 ---
 
-## Installation Guide (English)
+## Installation Guide
 
 This guide describes how to deploy a self-hosted instance of **Svyazist** using:
 
