@@ -11,5 +11,5 @@
 ## Артефакты
 - `ctx/product/overview.md`
 - `ctx/product/capabilities/AGENTS.md`
-- `ctx/product/capabilities/connection.md`
+- `ctx/product/capabilities/session.md`
 - `ctx/product/capabilities/link-sharing.md`

@@ -14,7 +14,7 @@
 - `ctx/product/overview.md`
 - `ctx/product/capabilities.md`
 - `ctx/product/capabilities/AGENTS.md`
-- `ctx/product/capabilities/connection.md`
+- `ctx/product/capabilities/session.md`
 - `ctx/product/capabilities/link-sharing.md`
 - `ctx/product/flows/AGENTS.md`
 - `ctx/product/flows/connection.md`
