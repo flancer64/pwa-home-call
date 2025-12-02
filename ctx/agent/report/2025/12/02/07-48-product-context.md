@@ -5,12 +5,12 @@
 
 ## Действия
 - переработал `overview.md`, добавил блок «Ключевые инварианты», описал границы ссылки и заменил упоминание SPA на свойство UI без влияния на модель;
-- уплотнил `capabilities/connection.md` и `capabilities/link-sharing.md`, сохранив только утверждения из overview и устранив повторы;
+- уплотнил `capabilities/session.md` и `capabilities/link-sharing.md`, сохранив только утверждения из overview и устранив повторы;
 - пересмотрел `terms.md` и `ctx/product/AGENTS.md`, унифицировал терминологию и цели, а также обновил поток `flows/connection.md` в соответствии с новыми инвариантами.
 
 ## Артефакты
 - `ctx/product/overview.md`
-- `ctx/product/capabilities/connection.md`
+- `ctx/product/capabilities/session.md`
 - `ctx/product/capabilities/link-sharing.md`
 - `ctx/product/flows/connection.md`
 - `ctx/product/terms.md`

@@ -1,6 +1,6 @@
 # Возможность: структура и жизненный цикл сеанса
 
-Path: `./ctx/product/capabilities/connection.md`
+Path: `./ctx/product/capabilities/session.md`
 
 ## Инвариант сеанса
 
