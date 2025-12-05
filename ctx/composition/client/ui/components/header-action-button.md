@@ -1,6 +1,6 @@
 # Компонент `header-action-button`
 
-Путь: `ctx/composition/client/ui-elements/header-action-button.md`
+Путь: `ctx/composition/client/ui/components/header-action-button.md`
 
 ## Назначение
 
@@ -14,7 +14,7 @@
 
 ## Визуальный контракт
 
-- Фиксированные размеры: круг 64 × 64 px с радиальным градиентом (см. `ctx/composition/client/ui-elements/style.md` для `--accent-gradient`).
+- Фиксированные размеры: круг 64 × 64 px с радиальным градиентом (см. `ctx/composition/client/ui/patterns/style.md` для `--accent-gradient`).
 - Тень использует `--shadow-cta`, чтобы приподнять кнопку над header.
 - Иконка окрашивается через `icon-wrapper` (`tone="accent"`), обеспечивая соответствие палитре.
 
@@ -25,5 +25,5 @@
 
 ## Связи
 
-- `ctx/composition/client/ui-elements/screen-header.md` — заголовок, который помещает кнопку в слот.
-- `ctx/composition/client/ui-elements/style.md` — задаёт градиент и тени, используемые здесь.
+- `ctx/composition/client/ui/components/screen-header.md` — заголовок, который помещает кнопку в слот.
+- `ctx/composition/client/ui/patterns/style.md` — фиксирует градиент, тени и высоту теней, а `ctx/composition/client/ui/components/style.md` уточняет их использование в кнопке.

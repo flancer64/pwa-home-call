@@ -1,6 +1,6 @@
 # Компонент `screen-note`
 
-Путь: `ctx/composition/client/ui-elements/screen-note.md`
+Путь: `ctx/composition/client/ui/components/screen-note.md`
 
 ## Назначение
 
@@ -15,5 +15,5 @@
 ## Требования
 
 - Текст остаётся постоянным на протяжении всего экрана; динамические обновления здесь не происходят.
-- Все анимации, статусы и ошибки маршрутизируются через `ctx/composition/client/ui-elements/notifications.md`.
+- Все анимации, статусы и ошибки маршрутизируются через `ctx/composition/client/ui/patterns/toast-layer.md`.
 - Компонент визуально связан с action-зоной, а не основным телом, чтобы избежать множественных CTA одновременно.

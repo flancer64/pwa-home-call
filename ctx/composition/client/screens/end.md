@@ -15,4 +15,4 @@
 ## Примечания
 
 - Layout совпадает с каркасом экрана `home`; изменяются только копия и действие.
-- Типографика и отступы соответствуют палитре `ctx/composition/client/ui-elements/style.md`.
+- Типографика и отступы соответствуют палитре `ctx/composition/client/ui/components/style.md`.

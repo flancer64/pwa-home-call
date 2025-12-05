@@ -1,6 +1,6 @@
 # Компонент `screen-header`
 
-Путь: `ctx/composition/client/ui-elements/screen-header.md`
+Путь: `ctx/composition/client/ui/components/screen-header.md`
 
 ## Назначение
 
@@ -22,4 +22,4 @@
 ## Примечания
 
 - Кликабельные контролы живут вне компонента; header просто отображает переданные узлы.
-- Все отступы и выравнивание задаются в `ctx/composition/client/ui-elements/style.md`.
+- Все отступы и выравнивание задаются в `ctx/composition/client/ui/patterns/style.md`, а `ctx/composition/client/ui/components/style.md` уточняет компоновку для хедера.

@@ -1,6 +1,6 @@
 # Компонент `big-button`
 
-Путь: `ctx/composition/client/ui-elements/big-button.md`
+Путь: `ctx/composition/client/ui/components/big-button.md`
 
 ## Назначение
 
@@ -18,14 +18,14 @@
 
 - Высота кнопки ≥ 56 px, горизонтальные отступы ≥ 1 rem, радиус углов ≥ 1 rem.
 - На экране одна `big-button` доминирует в action-зоне, но в наложениях допускается вертикальная стопка из двух кнопок (primary сверху, secondary снизу).
-- Иконки опциональны, но используют `icon-wrapper` (см. `ctx/composition/client/ui-elements/icon-wrapper.md`).
+ - Иконки опциональны, но используют `icon-wrapper` (см. `ctx/composition/client/ui/components/icon-wrapper.md`).
 
 ## Дополнительно
 
-- Стили (цвета, типографика, отступы) берутся из `ctx/composition/client/ui-elements/style.md`; экраны ссылаются на компонент, не дублируя значения.
+- Стили (цвета, типографика, отступы) берутся из `ctx/composition/client/ui/patterns/style.md`, а `ctx/composition/client/ui/components/style.md` уточняет компонетные состояния; экраны ссылаются на компонент, не дублируя значения.
 - Кнопка принимает данные только через атрибуты — никакого внутреннего состояния или `loading`-индикатора.
 - Тексты CTA остаются постоянными в рамках экрана; если нужны другие вариации, описывается новый документ.
 
 ## Связи
 
-- `ctx/composition/client/ui-elements/layout.md` — указывает, где кнопка расположена внутри трёхзонного скелета.
+- `ctx/composition/client/ui/layout/skeleton.md` — указывает, где кнопка расположена внутри трёхзонного скелета.

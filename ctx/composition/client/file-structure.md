@@ -25,6 +25,6 @@ web/
 
 ## Связь с композицией
 
-- `web/ui/component/` повторяет визуальные атомы, описанные в `ctx/composition/client/ui-elements/`.
+- `web/ui/component/` повторяет визуальные атомы, описанные в `ctx/composition/client/ui/components/`.
 - `web/ui/screen/` содержит шаблоны экранов, использующие те же зоны, что и документы в `ctx/composition/client/screens/`.
-- `app.js` и `web/app/` запускают рантайм-модули, которые вносят данные в описанные состояния `ctx/composition/client/ui-states/`.
+- `app.js` и `web/app/` запускают рантайм-модули, которые вносят данные в описанные состояния `ctx/composition/client/states/`.

@@ -1,6 +1,6 @@
 # Компонент `icon-wrapper`
 
-Путь: `ctx/composition/client/ui-elements/icon-wrapper.md`
+Путь: `ctx/composition/client/ui/components/icon-wrapper.md`
 
 ## Назначение
 
@@ -16,7 +16,7 @@
 ## Визуальные правила
 
 - Иконки центрируются внутри круглой рамки с отступами 0.75 rem.
-- Акценты наследуют `--accent-gradient` или сигнальные цвета из `ctx/composition/client/ui-elements/style.md`.
+- Акценты наследуют `--accent-gradient` или сигнальные цвета из `ctx/composition/client/ui/patterns/style.md`.
 - Wrapper не добавляет тени или интерактивных состояний; он просто отображает глиф.
 
 ## Использование

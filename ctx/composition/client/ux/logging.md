@@ -14,5 +14,5 @@
 
 ## Связи
 
-- Контролы описаны в `ctx/composition/client/ui-elements/style.md` и повторно используют `big-button`+`screen-note` с темами из этой палитры.
+- Контролы описаны в `ctx/composition/client/ui/components/style.md` и повторно используют `big-button`+`screen-note` с темами из этой палитры.
 - `screen-card` и `screen-header` обеспечивают общий контейнер, описанный в `ctx/composition/client/screens/settings.md`.
