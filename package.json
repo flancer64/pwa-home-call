@@ -1,6 +1,6 @@
 {
   "name": "@flancer64/pwa-home-call",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Simple self-hosted PWA for private family video calls. Built with pure JavaScript and WebRTC.",
   "main": "bin/server.js",
   "type": "module",
@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/flancer64/pwa-home-call#readme",
   "dependencies": {
-    "@flancer32/teq-web": "^0.3.1",
+    "@teqfw/di": "^1.0.2",
     "dotenv": "^17.2.3",
     "lucide-static": "^0.553.0",
     "ws": "^8.18.3"
