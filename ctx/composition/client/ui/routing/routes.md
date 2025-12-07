@@ -1,47 +1,73 @@
-# Таблица маршрутов UI
+# Руководство по объявлению маршрутов UI
 Path: `./ctx/composition/client/ui/routing/routes.md`
 
-## Таблица маршрутов
+## Назначение
 
-Маршрут:       #/home  
-Экран:         home  
-Шаблон:        ui/screens/home/home.html  
-Контроллер:    HomeCall_Web_Ui_Screen_Home  
-Параметры:     отсутствуют, экран получает только обработчики `onStartCall` и `onOpenSettings`.  
-Ограничения:   Показывает только стартовую карточку; навигацию возглавляет Flow при переходе в `ready`.
+Документ описывает правила формирования конфигурации маршрутов, используемой Router через DI. Он не фиксирует жёсткий набор экранов, а диктует формат записей, обязанностей боковых компонентов и способы подключения новых экранов к навигационному слою.
 
-Маршрут:       #/invite  
-Экран:         invite  
-Шаблон:        ui/screens/invite/invite.html  
-Контроллер:    HomeCall_Web_Ui_Screen_Invite  
-Параметры:     `shareUrl` (строка) + обработчики `onShareLink`, `onCopyLink`, `onClose`.  
-Ограничения:   Используется только в состоянии ожидания (`waiting`), обновляет ссылку и не инициирует звонок.
+## Формат маршрута
 
-Маршрут:       #/call/<sessionId>  
-Экран:         call  
-Шаблон:        ui/screens/call/call.html  
-Контроллер:    HomeCall_Web_Ui_Screen_Call  
-Параметры:     `sessionId` (опционально, включается в hash), `remoteStream` (MediaStream), `onEnd`, `onOpenSettings`.  
-Ограничения:   Не содержит сигналинг; Flow передаёт `remoteStream` и onEnd/event-обработчики, Router лишь рендерит медиа-слой и обновляет видео.
+Каждый маршрут описывается декларативно. Конфигурация должна содержать следующие поля:
 
-Маршрут:       #/end  
-Экран:         end  
-Шаблон:        ui/screens/end/end.html  
-Контроллер:    HomeCall_Web_Ui_Screen_End  
-Параметры:     `connectionMessage` (текст) и `onReturn`.  
-Ограничения:   Страница завершения звонка, всегда предлагает возврат на `home`.
+- `name: <string>` — уникальное логическое имя маршрута, используемое Router и внешними компонентами для навигации.
+- `template: <string>` — идентификатор или путь шаблона, который TemplatesLoader получает по запросу.
+- `controllerFactory: <DI-идентификатор>` — фабрика, зарегистрированная в контейнере зависимостей, создающая новый контроллер при каждом переходе.
+- `params` — описание ожидаемых параметров; этот блок не задаёт значения напрямую, а фиксирует, какие параметры контроллер ожидает получить (`hash`, `sessionId`, `callbacks`, и т. д.).
+- `segmentParams: <string[]>` (опционально) — упорядоченный список имён параметров, значения которых Router извлекает из дополнительных частей hash после имени маршрута.
+- `initial: <boolean>` (опционально) — флаг, означающий, что данный маршрут используется, когда hash отсутствует или пуст.
+- `fallback: <boolean>` (опционально) — маркер, обозначающий маршрут, используемый Router при отсутствии соответствия; только одна запись должна иметь `true`.
 
-Маршрут:       #/not-found  
-Экран:         not-found  
-Шаблон:        ui/screens/not-found/not-found.html  
-Контроллер:    HomeCall_Web_Ui_Screen_NotFound  
-Параметры:     `onReturn` (возврат на `home`).  
-Ограничения:   Автономный экран, не взаимодействует с Flow и обслуживает любые неизвестные hash-запросы.
+`routeConfig: Record<string, RouteDescriptor>` и `defaultParams: Record<string, Record<string, unknown>>` передаются Router извне. Конфигурационный модуль предоставляет методы `registerRoute` и `setDefaultParams`, поэтому приложение может добавлять маршруты и реальные обработчики постепенно, не меняя Router. Router объединяет параметры из URL, вызовов `navigate` и `defaultParams[name]`, прежде чем передать их контроллеру.
 
-## Правила добавления новых маршрутов
+Контроллер получает объект `{ params, container, dependencies }` и работает только с этим вызовом. Router никогда не хранит контроллеры между переходами.
 
-1. Имя маршрута соответствует каталогу `#/screen-name`, добавляется в `routes.md`, а шаблон располагается в `web/ui/screens/screen-name/screen-name.html`.  
-2. Каждому шаблону соответствует `HomeCall_Web_Ui_Screen_<ScreenName>` в `web/app/Ui/Screen/`; контроллер реализует `mount({ container, params })`, необязательные `unmount/updateRemoteStream` и не содержит бизнес-логики.
-3. Router связывает маршрут с шаблоном и контроллером через `HomeCall_Web_Ui_Router`; новую запись добавляют в мапу `routeConfig` и в этот документ одновременно.
-4. Параметры маршрутной строки начинают с `#/call/SESSION_ID`: `sessionId` хранится в `router.resolve`, передаётся в `params.sessionId`, и Flow оставляет за собой состояние, а не Router.
-5. Любой неизвестный hash переводится на маршрут `not-found`, маршрут всегда работает без участия Flow и служит гарантом предсказуемости UI.
+## Fallback и неизвестные hash
+
+Конфигурация должна предусматривать fallback-маршрут: один из `routeConfig` объявляется как цель для неизвестных hash. Router вызывает этот маршрут через описанный `controllerFactory`, а конкретное поведение отката, например `not-found`, всегда перенаправляет на корень `/` независимо от дополнительных параметров. Ответственность за реакцию на некорректные ссылки лежит в конфигурации, Router лишь гарантирует, что fallback сработает.
+
+## Обновление маршрутов
+
+- Добавление нового экрана происходит через изменение конфигурации (`routeConfig`, `defaultParams` и сопутствующие файлы DI). Router и его документация `overview.md`/`router.md` остаются неизменными.
+- Конфигурационный модуль может вызывать `registerRoute` при старте или по ходу, а Flow обновляет `defaultParams`, подставляя реальные обработчики в нужный момент.
+- Проектные контроллеры должны реализовывать lifecycle (`mount`, `unmount`, `update`/`dispose`), но Router вызывает их только через фабрику, получая свежий экземпляр для каждого перехода.
+- Любые зависимости, включая шаблоны и callbacks, описываются в конфигурации и передаются через `params`.
+
+## Пример конфигурации (для ориентира)
+
+```yaml
+- name: home
+  template: ui/screens/home.html
+  controllerFactory: HomeCall_Web_Ui_Screen_Home
+  params:
+    description: "Не ожидает параметров, получает обработчики для запуска звонка и открытия настроек"
+  initial: true
+
+- name: invite
+  template: ui/screens/invite.html
+  controllerFactory: HomeCall_Web_Ui_Screen_Invite
+  params:
+    description: "Expect shareUrl and callbacks for sharing, copying, closing"
+
+- name: call
+  template: ui/screens/call.html
+  controllerFactory: HomeCall_Web_Ui_Screen_Call
+  params:
+    description: "Session id from hash, remoteStream, lifecycle callbacks"
+  segmentParams:
+    - sessionId
+
+- name: end
+  template: ui/screens/end.html
+  controllerFactory: HomeCall_Web_Ui_Screen_End
+  params:
+    description: "Displays completion message, uses onReturn"
+
+- name: not-found
+  template: ui/screens/not-found.html
+  controllerFactory: HomeCall_Web_Ui_Screen_NotFound
+  params:
+    description: "Fallback screen for unknown hashes; onReturn always drops the browser on `/` and ignores additional params."
+  fallback: true
+```
+
+Этот пример иллюстрирует формат, но Router не зависит от конкретных записей: при обновлении списка экранов изменяется только конфигурация, а Router продолжает работать с любыми `routeConfig`.
