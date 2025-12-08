@@ -14,4 +14,4 @@
 
 ## Связи
 
-- Эти страницы служат фоном для `ctx/composition/client/screens/` и `ctx/composition/direct-interaction/` — они не переключают экран, а позволяют запустить или восстановить UI-контейнер.
+- Эти страницы служат фоном для `ctx/composition/client/ui/screens/` и `ctx/composition/direct-interaction/` — они не переключают экран, а позволяют запустить или восстановить UI-контейнер.

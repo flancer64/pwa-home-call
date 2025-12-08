@@ -34,6 +34,8 @@ Path: `./ctx/composition/client/ui/routing/routes.md`
 
 ## Пример конфигурации (для ориентира)
 
+Call-экран теперь отвечает и за отображение состояния ожидания и шаринг ссылки через `onShareLink`, поэтому отдельный маршрут `invite` больше не используется.
+
 ```yaml
 - name: home
   template: ui/screens/home.html
@@ -42,17 +44,11 @@ Path: `./ctx/composition/client/ui/routing/routes.md`
     description: "Не ожидает параметров, получает обработчики для запуска звонка и открытия настроек"
   initial: true
 
-- name: invite
-  template: ui/screens/invite.html
-  controllerFactory: HomeCall_Web_Ui_Screen_Invite
-  params:
-    description: "Expect shareUrl and callbacks for sharing, copying, closing"
-
 - name: call
   template: ui/screens/call.html
   controllerFactory: HomeCall_Web_Ui_Screen_Call
   params:
-    description: "Session id from hash, remoteStream, lifecycle callbacks"
+    description: "Session id from hash, remoteStream, lifecycle callbacks, onShareLink и waiting-флаг для ожидания"
   segmentParams:
     - sessionId
 

@@ -1,6 +1,6 @@
 # Экран End
 
-Путь: `ctx/composition/client/screens/end.md`
+Путь: `ctx/composition/client/ui/screens/end.md`
 
 ## Назначение
 

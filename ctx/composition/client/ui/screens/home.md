@@ -1,6 +1,6 @@
 # Экран Home
 
-Путь: `ctx/composition/client/screens/home.md`
+Путь: `ctx/composition/client/ui/screens/home.md`
 
 ## Назначение
 

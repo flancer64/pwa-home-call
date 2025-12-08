@@ -1,6 +1,6 @@
 # Экран Invite
 
-Путь: `ctx/composition/client/screens/invite.md`
+Путь: `ctx/composition/client/ui/screens/invite.md`
 
 ## Назначение
 

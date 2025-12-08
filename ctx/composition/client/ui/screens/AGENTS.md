@@ -1,6 +1,6 @@
 # Экранные фрагменты client-контуров
 
-Путь: `ctx/composition/client/screens/AGENTS.md`
+Путь: `ctx/composition/client/ui/screens/AGENTS.md`
 
 ## Назначение
 
@@ -8,8 +8,8 @@
 
 ## Карта уровня
 
+- `AGENTS.md` — текущий указатель и инварианты уровня `ui/screens`.
 - `end.md` — экран `ended`, возвращающий пользователя к основной карточке.
 - `home.md` — стартовый экран `ready` с CTA «Связать».
 - `invite.md` — наложение `waiting` со ссылкой для шаринга.
 - `settings.md` — overlay `settings`, содержащий служебные действия.
-- `AGENTS.md` — этот указатель.

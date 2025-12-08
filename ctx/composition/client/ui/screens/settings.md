@@ -1,6 +1,6 @@
 # Экран Settings
 
-Путь: `ctx/composition/client/screens/settings.md`
+Путь: `ctx/composition/client/ui/screens/settings.md`
 
 ## Назначение
 

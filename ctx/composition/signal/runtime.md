@@ -11,7 +11,7 @@
 - Соединение открывается при переходе в `waiting/active` и остаётся открытым до `ended` или `hangup`.
 - Сервер ретранслирует сообщения, сохраняя `sessionId` в очереди для двух клиентов; каждый приёмник просто проверяет `type` и обновляет UI.
 - При повторном подключении client повторно использует тот же `sessionId`; DOM-элементы `remoteStream` и FAB остаются на месте и просто получают новые события.
-- `error`-сообщения отображаются через `notifications`, а `hangup` приводит к показу `ctx/composition/client/screens/end.md`.
+- `error`-сообщения отображаются через `notifications`, а `hangup` приводит к показу `ctx/composition/client/ui/screens/end.md`.
 
 ## Связи
 
