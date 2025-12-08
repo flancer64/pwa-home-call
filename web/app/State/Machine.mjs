@@ -2,34 +2,45 @@
  * @module HomeCall_Web_State_Machine
  * @description Tracks the current UI state and keeps body CSS in sync with the call screen.
  */
-export default class HomeCall_Web_State_Machine {
-  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
-    if (!env) {
-      throw new Error('Environment provider is required for the state machine.');
+export default function HomeCall_Web_State_Machine() {
+  let currentState = 'ready';
+
+  const transitions = {
+    ready: new Set(['waiting', 'active']),
+    waiting: new Set(['active', 'ended', 'ready']),
+    active: new Set(['ended']),
+    ended: new Set(['ready'])
+  };
+
+  const getState = () => currentState;
+
+  const canTransition = (nextState) => {
+    if (!nextState || !transitions[currentState]) {
+      return false;
     }
-    const documentRef = env.document ?? null;
-    let currentState = 'home';
+    return transitions[currentState].has(nextState);
+  };
 
-    const updateCallClass = (next) => {
-      documentRef?.body?.classList?.toggle('state-call', next === 'call');
-    };
+  const transition = (nextState) => {
+    if (!nextState || nextState === currentState) {
+      return currentState;
+    }
+    if (!canTransition(nextState)) {
+      throw new Error(`Invalid state transition from "${currentState}" to "${nextState}".`);
+    }
+    currentState = nextState;
+    return currentState;
+  };
 
-    this.getState = () => currentState;
+  const reset = () => {
+    currentState = 'ready';
+    return currentState;
+  };
 
-    this.setState = (nextState) => {
-      if (!nextState) {
-        return;
-      }
-      if (nextState !== currentState) {
-        currentState = nextState;
-      }
-      updateCallClass(currentState);
-    };
-
-    this.goHome = () => this.setState('home');
-    this.goInvite = () => this.setState('invite');
-    this.goSettings = () => this.setState('settings');
-    this.goCall = () => this.setState('call');
-    this.goEnd = () => this.setState('end');
-  }
+  return {
+    getState,
+    canTransition,
+    transition,
+    reset
+  };
 }

@@ -5,122 +5,120 @@
 
 const DEFAULT_DURATION = 4000;
 
-export default class HomeCall_Web_Ui_Toast {
-  #env;
-  #logger;
-  #queue;
-  #isActive;
-  #timer;
-  #current;
-  #container;
-  #currentElement;
+export default function HomeCall_Web_Ui_Toast({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Logger$: logger } = {}) {
+  const environment = env ?? {};
+  const loggerRef = logger ?? environment.console ?? globalThis.console ?? null;
+  const queue = [];
+  let isActive = false;
+  let timer = null;
+  let current = null;
+  let container = null;
+  let currentElement = null;
 
-  constructor({ HomeCall_Web_Env_Provider$: env, HomeCall_Web_Logger$: logger } = {}) {
-    this.#env = env ?? {};
-    this.#logger = logger ?? this.#env.console ?? globalThis.console ?? null;
-    this.#queue = [];
-    this.#isActive = false;
-    this.#timer = null;
-    this.#current = null;
-    this.#container = null;
-    this.#currentElement = null;
-  }
-
-  init() {
-    this.#resolveContainer();
-    return this;
-  }
-
-  /**
-   * Exposes queue snapshot for diagnostics without leaking internal references.
-   * @returns {Array}
-   */
-  get queue() {
-    return [...this.#queue];
-  }
-
-  info(message, options) {
-    this.#enqueue('info', message, options);
-  }
-
-  success(message, options) {
-    this.#enqueue('success', message, options);
-  }
-
-  warn(message, options) {
-    this.#enqueue('warn', message, options);
-  }
-
-  error(message, options) {
-    this.#enqueue('error', message, options);
-  }
-
-  hide() {
-    if (!this.#isActive) {
-      return;
+  const getDocument = () => {
+    if (environment.document) {
+      return environment.document;
     }
-    this.#completeCurrent();
-  }
-
-  #enqueue(type, message, options = {}) {
-    const duration = Number.isFinite(options.duration) ? options.duration : DEFAULT_DURATION;
-    const payload = {
-      type,
-      message,
-      duration,
-      icon: options?.icon ?? null
-    };
-    this.#queue.push(payload);
-    if (!this.#isActive) {
-      this.#showNext();
-    }
-  }
-
-  #dequeue() {
-    return this.#queue.shift() ?? null;
-  }
-
-  #showNext() {
-    const next = this.#queue[0] ?? null;
-    if (!next) {
-      this.#isActive = false;
-      return;
-    }
-    this.#isActive = true;
-    this.#current = next;
-    this.#logDisplay(next.type, next.message);
-    this.#currentElement = this.#appendToastElement(next);
-    this.#timer = this.#schedule(() => this.#completeCurrent(), next.duration);
-  }
-
-  #completeCurrent() {
-    const active = this.#current;
-    this.#clearTimer();
-    this.#removeCurrentElement();
-    if (active) {
-      this.#logHide(active.type, active.message);
-      this.#dequeue();
-    }
-    this.#current = null;
-    this.#isActive = false;
-    this.#showNext();
-  }
-
-  #appendToastElement(entry) {
-    const container = this.#resolveContainer();
-    if (!container) {
+    if (typeof globalThis === 'undefined') {
       return null;
     }
-    const element = this.#createToastElement(entry);
-    if (!element) {
+    return globalThis.document ?? null;
+  };
+
+  const resolveContainer = () => {
+    if (container) {
+      return container;
+    }
+    const documentRef = getDocument();
+    if (!documentRef) {
       return null;
     }
-    container.appendChild(element);
+    const existing = documentRef.getElementById('toast-container');
+    if (existing) {
+      container = existing;
+      container.setAttribute('aria-live', 'polite');
+      return existing;
+    }
+    const host = documentRef.body ?? documentRef.documentElement;
+    if (!host || typeof documentRef.createElement !== 'function') {
+      return null;
+    }
+    const element = documentRef.createElement('div');
+    element.id = 'toast-container';
+    element.setAttribute('aria-live', 'polite');
+    host.appendChild(element);
+    container = element;
     return element;
-  }
+  };
 
-  #createToastElement({ message, type, icon }) {
-    const documentRef = this.#getDocument();
+  const schedule = (handler, duration) => {
+    const scheduler =
+      typeof environment.setTimeout === 'function'
+        ? environment.setTimeout.bind(environment)
+        : typeof globalThis?.setTimeout === 'function'
+          ? globalThis.setTimeout.bind(globalThis)
+          : () => {};
+    return scheduler(handler, duration);
+  };
+
+  const clearTimer = () => {
+    if (!timer) {
+      return;
+    }
+    const cancel =
+      typeof environment.clearTimeout === 'function'
+        ? environment.clearTimeout.bind(environment)
+        : typeof globalThis?.clearTimeout === 'function'
+          ? globalThis.clearTimeout.bind(globalThis)
+          : () => {};
+    cancel(timer);
+    timer = null;
+  };
+
+  const writeConsole = (payload) => {
+    const consoleRef = environment.console ?? globalThis.console ?? null;
+    if (consoleRef && typeof consoleRef.log === 'function') {
+      consoleRef.log(payload);
+    }
+  };
+
+  const writeLog = (type, message) => {
+    const payload = `[Toast:${type}] ${message}`;
+    if (!loggerRef) {
+      writeConsole(payload);
+      return;
+    }
+    const level = typeof loggerRef[type] === 'function' ? type : 'info';
+    const method = typeof loggerRef[level] === 'function' ? loggerRef[level] : null;
+    if (method) {
+      method.call(loggerRef, payload);
+      return;
+    }
+    writeConsole(payload);
+  };
+
+  const logDisplay = (type, message) => {
+    writeLog(type, `show ${message}`);
+  };
+
+  const logHide = (type, message) => {
+    const payload = `[Toast:${type}] hide ${message}`;
+    if (loggerRef && typeof loggerRef.debug === 'function') {
+      loggerRef.debug.call(loggerRef, payload);
+      return;
+    }
+    writeConsole(payload);
+  };
+
+  const removeCurrentElement = () => {
+    if (currentElement && typeof currentElement.remove === 'function') {
+      currentElement.remove();
+    }
+    currentElement = null;
+  };
+
+  const createToastElement = ({ message, type, icon }) => {
+    const documentRef = getDocument();
     if (!documentRef) {
       return null;
     }
@@ -137,101 +135,95 @@ export default class HomeCall_Web_Ui_Toast {
     messageNode.textContent = message ?? '';
     element.appendChild(messageNode);
     return element;
-  }
+  };
 
-  #removeCurrentElement() {
-    if (this.#currentElement && typeof this.#currentElement.remove === 'function') {
-      this.#currentElement.remove();
-    }
-    this.#currentElement = null;
-  }
-
-  #resolveContainer() {
-    if (this.#container) {
-      return this.#container;
-    }
-    const documentRef = this.#getDocument();
-    if (!documentRef) {
+  const appendToastElement = (entry) => {
+    const host = resolveContainer();
+    if (!host) {
       return null;
     }
-    const existing = documentRef.getElementById('toast-container');
-    if (existing) {
-      this.#container = existing;
-      this.#container.setAttribute('aria-live', 'polite');
-      return existing;
-    }
-    const host = documentRef.body ?? documentRef.documentElement;
-    if (!host || typeof documentRef.createElement !== 'function') {
+    const element = createToastElement(entry);
+    if (!element) {
       return null;
     }
-    const container = documentRef.createElement('div');
-    container.id = 'toast-container';
-    container.setAttribute('aria-live', 'polite');
-    host.appendChild(container);
-    this.#container = container;
-    return container;
-  }
+    host.appendChild(element);
+    return element;
+  };
 
-  #getDocument() {
-    if (this.#env?.document) {
-      return this.#env.document;
-    }
-    if (typeof globalThis === 'undefined') {
-      return null;
-    }
-    return globalThis.document ?? null;
-  }
+  const dequeue = () => queue.shift() ?? null;
 
-  #schedule(handler, duration) {
-    const scheduler = typeof this.#env?.setTimeout === 'function'
-      ? this.#env.setTimeout.bind(this.#env)
-      : globalThis.setTimeout;
-    return scheduler(handler, duration);
-  }
-
-  #clearTimer() {
-    if (!this.#timer) {
+  const showNext = () => {
+    const next = queue[0] ?? null;
+    if (!next) {
+      isActive = false;
       return;
     }
-    const cancel = typeof this.#env?.clearTimeout === 'function'
-      ? this.#env.clearTimeout.bind(this.#env)
-      : globalThis.clearTimeout;
-    cancel(this.#timer);
-    this.#timer = null;
-  }
+    isActive = true;
+    current = next;
+    logDisplay(next.type, next.message);
+    currentElement = appendToastElement(next);
+    timer = schedule(() => completeCurrent(), next.duration);
+  };
 
-  #logDisplay(type, message) {
-    this.#writeLog(type, `show ${message}`);
-  }
+  const completeCurrent = () => {
+    const active = current;
+    clearTimer();
+    removeCurrentElement();
+    if (active) {
+      logHide(active.type, active.message);
+      dequeue();
+    }
+    current = null;
+    isActive = false;
+    showNext();
+  };
 
-  #logHide(type, message) {
-    const payload = `[Toast:${type}] hide ${message}`;
-    if (this.#logger && typeof this.#logger.debug === 'function') {
-      this.#logger.debug.call(this.#logger, payload);
+  const enqueue = (type, message, options = {}) => {
+    const duration = Number.isFinite(options.duration) ? options.duration : DEFAULT_DURATION;
+    const payload = {
+      type,
+      message,
+      duration,
+      icon: options?.icon ?? null
+    };
+    queue.push(payload);
+    if (!isActive) {
+      showNext();
+    }
+  };
+
+  const info = (message, options) => enqueue('info', message, options);
+  const success = (message, options) => enqueue('success', message, options);
+  const warn = (message, options) => enqueue('warn', message, options);
+  const error = (message, options) => enqueue('error', message, options);
+
+  const hide = () => {
+    if (!isActive) {
       return;
     }
-    this.#writeConsole(payload);
-  }
+    completeCurrent();
+  };
 
-  #writeLog(type, message) {
-    const payload = `[Toast:${type}] ${message}`;
-    if (!this.#logger) {
-      this.#writeConsole(payload);
-      return;
-    }
-    const level = typeof this.#logger[type] === 'function' ? type : 'info';
-    const method = typeof this.#logger[level] === 'function' ? this.#logger[level] : null;
-    if (method) {
-      method.call(this.#logger, payload);
-      return;
-    }
-    this.#writeConsole(payload);
-  }
+  const getQueue = () => [...queue];
 
-  #writeConsole(payload) {
-    const consoleRef = this.#env?.console ?? globalThis.console ?? null;
-    if (consoleRef && typeof consoleRef.log === 'function') {
-      consoleRef.log(payload);
-    }
-  }
+  const init = () => {
+    resolveContainer();
+    return api;
+  };
+
+  let api;
+  api = {
+    init,
+    info,
+    success,
+    warn,
+    error,
+    hide
+  };
+
+  Object.defineProperty(api, 'queue', {
+    get: getQueue
+  });
+
+  return api;
 }

@@ -3,51 +3,41 @@
  * @description Clears all service worker caches and reloads the application.
  */
 
-export default class HomeCall_Web_Pwa_Cache {
-  /**
-   * @param {Object} deps
-   * @param {HomeCall_Web_Env_Provider} deps.HomeCall_Web_Env_Provider$
-   * @param {HomeCall_Web_Logger} [deps.HomeCall_Web_Logger$]
-   */
-  constructor({
-    HomeCall_Web_Env_Provider$: env,
-    HomeCall_Web_Logger$: logger
-  } = {}) {
-    if (!env) {
-      throw new Error('Svyazist environment provider is required for cache cleaning.');
-    }
-    this.window = env.window;
-    this.navigator = env.navigator;
-    this.log = logger ?? console;
-  }
+export default function HomeCall_Web_Pwa_Cache({
+  HomeCall_Web_Env_Provider$: env,
+  HomeCall_Web_Logger$: logger
+} = {}) {
+  const windowRef = env?.window;
+  const navigatorRef = env?.navigator;
+  const log = logger ?? console;
 
-  async clear() {
-    const cachesRef = this.window?.caches ?? globalThis.caches ?? null;
+  const clear = async () => {
+    const cachesRef = windowRef?.caches ?? globalThis.caches ?? null;
     if (!cachesRef) {
-      this.log?.warn?.('[Cache] Caches API is unavailable.');
+      log?.warn?.('[Cache] Caches API is unavailable.');
     } else {
       try {
         const names = await cachesRef.keys();
         await Promise.all(names.map((name) => cachesRef.delete(name)));
       } catch (error) {
-        this.log?.warn?.('[Cache] Failed to delete caches', error);
+        log?.warn?.('[Cache] Failed to delete caches', error);
       }
     }
-    await this.unregisterServiceWorkers();
-    this.log?.info?.('[Cache] PWA cache cleared and service worker reinstalled');
-    this.reload();
-  }
+    await unregisterServiceWorkers();
+    log?.info?.('[Cache] PWA cache cleared and service worker reinstalled');
+    reload();
+  };
 
-  reload() {
-    const locationRef = this.window?.location ?? globalThis.location ?? null;
+  const reload = () => {
+    const locationRef = windowRef?.location ?? globalThis.location ?? null;
     if (locationRef && typeof locationRef.reload === 'function') {
       locationRef.reload();
     }
-  }
+  };
 
-  async unregisterServiceWorkers() {
+  const unregisterServiceWorkers = async () => {
     const swContainer =
-      this.navigator?.serviceWorker ?? globalThis.navigator?.serviceWorker ?? null;
+      navigatorRef?.serviceWorker ?? globalThis.navigator?.serviceWorker ?? null;
     if (!swContainer || typeof swContainer.getRegistrations !== 'function') {
       return;
     }
@@ -62,7 +52,13 @@ export default class HomeCall_Web_Pwa_Cache {
         })
       );
     } catch (error) {
-      this.log?.warn?.('[Cache] Failed to unregister service workers', error);
+      log?.warn?.('[Cache] Failed to unregister service workers', error);
     }
-  }
+  };
+
+  return {
+    clear,
+    reload,
+    unregisterServiceWorkers
+  };
 }

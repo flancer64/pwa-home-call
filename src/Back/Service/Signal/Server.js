@@ -27,7 +27,6 @@ export default class HomeCall_Back_Service_Signal_Server {
         const logWarn = (message, details) => logger.warn(namespace, `[Signal] ${message}`, details);
         const logError = (message, details) => logger.error(namespace, `[Signal] ${message}`, details);
         let server = null;
-        const pendingSignals = new Map();
         const SIGNAL_PATH = '/signal';
 
         const parsePort = () => {
@@ -83,16 +82,6 @@ export default class HomeCall_Back_Service_Signal_Server {
             targetSocket.send(toJson(payload));
         };
 
-        const enqueuePendingSignal = (sessionId, payload, sourceSocket) => {
-            const entries = pendingSignals.get(sessionId) ?? [];
-            entries.push({ payload, source: sourceSocket });
-            pendingSignals.set(sessionId, entries);
-            logInfo(`Queued ${payload.type} for session ${sessionId}. Waiting for peer.`, {
-                sessionId,
-                type: payload.type
-            });
-        };
-
         const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
         const serverLogPath = path.join(repoRoot, 'tmp', 'signal-server.log');
         try {
@@ -108,67 +97,12 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
         };
 
-        const deliverPendingSignals = (sessionId, socket) => {
-            const entries = pendingSignals.get(sessionId);
-            if (!entries || entries.length === 0) {
-                pendingSignals.delete(sessionId);
-                return;
-            }
-            const remaining = [];
-            for (const entry of entries) {
-                if (entry.source === socket) {
-                    remaining.push(entry);
-                    continue;
-                }
-                safeSend(socket, entry.payload);
-                logServerEvent({
-                    when: 'deliver-pending',
-                    sessionId,
-                    type: entry.payload.type,
-                    target: socket === entry.source ? 'self' : 'peer'
-                });
-                logInfo(`Delivered queued ${entry.payload.type} to session ${sessionId}.`, {
-                    sessionId,
-                    type: entry.payload.type
-                });
-            }
-            if (remaining.length > 0) {
-                pendingSignals.set(sessionId, remaining);
-            } else {
-                pendingSignals.delete(sessionId);
-            }
-        };
-
-        const removePendingSignalsForSocket = (socket) => {
-            if (!socket) {
-                return;
-            }
-            for (const [sessionId, entries] of pendingSignals.entries()) {
-                const updated = entries.filter((entry) => entry.source !== socket);
-                if (updated.length === entries.length) {
-                    continue;
-                }
-                if (updated.length === 0) {
-                    pendingSignals.delete(sessionId);
-                } else {
-                    pendingSignals.set(sessionId, updated);
-                }
-            }
-        };
-
         const cleanupSocket = (socket) => {
             if (!socket) {
                 return;
             }
             const sessionId = sessions.getSessionId(socket);
             sessions.deregister(socket);
-            removePendingSignalsForSocket(socket);
-            if (sessionId) {
-                const peers = sessions.getPeers(sessionId);
-                if (!peers || peers.length === 0) {
-                    pendingSignals.delete(sessionId);
-                }
-            }
         };
 
         const registerSession = (socket, sessionId) => {
@@ -182,7 +116,6 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
             sessions.register(socket, key);
             logInfo(`Socket joined session ${key}.`, { sessionId: key });
-            deliverPendingSignals(key, socket);
             return key;
         };
 
@@ -236,7 +169,10 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
             const peers = sessions.getPeers(normalizedSession, socket);
             if (!peers || peers.length === 0) {
-                enqueuePendingSignal(normalizedSession, payload, socket);
+                logWarn('No peers available for session, dropping signal.', {
+                    sessionId: normalizedSession,
+                    type
+                });
                 return;
             }
             peers.forEach((targetSocket) => safeSend(targetSocket, payload));
@@ -276,8 +212,8 @@ export default class HomeCall_Back_Service_Signal_Server {
         };
 
         const setupServer = () => {
-            const port = parsePort();
-            const host = parseHost();
+        const port = parsePort();
+        const host = parseHost();
             const wss = new WebSocketServer({ port, host, path: SIGNAL_PATH });
             wss.on('connection', (socket, req) => {
                 logServerEvent({
@@ -351,7 +287,6 @@ export default class HomeCall_Back_Service_Signal_Server {
                     }
                 }
             });
-            pendingSignals.clear();
             logInfo('WebSocket signaling server stopped.');
         };
 

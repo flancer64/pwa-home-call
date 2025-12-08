@@ -1,66 +1,95 @@
 /**
  * @module HomeCall_Web_Ui_Screen_Call
- * @description Renders the minimal call screen layout with remote video, local preview, and controls.
+ * @description Renders the active call stage.
  */
-export default class HomeCall_Web_Ui_Screen_Call {
-  constructor({
-    HomeCall_Web_Ui_Templates_Loader$: templates,
-    HomeCall_Web_Media_Manager$: media
-  } = {}) {
-    if (!templates) {
-      throw new Error('Template loader is required for the call screen.');
-    }
-    if (!media) {
-      throw new Error('Media manager is required for the call screen.');
-    }
-    this.templates = templates;
-    this.media = media;
+export default function HomeCall_Web_Ui_Screen_Call({
+  HomeCall_Web_Media_Manager$: media
+} = {}) {
+  const create = () => {
+    let containerRef = null;
+    const cleanups = [];
+    let remoteVideo = null;
+    let callStage = null;
+    let shareButton = null;
 
-    const context = {
-      remoteVideo: null
-    };
-
-    this.show = ({ container, remoteStream, onEnd, onOpenSettings } = {}) => {
-      if (!container) {
-        return;
-      }
-      this.templates.apply('call', container);
-      const remoteVideo = container.querySelector('#remote-video');
-      const localVideo = container.querySelector('#local-video');
-      const settingsButton = container.querySelector('#call-settings');
-      const endButton = container.querySelector('#end-call');
-
-      context.remoteVideo = remoteVideo ?? null;
-      this.media.bindLocalElements({
-        video: localVideo ?? null
-      });
-
-      if (remoteStream) {
-        this.updateRemoteStream(remoteStream);
-      }
-
-      endButton?.addEventListener('click', (event) => {
-        event.preventDefault();
-        onEnd?.();
-      });
-      settingsButton?.addEventListener('click', (event) => {
-        event.preventDefault();
-        onOpenSettings?.();
-      });
-    };
-
-    this.updateRemoteStream = (stream) => {
-      const video = context.remoteVideo;
-      if (!video) {
+    const updateStream = (stream) => {
+      if (!remoteVideo) {
         return;
       }
       if (stream) {
-        if (video.srcObject !== stream) {
-          video.srcObject = stream;
+        if (remoteVideo.srcObject !== stream) {
+          remoteVideo.srcObject = stream;
         }
       } else {
-        video.srcObject = null;
+        remoteVideo.srcObject = null;
+      }
+      setWaitingState(!Boolean(stream));
+    };
+
+    const setWaitingState = (value) => {
+      const waiting = Boolean(value);
+      if (callStage) {
+        callStage.classList.toggle('call-stage--waiting', waiting);
+      }
+      if (shareButton) {
+        shareButton.hidden = !waiting;
       }
     };
-  }
+
+    const attachClick = (element, handler) => {
+      if (!element || typeof handler !== 'function') {
+        return;
+      }
+      const listener = (event) => {
+        event?.preventDefault?.();
+        handler(event);
+      };
+      element.addEventListener('click', listener);
+      cleanups.push(() => element.removeEventListener('click', listener));
+    };
+
+    const mount = ({ container, params = {} } = {}) => {
+      containerRef = container ?? null;
+      if (!containerRef) {
+        return;
+      }
+      callStage = containerRef.querySelector('.call-stage');
+      remoteVideo = containerRef.querySelector('#remote-video');
+      shareButton = containerRef.querySelector('#invite-share');
+      const localVideo = containerRef.querySelector('#local-video');
+      if (typeof media?.bindLocalElements === 'function') {
+        media.bindLocalElements({ video: localVideo });
+        cleanups.push(() => {
+          media.bindLocalElements({ video: null });
+        });
+      }
+      const waitingFlag = typeof params.waiting === 'boolean' ? params.waiting : !Boolean(params.remoteStream);
+      setWaitingState(waitingFlag);
+      attachClick(shareButton, params.onShareLink);
+      attachClick(containerRef.querySelector('#call-settings'), params.onOpenSettings);
+      attachClick(containerRef.querySelector('#end-call'), params.onEnd);
+      updateStream(params.remoteStream ?? null);
+    };
+
+    const unmount = () => {
+      cleanups.splice(0).forEach((fn) => fn());
+      if (remoteVideo) {
+        remoteVideo.srcObject = null;
+        remoteVideo = null;
+      }
+      shareButton = null;
+      callStage = null;
+      containerRef = null;
+    };
+
+    return {
+      mount,
+      unmount,
+      updateRemoteStream: updateStream
+    };
+  };
+
+  return {
+    create
+  };
 }

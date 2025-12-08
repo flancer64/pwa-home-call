@@ -2,7 +2,30 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createWebContainer } from '../helper.mjs';
 
-test('App orchestrates simplified home → invite → call flow', async () => {
+const createEnv = () => {
+  const location = new URL('https://svyazist.app/');
+  const history = { replaceState() {}, state: null };
+  const windowStub = { location, history };
+  return {
+    window: windowStub,
+    document: {
+      getElementById(id) {
+        if (id === 'app') {
+          return { classList: { toggle() {} } };
+        }
+        return null;
+      },
+      body: { classList: { toggle() {} } }
+    },
+    navigator: { clipboard: { async writeText() {} } },
+    fetch: async () => ({ json: async () => ({}), text: async () => '' }),
+    setInterval: () => {},
+    clearInterval: () => {},
+    WebSocket: class {}
+  };
+};
+
+test('App runs the flow on startup', async () => {
   const container = await createWebContainer();
   let templateLoads = 0;
   const templateLoader = {
@@ -21,67 +44,47 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     getLocalStream() { return mediaStream; },
     stopLocalStream() {}
   };
-  let connectCalls = 0;
-  let sendOfferArgs = null;
-  let lastConnectSession = null;
+
   const signalClient = {
     on() {},
     off() {},
-    async connect(sessionId) {
-      connectCalls += 1;
-      lastConnectSession = sessionId;
-    },
+    async connect(sessionId) {},
     disconnect() {},
-    sendOffer(payload) {
-      sendOfferArgs = payload;
-    },
+    sendOffer() {},
     sendAnswer() {},
     sendCandidate() {},
-    sendHangup() {},
+    sendHangup() {}
   };
-  let configuredHandlers = null;
-  let peerStartCalls = 0;
-  const peer = {
-    configure(handlers) { configuredHandlers = handlers; },
-    setLocalStream() {},
-    async start(options = {}) {
-      peerStartCalls += 1;
-      await configuredHandlers?.sendOffer?.({
-        target: options.target ?? null,
-        sdp: 'sdp-token'
-      });
-      return { sdp: 'sdp-token' };
-    },
-    end() {},
-    async handleOffer() {},
-    async handleAnswer() {},
-    async addCandidate() {}
+  const boundHandlers = {};
+  const signalOrchestrator = {
+    bindHandlers(handlers) {
+      Object.assign(boundHandlers, handlers);
+    }
+  };
+  let flowBootstrapCalls = 0;
+  const flow = {
+    initRoot() {},
+    async bootstrap() { flowBootstrapCalls += 1; },
+    renderReady() {},
+    handleStartCall() {},
+    handleReturnHome() {},
+    handleOffer() {},
+    handleAnswer() {},
+    handleCandidate() {},
+    handleHangup() {},
+    handleSignalStatus() {},
+    handleSignalError() {},
+    renderActive() {},
+    renderEnded() {},
+    openSettings() {}
+  };
+  const router = {
+    init() {},
+    navigate() {},
+    updateRemoteStream() {},
+    showSettings() {}
   };
   const logger = { info() {}, warn() {}, error() {}, setRemoteLoggingEnabled() {} };
-  const rootElement = { classList: { toggle() {} } };
-  const location = new URL('https://svyazist.app/');
-  const history = { replaceState() {}, state: null };
-  const windowStub = { location, history };
-  const navigatorStub = { clipboard: { async writeText() {} } };
-  const documentStub = {
-    getElementById(id) {
-      if (id === 'app') {
-        return rootElement;
-      }
-      return null;
-    },
-    body: { classList: { toggle() {} } }
-  };
-  const fetchStub = async () => ({ json: async () => ({}), text: async () => '' });
-  const env = {
-    window: windowStub,
-    document: documentStub,
-    navigator: navigatorStub,
-    fetch: fetchStub,
-    setInterval: () => {},
-    clearInterval: () => {},
-    WebSocket: class {}
-  };
   const toast = {
     init() {},
     info() {},
@@ -89,58 +92,99 @@ test('App orchestrates simplified home → invite → call flow', async () => {
     success() {},
     error() {}
   };
-  const uiCalls = {};
-  const uiController = {
-    showHome(params) { uiCalls.home = params; },
-    showInvite(params) { uiCalls.invite = params; },
-    showCall(params) { uiCalls.call = params; },
-    showEnd(params) { uiCalls.end = params; },
-    updateRemoteStream(stream) { uiCalls.remote = stream; }
-  };
+  const env = createEnv();
+  const remoteLoggingConfig = { isRemoteLoggingEnabled: () => false };
 
-  const remoteLoggingConfig = {
-    isRemoteLoggingEnabled() {
-      return false;
-    }
-  };
   container.register('HomeCall_Web_Ui_Templates_Loader$', templateLoader);
   container.register('HomeCall_Web_Pwa_ServiceWorker$', swManager);
   container.register('HomeCall_Web_VersionWatcher$', versionWatcher);
   container.register('HomeCall_Web_Media_Manager$', media);
   container.register('HomeCall_Web_Net_Signal_Client$', signalClient);
-  container.register('HomeCall_Web_Rtc_Peer$', peer);
-  container.register('HomeCall_Web_Ui_Controller$', uiController);
+  container.register('HomeCall_Web_Rtc_Peer$', { configure() {}, setLocalStream() {} });
+  container.register('HomeCall_Web_Ui_Router$', router);
   container.register('HomeCall_Web_Logger$', logger);
   container.register('HomeCall_Web_Env_Provider$', env);
   container.register('HomeCall_Web_Ui_Toast$', toast);
   container.register('HomeCall_Web_Config_RemoteLogging$', remoteLoggingConfig);
-
+  container.register('HomeCall_Web_Net_Signal_Orchestrator$', signalOrchestrator);
   const app = await container.get('HomeCall_Web_App$');
   await app.run();
 
-  assert.equal(templateLoads, 1, 'templates should load once');
-  assert.equal(swRegisters, 1, 'service worker should register');
-  assert.equal(versionStarts, 1, 'version watcher should start');
-  assert.equal(mediaPrepareCalls, 0, 'media should not prepare before call');
-  assert.equal(connectCalls, 0, 'signal client should not connect before call');
-  assert.ok(uiCalls.home, 'home screen should render');
-  assert.strictEqual(typeof uiCalls.home?.onStartCall, 'function', 'home should provide call handler');
+  assert.equal(templateLoads, 1);
+  assert.equal(swRegisters, 1);
+  assert.equal(versionStarts, 1);
+  assert.equal(mediaPrepareCalls, 0);
+  assert.equal(flowBootstrapCalls, 1);
+  assert.equal(typeof boundHandlers.onOffer, 'function');
+});
 
-  await uiCalls.home.onStartCall?.();
+test('App falls back to ready state when bootstrap fails', async () => {
+  const container = await createWebContainer();
+  const templateLoader = { async loadAll() {}, apply() {} };
+  const swManager = { async register() {} };
+  const versionWatcher = { async start() {} };
+  const media = { setPeer() {}, async prepare() {}, getLocalStream() {}, stopLocalStream() {} };
+  const signalClient = {
+    on() {},
+    off() {},
+    async connect() {},
+    disconnect() {},
+    sendOffer() {},
+    sendAnswer() {},
+    sendCandidate() {},
+    sendHangup() {}
+  };
+  const signalOrchestrator = { bindHandlers() {} };
+  let renderReadyCalls = 0;
+  const flow = {
+    initRoot() {},
+    async bootstrap() { throw new Error('boom'); },
+    renderReady() { renderReadyCalls += 1; },
+    handleStartCall() {},
+    handleReturnHome() {},
+    handleOffer() {},
+    handleAnswer() {},
+    handleCandidate() {},
+    handleHangup() {},
+    handleSignalStatus() {},
+    handleSignalError() {},
+    renderActive() {},
+    renderEnded() {},
+    openSettings() {}
+  };
+  const router = {
+    init() {},
+    navigate() {},
+    updateRemoteStream() {},
+    showSettings() {}
+  };
+  const logger = { info() {}, warn() {}, error() {}, setRemoteLoggingEnabled() {} };
+  let errorCalls = 0;
+  const toast = {
+    init() {},
+    info() {},
+    warn() {},
+    success() {},
+    error() { errorCalls += 1; }
+  };
+  const env = createEnv();
+  const remoteLoggingConfig = { isRemoteLoggingEnabled: () => false };
 
-  assert.ok(uiCalls.invite, 'invite screen should render after home call');
-  assert.ok(uiCalls.invite?.inviteUrl?.includes('?session='), 'invite URL includes session parameter');
-  assert.ok(uiCalls.invite?.sessionId, 'invite screen receives session id');
-  assert.equal(mediaPrepareCalls, 0, 'media should not prepare before the invite is confirmed');
+  container.register('HomeCall_Web_Ui_Templates_Loader$', templateLoader);
+  container.register('HomeCall_Web_Pwa_ServiceWorker$', swManager);
+  container.register('HomeCall_Web_VersionWatcher$', versionWatcher);
+  container.register('HomeCall_Web_Media_Manager$', media);
+  container.register('HomeCall_Web_Net_Signal_Client$', signalClient);
+  container.register('HomeCall_Web_Rtc_Peer$', { configure() {}, setLocalStream() {} });
+  container.register('HomeCall_Web_Ui_Router$', router);
+  container.register('HomeCall_Web_Logger$', logger);
+  container.register('HomeCall_Web_Env_Provider$', env);
+  container.register('HomeCall_Web_Ui_Toast$', toast);
+  container.register('HomeCall_Web_Config_RemoteLogging$', remoteLoggingConfig);
+  container.register('HomeCall_Web_Net_Signal_Orchestrator$', signalOrchestrator);
+  const app = await container.get('HomeCall_Web_App$');
+  await app.run();
 
-  await uiCalls.invite?.onStartCall?.();
-
-  assert.equal(mediaPrepareCalls, 1, 'media should prepare for outgoing call');
-  assert.equal(peerStartCalls, 1, 'peer start should be invoked once');
-  assert.ok(uiCalls.call, 'call screen should render when the call starts');
-  assert.ok(sendOfferArgs, 'signal should send offer payload');
-  assert.ok(sendOfferArgs?.sessionId?.length > 0, 'offer payload includes session id');
-  assert.equal(sendOfferArgs?.sessionId, uiCalls.invite?.sessionId, 'offer payload uses the same session id');
-  assert.equal(connectCalls, 1, 'signal client connects when call starts');
-  assert.equal(lastConnectSession, uiCalls.invite?.sessionId, 'signal connect receives the session id');
+  assert.equal(renderReadyCalls, 1);
+  assert.equal(errorCalls, 1);
 });

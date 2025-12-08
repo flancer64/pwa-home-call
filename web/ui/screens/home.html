@@ -1,16 +1,4 @@
 <section class="screen-shell" data-screen="home">
-  <style>
-    .screen-shell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: clamp(0.625rem, 1.5vw, 1.25rem);
-    }
-    [slot="main"] {
-      width: 100%;
-    }
-  </style>
   <screen-card>
     <screen-header slot="header" title="Связист">
       <header-action-button slot="action" id="home-settings" aria-label="Открыть настройки">
@@ -19,13 +7,13 @@
         </icon-wrapper>
       </header-action-button>
     </screen-header>
-    <div slot="main">
-      <big-button id="home-call" label="Связать" tone="primary" icon="link">
+    <div slot="main" class="screen-main home-main">
+      <big-button id="home-call" label="Связать" tone="primary">
         <icon-wrapper slot="icon" size="small" tone="accent">
           <img src="assets/icons/link.svg" alt="" aria-hidden="true">
         </icon-wrapper>
       </big-button>
     </div>
-    <screen-note slot="footer" text="Подготовить ссылку для отправки близким" tone="neutral"></screen-note>
+    <screen-note slot="footer" text="Создайте ссылку и поделитесь ей, чтобы продолжить." tone="neutral"></screen-note>
   </screen-card>
 </section>

@@ -1,43 +1,48 @@
 /**
  * @module HomeCall_Web_Ui_Screen_End
- * @description Shows summary after call ends.
+ * @description Shows the finished call screen.
  */
+export default function HomeCall_Web_Ui_Screen_End({}) {
+  const create = () => {
+    let containerRef = null;
+    const cleanups = [];
 
-/**
- * @implements {HomeCall_Web_Ui_Screen_Interface}
- */
-export default class HomeCall_Web_Ui_Screen_End {
-  /**
-   * @param {Object} deps
-   * @param {HomeCall_Web_Ui_Templates_Loader} deps.HomeCall_Web_Ui_Templates_Loader$
-   */
-  constructor({ HomeCall_Web_Ui_Templates_Loader$: templates } = {}) {
-    this.templates = templates;
-  }
+    const attachClick = (element, handler) => {
+      if (!element || typeof handler !== 'function') {
+        return;
+      }
+      const listener = (event) => {
+        event?.preventDefault?.();
+        handler(event);
+      };
+      element.addEventListener('click', listener);
+      cleanups.push(() => element.removeEventListener('click', listener));
+    };
 
-  /**
-   * Render end screen.
-   * @param {Object} params
-   * @param {HTMLElement} params.container - Root container for rendering the screen.
-   * @param {string} params.message
-   * @param {() => void} [params.onReturn]
-   */
-  show({ container, connectionMessage, onReturn } = {}) {
-    if (!container) {
-      return;
-    }
-    this.templates.apply('end', container);
-    const messageBox = container.querySelector('#end-message');
-    if (messageBox) {
-      messageBox.setAttribute(
-        'text',
-        connectionMessage || 'Можно начать новый сеанс в любой момент.'
-      );
-    }
-    const returnButton = container.querySelector('#return-home');
-    returnButton?.addEventListener('click', (event) => {
-      event.preventDefault();
-      onReturn?.();
-    });
-  }
+    const mount = ({ container, params = {} } = {}) => {
+      containerRef = container ?? null;
+      if (!containerRef) {
+        return;
+      }
+      const message = containerRef.querySelector('#end-message');
+      if (message && typeof params.connectionMessage === 'string') {
+        message.textContent = params.connectionMessage;
+      }
+      attachClick(containerRef.querySelector('#end-return'), params.onReturn);
+    };
+
+    const unmount = () => {
+      cleanups.splice(0).forEach((fn) => fn());
+      containerRef = null;
+    };
+
+    return {
+      mount,
+      unmount
+    };
+  };
+
+  return {
+    create
+  };
 }

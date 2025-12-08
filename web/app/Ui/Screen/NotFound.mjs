@@ -1,8 +1,8 @@
 /**
- * @module HomeCall_Web_Ui_Screen_Home
- * @description Handles the ready/home screen interaction.
+ * @module HomeCall_Web_Ui_Screen_NotFound
+ * @description Renders the fallback page for unknown routes.
  */
-export default function HomeCall_Web_Ui_Screen_Home({}) {
+export default function HomeCall_Web_Ui_Screen_NotFound({}) {
   const create = () => {
     let containerRef = null;
     const cleanups = [];
@@ -24,10 +24,7 @@ export default function HomeCall_Web_Ui_Screen_Home({}) {
       if (!containerRef) {
         return;
       }
-      const startCall = containerRef.querySelector('#home-call');
-      const openSettings = containerRef.querySelector('#home-settings');
-      attachClick(startCall, params.onStartCall);
-      attachClick(openSettings, params.onOpenSettings);
+      attachClick(containerRef.querySelector('#notfound-home'), params.onReturn);
     };
 
     const unmount = () => {

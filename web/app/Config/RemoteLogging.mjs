@@ -4,20 +4,16 @@
  */
 
 const STORAGE_KEY = 'homecall.remoteLoggingEnabled';
-const PRIVATE_STATE = new WeakMap();
 
-export default class HomeCall_Web_Config_RemoteLogging {
-  constructor({ HomeCall_Web_Env_Provider$: env } = {}) {
-    this.storage = env?.localStorage ?? null;
-    PRIVATE_STATE.set(this, { value: this._readStoredValue() });
-  }
+export default function HomeCall_Web_Config_RemoteLogging({ HomeCall_Web_Env_Provider$: env } = {}) {
+  const storage = env?.localStorage ?? null;
 
-  _readStoredValue() {
-    if (!this.storage) {
+  const readStoredValue = () => {
+    if (!storage) {
       return false;
     }
     try {
-      const raw = this.storage.getItem(STORAGE_KEY);
+      const raw = storage.getItem(STORAGE_KEY);
       if (raw === '1' || raw === 'true') {
         return true;
       }
@@ -28,39 +24,38 @@ export default class HomeCall_Web_Config_RemoteLogging {
       // fall through when storage is not writable
     }
     return false;
-  }
+  };
 
-  _persistValue(nextValue) {
-    if (!this.storage) {
+  const persistValue = (nextValue) => {
+    if (!storage) {
       return;
     }
     try {
-      this.storage.setItem(STORAGE_KEY, nextValue ? '1' : '0');
+      storage.setItem(STORAGE_KEY, nextValue ? '1' : '0');
     } catch {
       // ignore storage failures
     }
-  }
+  };
 
-  _getState() {
-    return PRIVATE_STATE.get(this) ?? { value: false };
-  }
+  const state = { value: readStoredValue() };
 
-  isRemoteLoggingEnabled() {
-    return Boolean(this._getState().value);
-  }
+  const isRemoteLoggingEnabled = () => Boolean(state.value);
 
-  setRemoteLoggingEnabled(flag) {
+  const setRemoteLoggingEnabled = (flag) => {
     const normalized = Boolean(flag);
-    const state = this._getState();
     if (state.value === normalized) {
       return normalized;
     }
     state.value = normalized;
-    this._persistValue(normalized);
+    persistValue(normalized);
     return normalized;
-  }
+  };
 
-  toggleRemoteLogging() {
-    return this.setRemoteLoggingEnabled(!this._getState().value);
-  }
+  const toggleRemoteLogging = () => setRemoteLoggingEnabled(!state.value);
+
+  return {
+    isRemoteLoggingEnabled,
+    setRemoteLoggingEnabled,
+    toggleRemoteLogging
+  };
 }
