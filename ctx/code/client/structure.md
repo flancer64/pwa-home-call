@@ -5,7 +5,7 @@ Path: `./ctx/code/client/structure.md`
 Клиентская часть живёт в `web/app/` и содержит модули PWA, UI, сессий, медиаменеджеров и сетевого слоя. Тесты отражают ту же структуру в `test/web/`.
 
 - `web/app/Core.mjs` и `web/app/App.mjs` собирают окружение, регистрируют DI и связывают Flow, Net и Media. Они не содержат бизнес-логики, только инициализацию компонентов и подписки.
-- `web/app/Ui/` — контроллеры, шаблоны, `Flow`, `Toast` и `InviteService`. Этот каталог обслуживает один DOM-root и предоставляет hooks (`renderState`, `bindHandlers`, `shareSessionLink`).
+- `web/app/Ui/` — контроллеры, шаблоны, `Flow`, `Toast` и `ShareLinkService`. Этот каталог обслуживает один DOM-root и предоставляет hooks (`renderState`, `bindHandlers`, `shareSessionLink`).
 - `web/app/Net/` содержит `Session/Manager` (генерация `sessionId`, invite URL), `Signal/*` (WebSocket-клиент, orchestrator), а также модули, которые прокидывают события в Flow.
 - `web/app/Media/` управляет доступом к камере и микрофону, экспонирует `Media_Manager` и `Monitor`, публикует статус и не хранит данные о пользователях.
 - `web/app/Pwa/` и `web/service-worker.js` регулируют кеш, Service Worker и обновления (`HomeCall_Web_Pwa_Cache$, HomeCall_Web_Pwa_ServiceWorker$`).

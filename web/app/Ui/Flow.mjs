@@ -5,7 +5,7 @@
 export default function HomeCall_Web_Ui_Flow({
   HomeCall_Web_State_Machine$: stateMachine,
   HomeCall_Web_Net_Session_Manager$: sessionManager,
-  HomeCall_Web_Ui_InviteService$: inviteService,
+  HomeCall_Web_Ui_ShareLinkService$: shareLinkService,
   HomeCall_Web_Ui_Router$: router,
   HomeCall_Web_Ui_Router_Config$: routerConfig,
   HomeCall_Web_Media_Manager$: media,
@@ -103,14 +103,14 @@ export default function HomeCall_Web_Ui_Flow({
     if (!context.activeSession) {
       return;
     }
-    inviteService.shareSessionLink(context.activeSession);
+    shareLinkService.shareSessionLink(context.activeSession);
   };
 
   const handleCopyLink = () => {
     if (!context.activeSession) {
       return;
     }
-    inviteService.copySessionLink(context.activeSession);
+    shareLinkService.copySessionLink(context.activeSession);
   };
 
   const renderReady = (overrides = {}) => {

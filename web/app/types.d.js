@@ -35,7 +35,7 @@
 /* ---------- UI ---------- */
 /** @typedef {import('./Ui/Router.mjs').default} HomeCall_Web_Ui_Router */
 /** @typedef {import('./Ui/Flow.mjs').default} HomeCall_Web_Ui_Flow */
-/** @typedef {import('./Ui/InviteService.mjs').default} HomeCall_Web_Ui_InviteService */
+/** @typedef {import('./Ui/ShareLinkService.mjs').default} HomeCall_Web_Ui_ShareLinkService */
 /** @typedef {import('./Ui/Screen/Call.mjs').default} HomeCall_Web_Ui_Screen_Call */
 /** @typedef {import('./Ui/Screen/End.mjs').default} HomeCall_Web_Ui_Screen_End */
 /** @typedef {import('./Ui/Screen/Home.mjs').default} HomeCall_Web_Ui_Screen_Home */

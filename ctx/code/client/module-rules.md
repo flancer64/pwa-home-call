@@ -6,9 +6,9 @@ Path: `./ctx/code/client/module-rules.md`
 
 ## Flow и UI
 
-- `HomeCall_Web_Ui_Flow$` получает `stateMachine`, `uiController`, `inviteService`, `toast`, `media` и `signal`, но все рендеры проходят через `HomeCall_Web_Ui_Controller$`. Flow никогда не лезет в DOM напрямую — он вызывает `renderState`, `updateRemoteStream` и `showSettings`.
+- `HomeCall_Web_Ui_Flow$` получает `stateMachine`, `uiController`, `shareLinkService`, `toast`, `media` и `signal`, но все рендеры проходят через `HomeCall_Web_Ui_Controller$`. Flow никогда не лезет в DOM напрямую — он вызывает `renderState`, `updateRemoteStream` и `showSettings`.
 - UI-контроллеры кешируют требуют `initRoot` перед рендером, работают с шаблонами из `web/app/Ui/Template` и публикуют результаты на русском языке через `HomeCall_Web_Ui_Toast$`.
-- `InviteService` и `SessionManager` генерируют share link в `web/app/Ui/InviteService.mjs`, уведомляют Flow и передают только `sessionId`/`inviteUrl` без персональных данных.
+- `ShareLinkService` и `SessionManager` генерируют share link в `web/app/Ui/ShareLinkService.mjs`, уведомляют Flow и передают только `sessionId`/`inviteUrl` без персональных данных.
 - Toast-объекты не содержат состояния; они отображают только текущую ошибку или информационное сообщение и сбрасываются после закрытия.
 
 ## Storage и PWA

@@ -4,10 +4,10 @@
  */
 
 const TEMPLATE_PATHS = new Map([
-  ['home', 'ui/screens/home.html'],
-  ['call', 'ui/screens/call.html'],
-  ['end', 'ui/screens/end.html'],
-  ['not-found', 'ui/screens/not-found.html'],
+  ['home', 'ui/screen/home.html'],
+  ['call', 'ui/screen/call.html'],
+  ['end', 'ui/screen/end.html'],
+  ['not-found', 'ui/screen/not-found.html'],
   ['settings', 'ui/screen/settings.html']
 ]);
 

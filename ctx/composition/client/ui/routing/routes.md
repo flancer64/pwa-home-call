@@ -34,18 +34,18 @@ Path: `./ctx/composition/client/ui/routing/routes.md`
 
 ## Пример конфигурации (для ориентира)
 
-Call-экран теперь отвечает и за отображение состояния ожидания и шаринг ссылки через `onShareLink`, поэтому отдельный маршрут `invite` больше не используется.
+Call-экран теперь отвечает и за отображение состояния ожидания и шаринг ссылки через `onShareLink`, поэтому конфигурация не содержит отдельного маршрута ожидания.
 
 ```yaml
 - name: home
-  template: ui/screens/home.html
+  template: ui/screen/home.html
   controllerFactory: HomeCall_Web_Ui_Screen_Home
   params:
     description: "Не ожидает параметров, получает обработчики для запуска звонка и открытия настроек"
   initial: true
 
 - name: call
-  template: ui/screens/call.html
+  template: ui/screen/call.html
   controllerFactory: HomeCall_Web_Ui_Screen_Call
   params:
     description: "Session id from hash, remoteStream, lifecycle callbacks, onShareLink и waiting-флаг для ожидания"
@@ -53,13 +53,13 @@ Call-экран теперь отвечает и за отображение с�
     - sessionId
 
 - name: end
-  template: ui/screens/end.html
+  template: ui/screen/end.html
   controllerFactory: HomeCall_Web_Ui_Screen_End
   params:
     description: "Displays completion message, uses onReturn"
 
 - name: not-found
-  template: ui/screens/not-found.html
+  template: ui/screen/not-found.html
   controllerFactory: HomeCall_Web_Ui_Screen_NotFound
   params:
     description: "Fallback screen for unknown hashes; onReturn always drops the browser on `/` and ignores additional params."

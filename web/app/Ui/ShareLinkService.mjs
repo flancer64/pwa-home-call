@@ -1,8 +1,8 @@
 /**
- * @module HomeCall_Web_Ui_InviteService
+ * @module HomeCall_Web_Ui_ShareLinkService
  * @description Handles sharing and copying invite links with minimal UI feedback.
  */
-export default function HomeCall_Web_Ui_InviteService({
+export default function HomeCall_Web_Ui_ShareLinkService({
   HomeCall_Web_Env_Provider$: env,
   HomeCall_Web_Ui_Toast$: toast,
   HomeCall_Web_Net_Session_Manager$: sessionManager
@@ -37,7 +37,7 @@ export default function HomeCall_Web_Ui_InviteService({
         toastNotifier.success('Ссылка отправлена.');
         handled = true;
       } catch (error) {
-        log.error('[InviteService] Sharing failed', error);
+        log.error('[ShareLinkService] Sharing failed', error);
       }
     }
     if (!handled) {
@@ -48,7 +48,7 @@ export default function HomeCall_Web_Ui_InviteService({
           toastNotifier.success('Ссылка скопирована в буфер обмена.');
           handled = true;
         } catch (error) {
-          log.error('[InviteService] Clipboard write failed', error);
+          log.error('[ShareLinkService] Clipboard write failed', error);
         }
       }
     }
@@ -70,7 +70,7 @@ export default function HomeCall_Web_Ui_InviteService({
         toastNotifier.success('Ссылка скопирована в буфер обмена.');
         return;
       } catch (error) {
-        log.error('[InviteService] Clipboard write failed', error);
+        log.error('[ShareLinkService] Clipboard write failed', error);
       }
     }
     toastNotifier.warn('Не удалось скопировать автоматически. Выделите ссылку вручную.');
