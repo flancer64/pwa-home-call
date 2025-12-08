@@ -9,7 +9,7 @@ Fallback-фрагмент `not-found`, который срабатывает, к
 ## Зоны
 
 1. **Header** — `screen-header` с заголовком `Страница не найдена`, сохраняющим высоту `screen-card` и предоставляющим визуальный фокус.
-2. **Main** — `screen-description`, поясняющий, что hash не распознан, и `big-button` `notfound-home` с `tone="primary"` и `icon-wrapper` (`return-home`), ведущий на `home`.
+2. **Main** — `screen-description`, поясняющий, что hash не распознан, и `big-button` `notfound-home`, обводящий пользователя к `home` и отображающий иконку `return-home` через `icon-wrapper`.
 
 ## Примечания
 

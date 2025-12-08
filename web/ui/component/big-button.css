@@ -2,67 +2,65 @@
   display: block;
   width: 100%;
 }
+
 button {
   width: 100%;
   min-height: 56px;
+  padding: 1rem 1.5rem;
   border-radius: 1.25rem;
   border: none;
-  padding: 1.25rem 1.5rem;
-  font-family: inherit;
-  font-size: 1.3rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  background: var(--accent-gradient, linear-gradient(135deg, #6d28d9, #10b981));
+  color: var(--text-on-accent, #ffffff);
+  font-family: var(--font-body, "Inter", system-ui, sans-serif);
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  transition: box-shadow 0.2s ease;
-  color: var(--text-strong);
-  background: var(--accent-gradient);
-  box-shadow: var(--shadow-cta);
+  box-shadow: var(--shadow-cta, 0 14px 32px rgba(22, 22, 22, 0.35));
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  appearance: none;
 }
+
+button:hover {
+  box-shadow: var(--shadow-cta-hover, 0 20px 36px rgba(22, 22, 22, 0.4));
+}
+
 button:focus-visible {
-  outline: 2px solid var(--accent-secondary-soft);
+  outline: 2px solid var(--focus-outline, #fbbf24);
   outline-offset: 3px;
-  box-shadow: var(--shadow-cta);
 }
+
+button:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-cta-active, 0 8px 18px rgba(22, 22, 22, 0.3));
+}
+
 .glyph {
+  color: var(--text-on-accent);
+  width: 1.75rem;
+  height: 1.75rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.meta {
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--text-muted);
+
+.glyph svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  stroke: currentColor;
+  fill: none;
 }
-:host([tone='primary']) button {
-  background: var(--accent-gradient);
-  box-shadow: var(--shadow-cta);
-}
-:host([tone='secondary']) button {
-  background: var(--control-muted);
-  border: 1px solid var(--control-muted-border);
-  color: var(--text-strong);
-}
-:host([tone='ghost']) button {
-  background: transparent;
-  border: 1.5px solid var(--border-soft);
-  box-shadow: none;
-  color: var(--text-strong);
-}
-:host([disabled]) button {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-:host(:not([has-icon])) .glyph {
-  display: none;
-}
-:host(:not([has-meta])) .meta {
-  display: none;
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: inherit;
+  flex: 1;
+  text-align: center;
 }

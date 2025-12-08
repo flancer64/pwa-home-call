@@ -14,10 +14,11 @@ Path: `ctx/composition/client/ui/components/style.md`
 ## Тоны и состояния компонентов
 
 - `tone=primary` отображает CTA с `--accent-gradient`, а все сопутствующие контуры (тень, текст) берут контрастные значения из темы.
-- `tone=secondary` разгоняет цветовой акцент, сохраняя нейтральную заливку и подчёркнутые тени.
+- `tone=secondary` разгоняет цветовой акцент, сохраняя нейтральную заливку и подчёркнутые тени для компонентов, которым требуется менее доминантный стиль.
 - `tone=ghost` остаётся прозрачным — только текст и граница, цвета определяются `patterns/style.md`.
 - `disabled` окрашивает текст и контуры в приглушённый `--secondary-text` без изменения макета.
-- Сигнальные состояния (`success`, `info`, `warn`, `error`) ссылками используют цвета и иконографию из `patterns/style.md`, поэтому компоненты только переключают состояние, не подбирая новые значения.
+- Сигнальные состояния (`success`, `info`, `warn`, `error`) используют цвета и иконографику из `patterns/style.md`; компоненты лишь переключают эти состояния, не вводя новые значения.
+- `big-button` использует единый CTA-стиль на базе `--accent-gradient` и не раскрывает `tone`-атрибут, чтобы предотвратить рассогласование action-зоны; визуальные отличия задаются только текстом и иконкой.
 
 ## Глубина, отступы и размеры
 
@@ -33,7 +34,7 @@ Path: `ctx/composition/client/ui/components/style.md`
 ## Связи
 
 - `ctx/composition/client/ui/patterns/style.md` — источник всех переменных и тонов.
-- `ctx/composition/client/ui/components/big-button.md` — пример `primary` и `secondary` в действии.
+- `ctx/composition/client/ui/components/big-button.md` — главный CTA, который всегда опирается на один и тот же градиент и palette, не раскрывая tone-атрибуты.
 - `ctx/composition/client/ui/components/icon-wrapper.md` — монолитная иконка, которую окрашивает `--icon-accent`.
 - `ctx/composition/client/ui/components/header-action-button.md` — фиксированная кнопка, использующая те же тени.
 - `ctx/composition/client/ui/components/screen-card.md` — структура, поверх которой компоненты накладывают конфигурации.

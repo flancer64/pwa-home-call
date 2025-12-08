@@ -3,64 +3,61 @@ const template = document.createElement('template');
 template.innerHTML = `
   <link rel="stylesheet" href="${styleUrl.href}" />
   <button type="button">
-    <span class="glyph"><slot name="icon"></slot></span>
+    <span class="glyph">
+      <slot name="icon">
+        <icon-wrapper name="circle-check" size="medium"></icon-wrapper>
+      </slot>
+    </span>
     <span class="label"></span>
-    <span class="meta"><slot name="meta"></slot></span>
   </button>
 `;
 
 class BigButton extends HTMLElement {
   static get observedAttributes() {
-    return ['label', 'tone', 'disabled'];
+    return ['label', 'action'];
   }
 
   constructor() {
     super();
     this.attachShadow({ mode: 'open' }).appendChild(template.content.cloneNode(true));
+
     this.button = this.shadowRoot.querySelector('button');
     this.labelNode = this.shadowRoot.querySelector('.label');
-    this.iconSlot = this.shadowRoot.querySelector('slot[name="icon"]');
-    this.metaSlot = this.shadowRoot.querySelector('slot[name="meta"]');
-    this.handleSlotChange = () => {
-      const hasIcon = this.iconSlot?.assignedNodes({ flatten: true }).length > 0;
-      const hasMeta = this.metaSlot?.assignedNodes({ flatten: true }).length > 0;
-      this.toggleAttribute('has-icon', Boolean(hasIcon));
-      this.toggleAttribute('has-meta', Boolean(hasMeta));
-    };
+
+    this.handleClick = this.handleClick.bind(this);
   }
 
   connectedCallback() {
-    if (!this.hasAttribute('tone')) {
-      this.setAttribute('tone', 'primary');
-    }
     this.updateLabel();
-    this.updateDisabled();
-    this.iconSlot?.addEventListener('slotchange', this.handleSlotChange);
-    this.metaSlot?.addEventListener('slotchange', this.handleSlotChange);
-    this.handleSlotChange();
+    this.button?.addEventListener('click', this.handleClick);
+  }
+
+  disconnectedCallback() {
+    this.button?.removeEventListener('click', this.handleClick);
   }
 
   attributeChangedCallback(name) {
     if (name === 'label') {
       this.updateLabel();
     }
-    if (name === 'disabled') {
-      this.updateDisabled();
-    }
-    if (name === 'tone' && !this.hasAttribute('tone')) {
-      this.setAttribute('tone', 'primary');
-    }
+  }
+
+  handleClick() {
+    const actionName = this.getAttribute('action') ?? null;
+    this.dispatchEvent(
+      new CustomEvent('action', {
+        bubbles: true,
+        composed: true,
+        detail: { action: actionName },
+      }),
+    );
   }
 
   updateLabel() {
-    const text = this.getAttribute('label') ?? '';
-    this.labelNode.textContent = text;
+    if (!this.labelNode) return;
+    this.labelNode.textContent = this.getAttribute('label') ?? '';
   }
 
-  updateDisabled() {
-    if (!this.button) return;
-    this.button.disabled = this.hasAttribute('disabled');
-  }
 }
 
 customElements.define('big-button', BigButton);

@@ -13,27 +13,31 @@
       gap: 1rem;
       width: 100%;
     }
+    .settings-remote-logging-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .settings-remote-logging-state {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted, #6b7280);
+    }
   </style>
   <screen-card>
     <screen-header slot="header" title="Настройки">
       <header-action-button slot="action" id="settings-close" aria-label="Закрыть настройки">
-        <icon-wrapper slot="icon" size="small" tone="default">
-          <img src="assets/icons/close.svg" alt="" aria-hidden="true">
-        </icon-wrapper>
+        <icon-wrapper slot="icon" size="small" name="close"></icon-wrapper>
       </header-action-button>
     </screen-header>
     <div slot="main" class="settings-actions">
-      <big-button id="settings-remote-logging" label="Удалённое логирование" tone="ghost">
-        <icon-wrapper slot="icon" size="small">
-          <img src="assets/icons/rss.svg" alt="">
-        </icon-wrapper>
-        <span slot="meta" class="settings-remote-logging-state" aria-live="polite">Выкл</span>
-      </big-button>
-      <big-button id="settings-reinstall" label="Переустановить приложение" tone="ghost">
-        <icon-wrapper slot="icon" size="small">
-          <img src="assets/icons/refresh-ccw.svg" alt="">
-        </icon-wrapper>
-      </big-button>
+      <div class="settings-remote-logging-row">
+        <big-button id="settings-remote-logging" label="Удалённое логирование" icon="rss"></big-button>
+        <span class="settings-remote-logging-state" aria-live="polite">Выкл</span>
+      </div>
+      <big-button id="settings-reinstall" label="Переустановить приложение" icon="refresh-ccw"></big-button>
     </div>
   </screen-card>
 </section>
