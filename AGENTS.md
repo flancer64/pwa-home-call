@@ -58,7 +58,7 @@ Version: 20251126
 Рекомендуемые документы:
 
 - `ctx/agent/AGENTS.md` — локальные правила агента;
-- `ctx/product/overview.md` — назначение продукта;
+- `ctx/docs/product/overview.md` — назначение продукта;
 - `ctx/rules/architecture.md` — архитектурные принципы;
 - `ctx/rules/language.md` — языковая политика;
 - `ctx/rules/privacy.md` — правила работы с персональными данными.

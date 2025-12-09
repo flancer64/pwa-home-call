@@ -78,8 +78,8 @@ No icon is to be embedded inline in component templates.
 
 ## **Relations**
 
-- `ctx/composition/client/ui/components/icon-wrapper.md` — defines how components render SVG icons from this directory.
-- `ctx/composition/client/ui/patterns/style.md` — defines color, stroke, and visual rules applied to icons.
+- `ctx/docs/composition/client/ui/components/icon-wrapper.md` — defines how components render SVG icons from this directory.
+- `ctx/docs/composition/client/ui/patterns/style.md` — defines color, stroke, and visual rules applied to icons.
 - UI components (`big-button`, `header-action-button`, overlays, FAB) rely on these icons for consistent geometry and theme integration.
 
 ---
