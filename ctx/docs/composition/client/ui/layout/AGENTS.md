@@ -11,17 +11,19 @@
 - `overlays/` — наложения (например, share-link), которые появляются поверх skeleton и не перестраивают зоны.
 - `AGENTS.md` — настоящий документ; описывает структуру, safe-area-инварианты уровня layout`ов и их связи.
 - `call.md` — макет `active`, в котором видеофон и FAB-контролы располагаются в отдельных слоях, пересылающих сигналы к overlay`ам и toast-layer.
-- `skeleton.md` — трёхзонный skeleton `screen-card` с safe-area-aware оболочкой, которую используют состояния `ready`, `waiting` и `ended`.
+- `skeleton.md` — трёхзонный skeleton `screen-card`, который единственный применяет safe-area padding (`screen-card--skeleton`, `max(env(safe-area-inset-*), 16px)`) для состояний `ready`, `waiting` и `ended`.
 
 ## Структура макетов
 
-- `skeleton.md` описывает три зоны (`header`, `action`, `footer`) в `screen-card`, гарантирует выравнивание и упоминает safe-area-инвариант (см. раздел Safe-area). Safe-area-aware `screen-shell` и `screen-card` задают минимальные отступы, которые наследуют все экраны на основе skeleton.
-- `call.md` фиксирует уникальный `active` макет с видеофоновой сценой и FAB-контролами, которые встраиваются в safe-area-контейнеры skeleton, поэтому сами не описывают дополнительные insets.
-- `overlays/` содержит наложения, которые располагаются над skeleton и call, используя тот же набор зон и safe-area-оболочек и не создавая новых layout-инвариантов.
+- `skeleton.md` описывает три зоны (`header`, `action`, `footer`) и подробно фиксирует safe-area padding (`max(env(safe-area-inset-*), 16px)`) внутри `screen-card--skeleton`, который единственный заботится о сохранении текста и CTA в безопасном расстоянии от вырезов.
+- `call.md` формирует edge-to-edge `active` макет: видео и фон растягиваются на весь viewport без padding’ов, а safe-area применяется лишь к плавающим слоям (`call-controls`, `call-local`, toast-layer), которые используют `env(safe-area-inset-*)` для позиции.
+- `overlays/` содержит наложения, которые располагаются над skeleton и call, наследуя безопасные отступы skeleton`а и не вводя новых layout-инвариантов.
 
 ## Safe-area
 
-- Детали об использовании `env(safe-area-inset-*)` и минимальных отступов фиксирует `skeleton.md`; остальные документы (`call.md`, `overlays/*`) ссылаются на него и не дублируют расчёты.
+- `skeleton.md` — единственное место, где описывается формула `max(env(safe-area-inset-*), 16px)`; safe-area padding закреплён за skeleton-кадрированием и сохраняет текстовые зоны `ready`, `waiting` и `ended` от вырезов.
+- `call.md` остаётся edge-to-edge: видео и фон не получают padding, а safe-area используется исключительно для позиционирования плавающих слоёв (`call-controls`, `call-local`, toast-layer`), которые интегрируют `env(safe-area-inset-*)` в координаты `bottom`/`top`/`right`.
+- `overlays/` повторно применяют skeleton`ные отступы, когда нужно сохранить безопасные границы, и не создают новых safe-area-инвариантов.
 
 ## Связи
 

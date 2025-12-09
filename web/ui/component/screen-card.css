@@ -15,10 +15,13 @@
   width: 100%;
   min-height: 0;
   gap: clamp(1rem, 2vw, 1.5rem);
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  padding-left: env(safe-area-inset-left, 0px);
+}
+
+:host(.screen-card--skeleton) .card {
+  padding-top: max(env(safe-area-inset-top, 0px), 16px);
+  padding-right: max(env(safe-area-inset-right, 0px), 16px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+  padding-left: max(env(safe-area-inset-left, 0px), 16px);
 }
 
 .zone {

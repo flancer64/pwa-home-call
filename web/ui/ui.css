@@ -53,10 +53,6 @@
   --signal-error: #d95c4a;
   --signal-error-strong: #b04536;
   --signal-error-text: #ffffff;
-  --layout-safe-area-top: max(env(safe-area-inset-top, 0px), 16px);
-  --layout-safe-area-right: max(env(safe-area-inset-right, 0px), 16px);
-  --layout-safe-area-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
-  --layout-safe-area-left: max(env(safe-area-inset-left, 0px), 16px);
 }
 *,
 *::before,
@@ -97,11 +93,10 @@ body {
   justify-content: flex-start;
   min-height: min(100svh, 100vh);
   height: 100%;
-  padding-top: var(--layout-safe-area-top);
-  padding-right: var(--layout-safe-area-right);
-  padding-bottom: var(--layout-safe-area-bottom);
-  padding-left: var(--layout-safe-area-left);
-  box-sizing: border-box;
+}
+.call-screen {
+  padding: 0;
+  margin: 0;
 }
 .state-shell {
   width: 100%;
@@ -254,8 +249,8 @@ body {
 }
 .call-local {
   position: absolute;
-  top: clamp(1.5rem, 4vw, 2rem);
-  right: clamp(1rem, 3vw, 1.5rem);
+  top: max(env(safe-area-inset-top, 0px), clamp(1.5rem, 4vw, 2rem));
+  right: max(env(safe-area-inset-right, 0px), clamp(1rem, 3vw, 1.5rem));
   width: clamp(120px, 22vw, 200px);
   height: clamp(150px, 27vw, 230px);
   border-radius: 1.5rem;
@@ -273,7 +268,7 @@ body {
 }
 .call-controls {
   position: absolute;
-  bottom: max(env(safe-area-inset-bottom, 1.75rem), clamp(1.75rem, 4vw, 3rem));
+  bottom: max(env(safe-area-inset-bottom, 0px), clamp(1.75rem, 4vw, 3rem));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
