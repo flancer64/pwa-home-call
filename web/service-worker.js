@@ -70,8 +70,15 @@ const CORE_ASSETS = [
   'ui/screen/end.html',
   'ui/screen/not-found.html',
   'ui/screen/settings.html',
-  'ui/toast.css',
-  'ui/ui.css',
+  'ui/style.css',
+  'ui/style/layout.css',
+  'ui/style/reset.css',
+  'ui/style/tokens.css',
+  'ui/style/toast.css',
+  'ui/screen/home.css',
+  'ui/screen/call.css',
+  'ui/screen/not-found.css',
+  'ui/screen/settings.css',
   'version.json'
 ];
 const CORE_ASSET_SET = new Set(CORE_ASSETS);

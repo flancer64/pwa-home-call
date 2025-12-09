@@ -1,0 +1,9 @@
+.home-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-block: clamp(1.5rem, 3vw, 2.5rem);
+  width: 100%;
+}

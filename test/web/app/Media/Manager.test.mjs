@@ -107,7 +107,7 @@ test('Media manager prepares devices and updates UI bindings', async () => {
   const manager = await container.get('HomeCall_Web_Media_Manager$');
   manager.setPeer(peer);
   const statusElement = { hidden: true, textContent: '', className: '', classList: { add(cls) { this[cls] = true; } } };
-  const videoElement = { hidden: true, srcObject: null };
+  const videoElement = { hidden: true, srcObject: null, muted: false, defaultMuted: false, volume: 1 };
   const messageElement = { hidden: false };
   const retryButton = { hidden: false };
   manager.bindStatusElement(statusElement);
@@ -123,6 +123,9 @@ test('Media manager prepares devices and updates UI bindings', async () => {
     assert.ok(statusElement.classList['alert-success']);
     assert.equal(videoElement.hidden, false);
     assert.equal(videoElement.srcObject, stream);
+    assert.equal(videoElement.muted, true);
+    assert.equal(videoElement.defaultMuted, true);
+    assert.equal(videoElement.volume, 0);
     assert.equal(messageElement.hidden, true);
     assert.equal(retryButton.hidden, true);
     assert.deepEqual(mediaState.get(), { video: 'ready', audio: 'ready' });

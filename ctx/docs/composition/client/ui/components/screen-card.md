@@ -23,3 +23,4 @@
 - Карточка не управляет поведением; экраны решают, какие компоненты размещаются в слотах.
 - Она использует палитру `ctx/docs/composition/client/ui/patterns/style.md`, а `ctx/docs/composition/client/ui/components/style.md` уточняет атомные состояния наряду со `screen-header`, `screen-note`, `big-button`.
 - Safe-area padding применяется через `ctx/docs/composition/client/ui/layout/skeleton.md`; компонент сам остаётся нейтральным и не определяет `env(safe-area-inset-*)`.
+- При call-сцене именно `slot="main"` получает `main-video`, и экран гарантирует, что до появления удалённого участника он выводит локальное превью с `muted`, а после — удалённый поток с аудио; overlay внутренней миниатюры остаётся без звука независимо от состояний.

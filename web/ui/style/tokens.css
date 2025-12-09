@@ -1,0 +1,56 @@
+:root {
+  color-scheme: dark;
+  font-size: 18px;
+  --bg-root: #00110e;
+  --bg-panel: #002d2a;
+  --bg-panel-strong: #021c17;
+  --bg-soft: rgba(8, 28, 24, 0.85);
+  --panel-gradient: linear-gradient(
+    180deg,
+    rgba(0, 45, 42, 0.95) 0%,
+    rgba(14, 98, 81, 0.9) 55%,
+    rgba(14, 98, 81, 0.85) 100%
+  );
+  --bg-gradient: linear-gradient(180deg, var(--bg-panel), var(--accent-primary));
+  --text-strong: #eaf2f1;
+  --text-muted: #b8c7c3;
+  --text-inverse: #04120e;
+  --icon-accent: #f0f7f6;
+  --icon-settings: #eaf2f1;
+  --accent-primary: #0e6251;
+  --accent-secondary: #0faf8f;
+  --accent-gradient: linear-gradient(
+    145deg,
+    var(--accent-primary) 0%,
+    var(--accent-secondary) 50%,
+    var(--accent-primary) 100%
+  );
+  --accent-secondary-soft: rgba(15, 175, 143, 0.5);
+  --accent-soft: rgba(14, 98, 81, 0.25);
+  --control-muted: rgba(255, 255, 255, 0.05);
+  --control-muted-border: rgba(255, 255, 255, 0.25);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --danger: #d95c4a;
+  --danger-strong: #b04536;
+  --surface-elevated: rgba(255, 255, 255, 0.04);
+  --control-radius: 1.5rem;
+  --shadow-soft: 0 1.5rem 3rem rgba(0, 0, 0, 0.45);
+  --shadow-panel: 0 1.5rem 3rem rgba(0, 0, 0, 0.45);
+  --shadow-panel-strong: 0 2.25rem 3.25rem rgba(0, 0, 0, 0.55);
+  --shadow-cta: 0 1.75rem 3rem rgba(2, 22, 18, 0.7);
+  --toast-backdrop: rgba(0, 0, 0, 0.45);
+  --toast-border: rgba(255, 255, 255, 0.08);
+  --toast-info-shadow: 0 0.75rem 1.5rem rgba(110, 207, 192, 0.35);
+  --toast-success-shadow: 0 0.75rem 1.5rem rgba(15, 175, 143, 0.35);
+  --toast-warn-shadow: 0 0.75rem 1.5rem rgba(233, 169, 68, 0.35);
+  --toast-error-shadow: 0 0.75rem 1.5rem rgba(217, 92, 74, 0.45);
+  --signal-info: #6ecfc0;
+  --signal-info-text: var(--text-inverse);
+  --signal-success-start: #0faf8f;
+  --signal-success-end: #0e6251;
+  --signal-warning: #e9a944;
+  --signal-warning-text: #201205;
+  --signal-error: #d95c4a;
+  --signal-error-strong: #b04536;
+  --signal-error-text: #ffffff;
+}

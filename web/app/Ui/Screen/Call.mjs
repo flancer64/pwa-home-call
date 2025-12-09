@@ -24,6 +24,46 @@ export default function HomeCall_Web_Ui_Screen_Call({
       }
     };
 
+    const silenceVideoElement = (video) => {
+      if (!video) {
+        return;
+      }
+      video.muted = true;
+      video.defaultMuted = true;
+      if (typeof video.volume === 'number') {
+        video.volume = 0;
+      }
+    };
+
+    const requestMainVideoPlayback = () => {
+      if (!mainVideo || typeof mainVideo.play !== 'function') {
+        return;
+      }
+      const playPromise = mainVideo.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {});
+      }
+    };
+
+    const setMainVideoAudioEnabled = (enabled) => {
+      if (!mainVideo) {
+        return;
+      }
+      const shouldMute = !enabled;
+      mainVideo.muted = shouldMute;
+      mainVideo.defaultMuted = shouldMute;
+      if (typeof mainVideo.volume === 'number') {
+        mainVideo.volume = enabled ? 1 : 0;
+      }
+      if (typeof mainVideo.setAttribute === 'function') {
+        if (shouldMute) {
+          mainVideo.setAttribute('muted', '');
+        } else {
+          mainVideo.removeAttribute('muted');
+        }
+      }
+    };
+
     const toggleOverlaySlot = (active) => {
       if (!overlayVideo) {
         return;
@@ -40,6 +80,11 @@ export default function HomeCall_Web_Ui_Screen_Call({
       }
       localPreviewTarget = target;
       const isOverlayTarget = target === overlayVideo;
+
+      if (target) {
+        silenceVideoElement(target);
+      }
+
       toggleOverlaySlot(isOverlayTarget);
       if (typeof media?.bindLocalElements === 'function') {
         media.bindLocalElements({ video: target ?? null });
@@ -50,15 +95,22 @@ export default function HomeCall_Web_Ui_Screen_Call({
       if (!mainVideo) {
         return;
       }
-      if (stream) {
-        bindLocalPreview(overlayVideo);
+      const hasRemote = Boolean(stream);
+      if (hasRemote) {
+        setMainVideoAudioEnabled(true);
         if (mainVideo.srcObject !== stream) {
           mainVideo.srcObject = stream;
         }
+        bindLocalPreview(overlayVideo);
+        requestMainVideoPlayback();
       } else {
+        setMainVideoAudioEnabled(false);
+        if (mainVideo.srcObject) {
+          mainVideo.srcObject = null;
+        }
         bindLocalPreview(mainVideo);
       }
-      setWaitingState(!Boolean(stream));
+      setWaitingState(!hasRemote);
     };
 
     const attachClick = (element, handler) => {

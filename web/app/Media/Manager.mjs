@@ -86,6 +86,17 @@ export default function HomeCall_Web_Media_Manager({
     setTypeState('audio', 'unsupported');
   };
 
+  const ensureLocalVideoIsSilent = (videoElement) => {
+    if (!videoElement) {
+      return;
+    }
+    videoElement.muted = true;
+    videoElement.defaultMuted = true;
+    if (typeof videoElement.volume === 'number') {
+      videoElement.volume = 0;
+    }
+  };
+
   const applyErrorState = (statusName) => {
     if (!statusName) {
       setAllOff();
@@ -128,6 +139,7 @@ export default function HomeCall_Web_Media_Manager({
   const updateLocalBindings = () => {
     const hasTracks = Boolean(localStream && localStream.getTracks().length > 0);
     if (localVideo) {
+      ensureLocalVideoIsSilent(localVideo);
       if (hasTracks) {
         if (localVideo.srcObject !== localStream) {
           localVideo.srcObject = localStream;
@@ -250,6 +262,7 @@ export default function HomeCall_Web_Media_Manager({
 
   const bindLocalElements = ({ video, message, retry } = {}) => {
     localVideo = video ?? null;
+    ensureLocalVideoIsSilent(localVideo);
     localFallbackMessage = message ?? null;
     retryButton = retry ?? null;
     updateLocalBindings();

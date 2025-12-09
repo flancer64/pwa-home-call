@@ -21,7 +21,8 @@ Path: `./ctx/docs/code/client/module-rules.md`
 
 - Клиентские события пересылаются через `HomeCall_Web_Net_Signal_Client$`, который кэширует требования (offer/answer/candidate/hangup/error) и отправляет их по WebSocket вместе с `sessionId`.
 - При ошибках signal-клиент делает reconnect с постепенным `setTimeout` (от 1 до 5 секунд) и логирует попытки через `[Signal]`.
-- `HomeCall_Web_Media_Manager$` запрашивает разрешения с помощью `navigator.mediaDevices.getUserMedia`, очищает `MediaStream` после завершения и уведомляет `HomeCall_Web_Rtc_Peer$` о состоянии треков.
+- `HomeCall_Web_Media_Manager$` запрашивает разрешения с помощью `navigator.mediaDevices.getUserMedia`, очищает `MediaStream` после завершения и уведомляет `HomeCall_Web_Rtc_Peer$` о состоянии треков; при инициализации он гарантирует, что локальный поток в `main-video` и overlay вставляется с `muted`, отключает автоплей звука и переключает `main` на `remoteStream` только после получения удалённого потока.
+- `HomeCall_Web_Rtc_Peer$` держит `remoteStream` как единственный источник audio: когда удалённый поток подписан, он передаёт его в `main-video` с включённым звуком, а локальные треки никогда не направляются на output.
 - SDK не хранит персональные данные: `sessionId` не попадает в localStorage, `inviteUrl` отображается только в UI и не записывается в permanent storage, логирование содержит только технические параметры.
 
 ## Кодирование и DI

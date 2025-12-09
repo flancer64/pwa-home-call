@@ -16,13 +16,14 @@
 ## Фрагмент `waiting`
 
 - Применяет тот же скелет, но над ним активируется `ctx/docs/composition/client/ui/layout/overlays/share-link.md`.
+- `main-video` используется для локального превью, но звук в нём принудительно выключен (`muted`), чтобы убить эхо; `overlay-video` остаётся скрытым, а любые упоминания локального звука исключены.
 - Overlay выводит приглашение, две `big-button` и подсказку, оставаясь поверх `screen-card` и не перестраивая зоны.
 - Overlay активируется как только существует `sessionId`, а один WebSocket-клиент уже подключился: он сообщает о том, что контекст открыт и ждёт второго участника, независимо от того, кто сформировал ссылку.
 - `screen-note` ограничивается одной строкой и не дублирует тосты; ошибки и подтверждения снова распределяются по `toast-layer`.
 
 ## Фрагмент `active`
 
-- Прерывает скелет: layout определяется `ctx/docs/composition/client/ui/layout/call.md`, который кладёт `remoteStream` на фон, `localStream` и `ctx/docs/composition/client/ui/patterns/fab-panel.md` над медиапотоком.
+- Прерывает скелет: layout определяется `ctx/docs/composition/client/ui/layout/call.md`, который кладёт `remoteStream` на фон, `localStream` и `ctx/docs/composition/client/ui/patterns/fab-panel.md` над медиапотоком. `remoteStream` остаётся единственным источником звука, тогда как локальное превью в overlay всегда muted.
 - Статусы, включая подтверждения о подключении или потере сигналинга, появляются только через `toast-layer`, чтобы макет оставался чистым.
 - Overlay`ы `settings` и `share-link` могут повторно использовать FAB-панель, не меняя call-layout.
 

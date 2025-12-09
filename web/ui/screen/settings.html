@@ -1,31 +1,4 @@
 <section class="screen-shell" data-screen="settings">
-  <style>
-    .screen-shell {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: clamp(0.625rem, 1.5vw, 1.25rem);
-    }
-    .settings-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 100%;
-    }
-    .settings-remote-logging-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-    .settings-remote-logging-state {
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-muted, #6b7280);
-    }
-  </style>
   <screen-card class="screen-card--skeleton">
     <screen-header slot="header" title="Настройки">
       <header-action-button slot="action" id="settings-close" aria-label="Закрыть настройки">
