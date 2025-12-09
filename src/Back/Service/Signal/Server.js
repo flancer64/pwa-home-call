@@ -50,7 +50,6 @@ export default class HomeCall_Back_Service_Signal_Server {
             return value.trim();
         };
 
-        const SIGNAL_TYPES = new Set(['offer', 'answer', 'candidate', 'hangup', 'error']);
 
         const extractSessionIdFromRequest = (req) => {
             if (!req || typeof req.url !== 'string') {
@@ -82,6 +81,33 @@ export default class HomeCall_Back_Service_Signal_Server {
             targetSocket.send(toJson(payload));
         };
 
+        const SIGNAL_TYPES = new Set(['offer', 'answer', 'candidate', 'hangup', 'error']);
+        const sessionQueues = new Map();
+
+        const enqueueSignal = (sessionId, payload) => {
+            if (!sessionId || !payload) {
+                return;
+            }
+            const queue = sessionQueues.get(sessionId) ?? [];
+            queue.push(payload);
+            sessionQueues.set(sessionId, queue);
+            logInfo(`Queued ${payload.type} until peer arrives.`, { sessionId, type: payload.type, queueLength: queue.length });
+        };
+
+        const flushQueuedSignals = (sessionId, socket) => {
+            const queued = sessionQueues.get(sessionId);
+            if (!queued || queued.length === 0) {
+                return;
+            }
+            queued.forEach((payload) => safeSend(socket, payload));
+            sessionQueues.delete(sessionId);
+            logInfo('Flushed queued signals to newly connected participant.', { sessionId, count: queued.length });
+        };
+
+        const clearQueuedSignals = (sessionId) => {
+            sessionQueues.delete(sessionId);
+        };
+
         const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
         const serverLogPath = path.join(repoRoot, 'tmp', 'signal-server.log');
         try {
@@ -103,6 +129,12 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
             const sessionId = sessions.getSessionId(socket);
             sessions.deregister(socket);
+            if (sessionId) {
+                const remainingPeers = sessions.getPeers(sessionId);
+                if (!remainingPeers || remainingPeers.length === 0) {
+                    clearQueuedSignals(sessionId);
+                }
+            }
         };
 
         const registerSession = (socket, sessionId) => {
@@ -116,6 +148,7 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
             sessions.register(socket, key);
             logInfo(`Socket joined session ${key}.`, { sessionId: key });
+            flushQueuedSignals(key, socket);
             return key;
         };
 
@@ -134,11 +167,10 @@ export default class HomeCall_Back_Service_Signal_Server {
                 }
                 payload.candidate = candidate;
             } else if (type === 'hangup') {
-                const initiator = typeof message?.initiator === 'string' ? message.initiator.trim() : '';
-                if (!['caller', 'callee'].includes(initiator)) {
-                    throw new Error('Hangup payload requires initiator equal caller or callee.');
+                const reason = typeof message?.reason === 'string' ? message.reason.trim() : '';
+                if (reason) {
+                    payload.reason = reason;
                 }
-                payload.initiator = initiator;
             } else if (type === 'error') {
                 payload.message = typeof message?.message === 'string' ? message.message : 'Unknown signaling error.';
                 if (typeof message?.code !== 'undefined') {
@@ -169,10 +201,7 @@ export default class HomeCall_Back_Service_Signal_Server {
             }
             const peers = sessions.getPeers(normalizedSession, socket);
             if (!peers || peers.length === 0) {
-                logWarn('No peers available for session, dropping signal.', {
-                    sessionId: normalizedSession,
-                    type
-                });
+                enqueueSignal(normalizedSession, payload);
                 return;
             }
             peers.forEach((targetSocket) => safeSend(targetSocket, payload));

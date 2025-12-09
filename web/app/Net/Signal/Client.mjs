@@ -457,22 +457,24 @@ export default function HomeCall_Web_Net_Signal_Client({ HomeCall_Web_Env_Provid
     send(payload);
   };
 
-  const sendHangupMessage = ({ sessionId, initiator } = {}) => {
+  const sendHangupMessage = ({ sessionId, reason } = {}) => {
     const resolvedSession = normalizeSessionIdValue(sessionId ?? currentSessionId);
-    const normalizedInitiator = typeof initiator === 'string' ? initiator.trim() : '';
-    if (!resolvedSession || !['caller', 'callee'].includes(normalizedInitiator)) {
-      signalLog.warn('Hangup payload invalid.', {
-        sessionId,
-        initiator
-      });
+    if (!resolvedSession) {
+      signalLog.warn('Hangup payload missing sessionId.', { sessionId });
       return;
     }
     const payload = {
       type: 'hangup',
-      sessionId: resolvedSession,
-      initiator: normalizedInitiator
+      sessionId: resolvedSession
     };
-    signalLog.info('Sending hangup message.', { sessionId: resolvedSession, initiator: normalizedInitiator });
+    const reasonText = typeof reason === 'string' ? reason.trim() : '';
+    if (reasonText) {
+      payload.reason = reasonText;
+    }
+    signalLog.info('Sending hangup message.', {
+      sessionId: resolvedSession,
+      reason: payload.reason ?? null
+    });
     send(payload);
   };
 

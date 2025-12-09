@@ -11,11 +11,13 @@
 - Использует `ctx/docs/composition/client/ui/layout/skeleton.md` и `screen-card`, чтобы закрепить `screen-header`, один доминирующий `big-button` и `screen-note`.
 - Заголовок выводит текст `Связист` и слот действий для `header-action-button`, action-зона содержит CTA `Связать` и опциональные вторичные `big-button`.
 - Footer-зона показывает `screen-note` с поддерживающим текстом; статусы показываются через `ctx/docs/composition/client/ui/patterns/toast-layer.md`.
+- При наличии `session`-параметра в URL экран сразу переходит в `waiting`, а `Связать` остаётся опцией для тех, кто хочет создать новый `sessionId`; ни `ready`, ни `waiting` не интерпретируют нажатие как назначение роли.
 
 ## Фрагмент `waiting`
 
 - Применяет тот же скелет, но над ним активируется `ctx/docs/composition/client/ui/layout/overlays/share-link.md`.
 - Overlay выводит приглашение, две `big-button` и подсказку, оставаясь поверх `screen-card` и не перестраивая зоны.
+- Overlay активируется как только существует `sessionId`, а один WebSocket-клиент уже подключился: он сообщает о том, что контекст открыт и ждёт второго участника, независимо от того, кто сформировал ссылку.
 - `screen-note` ограничивается одной строкой и не дублирует тосты; ошибки и подтверждения снова распределяются по `toast-layer`.
 
 ## Фрагмент `active`
@@ -33,3 +35,4 @@
 
 - Все фрагменты используют палитру и отступы `ctx/docs/composition/client/ui/components/style.md`.
 - Overlay`ы шаринга и настроек остаются декларативными, поэтому layout описан отдельно `ctx/docs/composition/client/ui/layout/overlays/share-link.md`.
+- Во всех состояниях `ready → waiting → active` UI только сигнализирует о переходе логического контекста; он не назначает роли или преимущество первому подключившемуся пользователю.

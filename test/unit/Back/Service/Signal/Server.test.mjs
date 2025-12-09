@@ -173,11 +173,11 @@ describe('HomeCall_Back_Service_Signal_Server', () => {
             logAssertDeepEqual(offer, { type: 'offer', sessionId, sdp: 'offer-sdp' }, 'offer delivery');
 
             const hangupToBob = waitForMessage(bob, (msg) => msg.type === 'hangup', 2000, 'hangup');
-            alice.send(JSON.stringify({ type: 'hangup', sessionId, initiator: 'caller' }));
+            alice.send(JSON.stringify({ type: 'hangup', sessionId }));
             fs.appendFileSync('tmp/test-events.log', 'hangup-sent\n');
             const hangup = await hangupToBob;
             fs.appendFileSync('tmp/test-events.log', 'hangup-received\n');
-            logAssertDeepEqual(hangup, { type: 'hangup', sessionId, initiator: 'caller' }, 'hangup delivery');
+            logAssertDeepEqual(hangup, { type: 'hangup', sessionId }, 'hangup delivery');
 
             const answerToAlice = waitForMessage(alice, (msg) => msg.type === 'answer', 2000, 'answer');
             bob.send(JSON.stringify({ type: 'answer', sessionId, sdp: 'answer-sdp' }));
@@ -200,6 +200,84 @@ describe('HomeCall_Back_Service_Signal_Server', () => {
                 },
                 'candidate delivery'
             );
+        } catch (error) {
+            console.error('test execution failed', error);
+            throw error;
+        } finally {
+            if (bob) {
+                await closeSocket(bob).catch(() => {});
+            }
+            if (alice) {
+                await closeSocket(alice).catch(() => {});
+            }
+            if (serverStarted) {
+                await server.stop().catch(() => {});
+            }
+
+            if (originalPort === undefined) {
+                delete process.env.WS_PORT;
+            } else {
+                process.env.WS_PORT = originalPort;
+            }
+            if (originalHost === undefined) {
+                delete process.env.WS_HOST;
+            } else {
+                process.env.WS_HOST = originalHost;
+            }
+        }
+    });
+
+    it('queues signaling payloads until a second participant connects', async () => {
+        const originalPort = process.env.WS_PORT;
+        const originalHost = process.env.WS_HOST;
+        process.env.WS_PORT = '0';
+        process.env.WS_HOST = '0.0.0.0';
+
+        const container = await createTestContainer();
+        container.enableTestMode();
+
+        const mockLogger = Object.freeze({
+            info: () => {},
+            warn: () => {},
+            error: () => {},
+        });
+        container.register('HomeCall_Back_Contract_Logger$', mockLogger);
+
+        const server = await container.get('HomeCall_Back_Service_Signal_Server$');
+        let alice;
+        let bob;
+        let serverStarted = false;
+
+        try {
+            try {
+                await server.start();
+            } catch (error) {
+                if (error?.code === 'EPERM') {
+                    console.warn('Signal server binding not permitted, skipping queued payloads test:', error.message);
+                    return;
+                }
+                throw error;
+            }
+            serverStarted = true;
+            const address = server.getAddress();
+            const port = address.port;
+            const url = `ws://127.0.0.1:${port}/signal`;
+            const sessionId = 'queued';
+
+            alice = new WebSocket(`${url}?sessionId=${sessionId}`);
+            await waitForOpen(alice);
+            fs.appendFileSync('tmp/test-events.log', 'alice-opened\n');
+
+            alice.send(JSON.stringify({ type: 'offer', sessionId, sdp: 'queued-offer' }));
+            fs.appendFileSync('tmp/test-events.log', 'queued-offer-sent\n');
+
+            bob = new WebSocket(`${url}?sessionId=${sessionId}`);
+            const offerToBob = waitForMessage(bob, (msg) => msg.type === 'offer', 2000, 'queued-offer');
+            await waitForOpen(bob);
+            fs.appendFileSync('tmp/test-events.log', 'bob-opened\n');
+            const queuedOffer = await offerToBob;
+            fs.appendFileSync('tmp/test-events.log', 'queued-offer-received\n');
+            logAssertDeepEqual(queuedOffer, { type: 'offer', sessionId, sdp: 'queued-offer' }, 'queued offer delivery');
         } catch (error) {
             console.error('test execution failed', error);
             throw error;

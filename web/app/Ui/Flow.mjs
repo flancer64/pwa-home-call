@@ -22,7 +22,7 @@ export default function HomeCall_Web_Ui_Flow({
     remoteStream: null,
     connectionMessage: '',
     isCallInProgress: false,
-    role: null
+    shouldSendOffer: false
   };
 
   let mediaPreparation = null;
@@ -177,7 +177,7 @@ export default function HomeCall_Web_Ui_Flow({
     context.remoteStream = null;
     context.activeSession = null;
     context.pendingSession = null;
-    context.role = null;
+    context.shouldSendOffer = false;
     stateMachine.reset();
     renderReady();
   };
@@ -189,7 +189,7 @@ export default function HomeCall_Web_Ui_Flow({
     context.activeSession = sessionManager.createSessionId();
     context.pendingSession = null;
     sessionManager.clearSessionFromUrl();
-    context.role = 'recipient';
+    context.shouldSendOffer = true;
     renderActive({ waiting: true });
     startOutgoingCall();
   };
@@ -224,7 +224,7 @@ export default function HomeCall_Web_Ui_Flow({
     return mediaPreparation;
   };
 
-  const beginCallSession = async ({ sessionId, role }) => {
+  const beginCallSession = async ({ sessionId, shouldSendOffer }) => {
     if (!sessionId) {
       toastNotifier.error('Сессия не указана.');
       renderReady();
@@ -233,8 +233,8 @@ export default function HomeCall_Web_Ui_Flow({
     if (context.isCallInProgress) {
       return;
     }
-    flowLog('info', 'Initiating call session.', { sessionId, role });
-    context.role = role;
+    flowLog('info', 'Initiating call session.', { sessionId, shouldSendOffer });
+    context.shouldSendOffer = Boolean(shouldSendOffer);
     context.isCallInProgress = true;
     context.activeSession = sessionId;
     context.connectionMessage = '';
@@ -253,7 +253,7 @@ export default function HomeCall_Web_Ui_Flow({
       endCall('Не удалось подключиться к серверу сигналинга.');
       return;
     }
-    if (role === 'initiator') {
+    if (context.shouldSendOffer) {
       try {
         await peer.start();
       } catch (error) {
@@ -263,7 +263,7 @@ export default function HomeCall_Web_Ui_Flow({
     }
   };
 
-  const startOutgoingCall = () => beginCallSession({ sessionId: context.activeSession, role: 'recipient' });
+  const startOutgoingCall = () => beginCallSession({ sessionId: context.activeSession, shouldSendOffer: true });
 
   const startIncomingCall = async (sessionId) => {
     if (!sessionId || context.isCallInProgress) {
@@ -272,7 +272,7 @@ export default function HomeCall_Web_Ui_Flow({
     context.pendingSession = null;
     sessionManager.clearSessionFromUrl();
     renderActive({ waiting: true });
-    await beginCallSession({ sessionId, role: 'initiator' });
+    await beginCallSession({ sessionId, shouldSendOffer: false });
   };
 
   const updateRemoteStream = (stream) => {
@@ -302,8 +302,12 @@ export default function HomeCall_Web_Ui_Flow({
     flowLog('info', 'Ending call session.', { message, sessionId: context.activeSession });
     const sessionId = context.activeSession;
     if (!skipSignalHangup && sessionId) {
-      const initiator = context.role === 'initiator' ? 'caller' : 'callee';
-      signal.sendHangup({ sessionId, initiator });
+      const payload = { sessionId };
+      const reasonText = typeof message === 'string' ? message.trim() : '';
+      if (reasonText) {
+        payload.reason = reasonText;
+      }
+      signal.sendHangup(payload);
     }
     peer.end();
     signal.disconnect();
@@ -311,7 +315,7 @@ export default function HomeCall_Web_Ui_Flow({
     context.connectionMessage = message;
     context.remoteStream = null;
     context.activeSession = null;
-    context.role = null;
+    context.shouldSendOffer = false;
     media.stopLocalStream();
     renderEnded();
   };
@@ -389,11 +393,15 @@ export default function HomeCall_Web_Ui_Flow({
     if (!data?.sessionId || data.sessionId !== context.activeSession) {
       return;
     }
+    const hangupMessage =
+      typeof data?.reason === 'string' && data.reason.trim().length > 0
+        ? data.reason.trim()
+        : 'Собеседник завершил звонок.';
     flowLog('info', 'Remote hangup received.', {
       sessionId: data.sessionId,
-      initiator: data.initiator ?? null
+      reason: data.reason ?? null
     });
-    endCall('Собеседник завершил звонок.', true);
+    endCall(hangupMessage, true);
   };
 
   const configurePeer = () => {
@@ -469,7 +477,7 @@ export default function HomeCall_Web_Ui_Flow({
     context.remoteStream = null;
     context.activeSession = null;
     context.isCallInProgress = false;
-    context.role = null;
+    context.shouldSendOffer = false;
     stateMachine.reset();
     renderReady();
   };
